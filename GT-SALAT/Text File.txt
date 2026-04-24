@@ -1,0 +1,70 @@
+
+claude --resume a64473a4-0525-4945-bc49-50979c0e20be
+
+
+● كل شيء يعمل. ملخص ما تم تنفيذه:
+
+  ---
+  الميزات المُضافة:
+                                                                                                                                                                           ─
+  1. الشريط الجانبي — يمين
+  تم إصلاح التخطيط في App.tsx من flexDirection: 'row-reverse' إلى flexDirection: 'row' — الـRTL الموروث من body كان يعكس وضع الشريط فيظهر يساراً بدل يميناً.
+
+  2. التاريخ الهجري بأرقام مغربية + التاريخ الميلادي
+  - TopBar.tsx: أرقام هجرية مغربية (0-9) بدل المشرقية، مع دالة toWesternDigits() ضماناً للتحويل
+  - إذا جُلب التاأيخ الهجرية ن APIةAlAdhan يُعرض مباشرةً (أدق)، وإلا الحساب المحلي     ن       يل                                                                             ─
+  - التاريخ الميلاديايظجر أسفلAالهجري     يُ     ب       د      ل    ح      م
+
+  3. دعاء بعد الأذان
+  - نُسخ الملف → resources/audio/dua_after_adhan.ogg
+  - audio.ts: دالة play() تدعم callback onFinished — الدعاء يُش غَّ  ل تلقائياً عند انتهاء الأذان                                                                              ─
+  - إعداد في Settings + مفتاح تفعيل                                         ع   ا      ا
+
+  4. أذكار وأدعية بعد الصلاة
+  - نُسخ الملف → resources/audio/post_prayer_dhikr.ogg
+  - يُشخغَّ  م بعد N دقيقة من دخول وقت الصلاة (قابل للضبط، افتراضي 20 دقيقة)                                                                                                  ─
+  - إعداد في Settings + مفتاح تفعيل
+
+  5. مواقيت الصلاة — فرز أسبوعي/نصف شهري/شهري
+  - Timetable.tsx: أزرار اختيار العرض (أسبوعي 7 أيام / نصف شهري 14 يوماً / شهري)
+  - يجلب شهرين عند الحاجة (إذا امتد النطاق لشهر مجاور)                  / ش                                                                                                ─
+
+  6. ضبط تلقائي لطريقة الحساب حسب الموقع
+  - prayer.ts: دالة suggestMethodByCountry() تغطي 17 دولة عربية وإسلامية
+  - عند اكتشاف الموقع تلقائياً: تُطByبَّ  ق الطريقة المقترحة فوراً في Settings و Welcome
+
+✻ Sautéed for 9m 40s
+
+❯ /init
+
+  Read 1 file, listed 1 directory (ctrl+o to expand)
+
+● Write(CLAUDE.md)
+  ⎿  Wrote 101 lines to CLAUDE.md
+       1 # CLAUDE.md
+       2
+       3 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+       4
+       5 ## Commands
+       6
+       7 ```bash
+       8 # التطوير (Vite + Electron مع hot-reload)
+       9 npm run dev
+      10 # أو عبر السكربت
+     … +93 lines (ctrl+o to expand)
+
+● تم إنشاء CLAUDE.md. ما تضمّنه:    )
+
+  الأوامر — dev، typecheck، build بأشكاله الثلاثة، مع تنبيه بغياب linter وtests.
+
+  المعمارية (الأجزاء التي تحتاج قراءة ملفات متعددة لفهمها):
+
+  - جسر IPC — التدفق الثلاثي: preload → ipc → renderer، وكيفية إضافة ميزات جديدة
+  - ازدواجية مصادر المواقيت — AlAdhan API مع كاش، ثم الحساب المحلي كبديل
+  - تسلسل الصوت — نمط onFinished callback للأذان → الدعاء
+  - المجدول — دورة 30 ثانية وآلية تتبع الإعلانات
+  - RTL + Flexbox — لماذا row لا row-reverse مع direction: rtl
+  - التاريخ الهجري — منطق toWesternDigits وأولوية بيانات API
+  - CSP — مُزالة من HTML، مُط  بَّ  قة ديناميكياً في main.ts
+  - resources vs src/assets — الفرق في آلية التحزيم والوصول
+  - الإعدادات — التزامن اليدوي المطلوب بين ملفَي types

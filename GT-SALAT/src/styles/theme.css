@@ -1,0 +1,80 @@
+:root {
+  /* Teal / Primary */
+  --teal-400: #2ec7c7;
+  --teal-500: #00bcd4;
+  --teal-600: #00acc1;
+
+  /* Gold / Accent */
+  --gold-500: #f5c518;
+  --gold-600: #d4a017;
+
+  /* Neutral */
+  --neutral-950: #0a0c10;
+  --neutral-900: #0f1117;
+  --neutral-850: #141720;
+  --neutral-800: #1a1e2e;
+  --neutral-750: #1e2436;
+  --neutral-700: #252b40;
+  --neutral-600: #2e3650;
+  --neutral-500: #4a5580;
+  --neutral-400: #6b7699;
+  --neutral-300: #9ba8c0;
+  --neutral-200: #c8d0e0;
+  --neutral-100: #e4e8f0;
+
+  /* Semantic */
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-error: #f44336;
+
+  /* Prayer-specific */
+  --color-fajr: #7c9cbf;
+  --color-sunrise: #f5c518;
+  --color-dhuhr: #00bcd4;
+  --color-asr: #ff9800;
+  --color-maghrib: #e57373;
+  --color-isha: #9575cd;
+
+  /* Aliases */
+  --bg-base: var(--neutral-900);
+  --bg-panel: var(--neutral-850);
+  --bg-card: var(--neutral-800);
+  --bg-elevated: var(--neutral-750);
+  --bg-hover: var(--neutral-700);
+  --border-subtle: var(--neutral-600);
+  --fg-primary: var(--neutral-100);
+  --fg-secondary: var(--neutral-300);
+  --fg-muted: var(--neutral-400);
+  --fg-brand: var(--teal-400);
+  --fg-accent: var(--gold-500);
+  --fg-terminal: #4dd0e1;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-glow-teal: 0 0 20px rgba(0, 188, 212, 0.25);
+  --shadow-glow-gold: 0 0 20px rgba(212, 160, 23, 0.3);
+
+  --font-arabic: 'Ubuntu Arabic', 'Segoe UI', sans-serif;
+  --font-display: 'Amiri Quran', 'Amiri', serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+}
+
+/* Light theme override */
+:root[data-theme='light'] {
+  --bg-base: #f7f9fc;
+  --bg-panel: #ffffff;
+  --bg-card: #ffffff;
+  --bg-elevated: #f0f4fa;
+  --bg-hover: #e8eef5;
+  --border-subtle: #d8dee9;
+  --fg-primary: #1a1e2e;
+  --fg-secondary: #4a5580;
+  --fg-muted: #6b7699;
+  --fg-terminal: #006064;
+}
