@@ -3,1303 +3,1681 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT-Salat - مواقيت الصلاة والتقويم الإسلامي</title>
-    <meta name="description" content="تطبيق مواقيت الصلاة والتقويم الإسلامي مع التقويم الهجري والمناسبات الدينية">
+    <title>GT-SALAT — الجيل الجديد من GT-salat-dikr</title>
+    <meta name="description" content="GT-SALAT — تطبيق سطح مكتب متكامل لمواقيت الصلاة والأذكار على غنو/لينكس. الواجهة الرسومية الحديثة مع 22 طريقة حسابية وإشعارات وأذان مخصص وتكامل مع الطرفية.">
     <meta name="theme-color" content="#1a5e63">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="GT-Salat">
-    
-    <!-- Microsoft Tiles -->
-    <meta name="msapplication-TileColor" content="#1a5e63">
-    <meta name="msapplication-TileImage" content="icons/icon-144x144.png">
-    
+    <meta name="color-scheme" content="dark light">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="GT-SALAT — الجيل الجديد من GT-salat-dikr">
+    <meta property="og:description" content="تطبيق سطح مكتب متكامل لمواقيت الصلاة والأذكار على غنو/لينكس. Electron + React + TypeScript.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salehgnutux.github.io/GT-SALAT/">
+    <meta property="og:image" content="https://salehgnutux.github.io/GT-SALAT/icons/icon-192x192.png">
+
+    <!-- Favicon (inline SVG mosque icon) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='4' width='5' height='52' rx='2' fill='%231a5e63'/%3E%3Ccircle cx='8.5' cy='4' r='3.5' fill='%234cd7d0'/%3E%3Crect x='14' y='30' width='36' height='26' rx='3' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='18' ry='15' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='10' ry='8' fill='%234cd7d0'/%3E%3Crect x='26' y='40' width='12' height='16' rx='6' fill='%230d3235'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='4' width='5' height='52' rx='2' fill='%231a5e63'/%3E%3Ccircle cx='8.5' cy='4' r='3.5' fill='%234cd7d0'/%3E%3Crect x='14' y='30' width='36' height='26' rx='3' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='18' ry='15' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='10' ry='8' fill='%234cd7d0'/%3E%3Crect x='26' y='40' width='12' height='16' rx='6' fill='%230d3235'/%3E%3C/svg%3E">
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        :root {
-            --primary-color: #1a5e63;
-            --secondary-color: #4cd7d0;
-            --accent-color: #2a9d8f;
-            --dark-color: #0d3235;
-            --light-color: #e0f2f1;
-            --text-color: #333;
-            --prayer-time-bg: rgba(255, 255, 255, 0.1);
+        /* ========== FONT FACES ========== */
+        @font-face {
+            font-family: 'Ubuntu Arabic';
+            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/Ubuntu_Arabic_Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
         }
 
-        * {
+        @font-face {
+            font-family: 'Ubuntu Arabic';
+            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/Ubuntu_Arabic_Regular.otf') format('opentype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Ubuntu Arabic';
+            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/Ubuntu_Arabic_Regular.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Amiri Quran';
+            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/amiri-quran.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* ========== CSS VARIABLES ========== */
+        :root {
+            --bg-primary: #f6f8f7;
+            --bg-secondary: #eaf0ef;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f9fbfb;
+            --bg-glass: rgba(255, 255, 255, 0.75);
+            --text-primary: #1a2e30;
+            --text-secondary: #3d5558;
+            --text-muted: #6b8084;
+            --accent-primary: #1a5e63;
+            --accent-secondary: #2a9d8f;
+            --accent-glow: #4cd7d0;
+            --border-subtle: rgba(26, 94, 99, 0.12);
+            --border-card: rgba(26, 94, 99, 0.08);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-glow: 0 0 60px rgba(76, 215, 208, 0.25);
+            --gradient-hero: linear-gradient(160deg, #e8f5f4 0%, #d4ece9 25%, #e0f2f1 50%, #f0f7f6 75%, #f6f8f7 100%);
+            --gradient-accent: linear-gradient(135deg, #1a5e63 0%, #2a9d8f 50%, #4cd7d0 100%);
+            --pattern-opacity: 0.03;
+            --overlay-opacity: 0.4;
+            --badge-bg: rgba(26, 94, 99, 0.08);
+            --badge-text: #1a5e63;
+            --divider: rgba(26, 94, 99, 0.1);
+            --code-bg: #f0f4f3;
+            --code-text: #1a5e63;
+            --table-stripe: rgba(26, 94, 99, 0.03);
+            --scrollbar-thumb: #c4d4d2;
+            --scrollbar-track: #eaf0ef;
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0c1a1c;
+                --bg-secondary: #0f2022;
+                --bg-card: #132b2e;
+                --bg-card-hover: #173235;
+                --bg-glass: rgba(19, 43, 46, 0.8);
+                --text-primary: #e4f0ef;
+                --text-secondary: #c0d5d3;
+                --text-muted: #8aa8a4;
+                --accent-primary: #4cd7d0;
+                --accent-secondary: #2a9d8f;
+                --accent-glow: #4cd7d0;
+                --border-subtle: rgba(76, 215, 208, 0.15);
+                --border-card: rgba(76, 215, 208, 0.1);
+                --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+                --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+                --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.35);
+                --shadow-glow: 0 0 80px rgba(76, 215, 208, 0.35);
+                --gradient-hero: linear-gradient(160deg, #0c1a1c 0%, #0f2022 30%, #132b2e 60%, #0c1a1c 100%);
+                --gradient-accent: linear-gradient(135deg, #4cd7d0 0%, #2a9d8f 50%, #1a5e63 100%);
+                --pattern-opacity: 0.05;
+                --overlay-opacity: 0.55;
+                --badge-bg: rgba(76, 215, 208, 0.12);
+                --badge-text: #4cd7d0;
+                --divider: rgba(76, 215, 208, 0.12);
+                --code-bg: #0f2022;
+                --code-text: #4cd7d0;
+                --table-stripe: rgba(76, 215, 208, 0.04);
+                --scrollbar-thumb: #2a4a4d;
+                --scrollbar-track: #0f2022;
+            }
+        }
+
+        /* Manual dark mode override */
+        html.dark-mode {
+            --bg-primary: #0c1a1c;
+            --bg-secondary: #0f2022;
+            --bg-card: #132b2e;
+            --bg-card-hover: #173235;
+            --bg-glass: rgba(19, 43, 46, 0.8);
+            --text-primary: #e4f0ef;
+            --text-secondary: #c0d5d3;
+            --text-muted: #8aa8a4;
+            --accent-primary: #4cd7d0;
+            --accent-secondary: #2a9d8f;
+            --accent-glow: #4cd7d0;
+            --border-subtle: rgba(76, 215, 208, 0.15);
+            --border-card: rgba(76, 215, 208, 0.1);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.35);
+            --shadow-glow: 0 0 80px rgba(76, 215, 208, 0.35);
+            --gradient-hero: linear-gradient(160deg, #0c1a1c 0%, #0f2022 30%, #132b2e 60%, #0c1a1c 100%);
+            --gradient-accent: linear-gradient(135deg, #4cd7d0 0%, #2a9d8f 50%, #1a5e63 100%);
+            --pattern-opacity: 0.05;
+            --overlay-opacity: 0.55;
+            --badge-bg: rgba(76, 215, 208, 0.12);
+            --badge-text: #4cd7d0;
+            --divider: rgba(76, 215, 208, 0.12);
+            --code-bg: #0f2022;
+            --code-text: #4cd7d0;
+            --table-stripe: rgba(76, 215, 208, 0.04);
+            --scrollbar-thumb: #2a4a4d;
+            --scrollbar-track: #0f2022;
+        }
+
+        /* Manual light mode override */
+        html.light-mode {
+            --bg-primary: #f6f8f7;
+            --bg-secondary: #eaf0ef;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f9fbfb;
+            --bg-glass: rgba(255, 255, 255, 0.75);
+            --text-primary: #1a2e30;
+            --text-secondary: #3d5558;
+            --text-muted: #6b8084;
+            --accent-primary: #1a5e63;
+            --accent-secondary: #2a9d8f;
+            --accent-glow: #4cd7d0;
+            --border-subtle: rgba(26, 94, 99, 0.12);
+            --border-card: rgba(26, 94, 99, 0.08);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-glow: 0 0 60px rgba(76, 215, 208, 0.25);
+            --gradient-hero: linear-gradient(160deg, #e8f5f4 0%, #d4ece9 25%, #e0f2f1 50%, #f0f7f6 75%, #f6f8f7 100%);
+            --gradient-accent: linear-gradient(135deg, #1a5e63 0%, #2a9d8f 50%, #4cd7d0 100%);
+            --pattern-opacity: 0.03;
+            --overlay-opacity: 0.4;
+            --badge-bg: rgba(26, 94, 99, 0.08);
+            --badge-text: #1a5e63;
+            --divider: rgba(26, 94, 99, 0.1);
+            --code-bg: #f0f4f3;
+            --code-text: #1a5e63;
+            --table-stripe: rgba(26, 94, 99, 0.03);
+            --scrollbar-thumb: #c4d4d2;
+            --scrollbar-track: #eaf0ef;
+        }
+
+        /* ========== GLOBAL STYLES ========== */
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 4px;
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
-            color: var(--light-color);
+            font-family: 'Ubuntu Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.75;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
             min-height: 100vh;
-            padding: 20px;
-            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .container {
+        /* Geometric background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: var(--pattern-opacity);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M60 0 L75 25 L100 40 L75 55 L60 80 L45 55 L20 40 L45 25 Z' fill='none' stroke='%231a5e63' stroke-width='0.8'/%3E%3Ccircle cx='60' cy='40' r='3' fill='%231a5e63'/%3E%3Ccircle cx='60' cy='80' r='2' fill='%231a5e63'/%3E%3Ccircle cx='20' cy='40' r='2' fill='%231a5e63'/%3E%3Ccircle cx='100' cy='40' r='2' fill='%231a5e63'/%3E%3C/svg%3E");
+            background-size: 120px 120px;
+            transition: opacity 0.4s ease;
+        }
+
+        /* ========== NAVIGATION ========== */
+        .site-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 24px;
+            transition: all 0.4s ease;
+        }
+
+        .nav-inner {
             max-width: 1200px;
             margin: 0 auto;
-        }
-
-        /* Install Prompt */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            color: var(--dark-color);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 1000;
-            transform: translateY(150%);
-            transition: transform 0.3s ease;
+            height: 64px;
         }
 
-        .install-prompt.show {
-            transform: translateY(0);
-        }
-
-        .install-prompt p {
-            margin: 0;
-            flex: 1;
-            font-weight: 500;
-        }
-
-        .install-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .install-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .install-btn.primary {
-            background: var(--accent-color);
-            color: white;
-        }
-
-        .install-btn.secondary {
-            background: rgba(0, 0, 0, 0.1);
-            color: var(--dark-color);
-        }
-
-        /* Language Switcher */
-        .language-switcher {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            gap: 5px;
-            z-index: 100;
-        }
-
-        .lang-btn {
-            padding: 8px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light-color);
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .lang-btn.active {
-            background: var(--secondary-color);
-            color: var(--dark-color);
-            border-color: var(--secondary-color);
-        }
-
-        /* Header Styles */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .logo {
+        .nav-brand {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
         }
 
-        .logo i {
-            font-size: 2.5rem;
-            color: var(--secondary-color);
-        }
-
-        .logo h1 {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .logo span {
-            color: var(--secondary-color);
-        }
-
-        /* Main Content Layout */
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        /* Prayer Times Section */
-        .prayer-times {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .section-title {
-            color: var(--secondary-color);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 1.5rem;
-        }
-
-        .current-date {
-            text-align: center;
-            margin-bottom: 25px;
-            background: var(--prayer-time-bg);
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .hijri-date {
-            font-size: 1.2rem;
-            color: var(--secondary-color);
-            margin-top: 5px;
-        }
-
-        .prayer-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .prayer-card {
-            background: var(--prayer-time-bg);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .prayer-card.active {
-            background: rgba(76, 215, 208, 0.2);
-            border: 1px solid var(--secondary-color);
-        }
-
-        .prayer-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .prayer-name {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: var(--secondary-color);
-        }
-
-        .prayer-time {
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
-
-        .countdown {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            background: var(--prayer-time-bg);
-            border-radius: 10px;
-        }
-
-        .countdown-text {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-
-        .countdown-time {
+        .nav-brand i {
             font-size: 1.8rem;
-            color: var(--secondary-color);
+            color: var(--accent-secondary);
+            transition: color 0.3s;
+        }
+
+        .nav-brand span {
+            font-size: 1.3rem;
             font-weight: 700;
+            letter-spacing: -0.3px;
         }
 
-        /* Calendar Section */
-        .calendar-section {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            height: fit-content;
+        .nav-brand span em {
+            font-style: normal;
+            color: var(--accent-glow);
         }
 
-        .calendar {
-            background: var(--prayer-time-bg);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .calendar-header {
+        .nav-links {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            background: var(--accent-color);
+            gap: 8px;
+            list-style: none;
         }
 
-        .calendar-header button {
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-primary);
+            background: var(--badge-bg);
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid var(--border-subtle);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent-glow);
+            box-shadow: var(--shadow-glow);
+            transform: rotate(15deg);
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.9) rotate(30deg);
+        }
+
+        .theme-toggle .icon-sun,
+        .theme-toggle .icon-moon {
+            position: absolute;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* In dark mode: show sun, hide moon */
+        html:not(.dark-mode):not(.light-mode) .theme-toggle .icon-sun,
+        html.light-mode .theme-toggle .icon-sun {
+            opacity: 0;
+            transform: translateY(30px) rotate(-90deg);
+        }
+
+        html:not(.dark-mode):not(.light-mode) .theme-toggle .icon-moon,
+        html.light-mode .theme-toggle .icon-moon {
+            opacity: 1;
+            transform: translateY(0) rotate(0);
+        }
+
+        html.dark-mode .theme-toggle .icon-sun,
+        html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-sun {
+            opacity: 1;
+            transform: translateY(0) rotate(0);
+        }
+
+        html.dark-mode .theme-toggle .icon-moon {
+            opacity: 0;
+            transform: translateY(-30px) rotate(90deg);
+        }
+
+        /* System preference (no manual override) - show based on actual system */
+        @media (prefers-color-scheme: dark) {
+            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-sun {
+                opacity: 1;
+                transform: translateY(0) rotate(0);
+            }
+            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-moon {
+                opacity: 0;
+                transform: translateY(-30px) rotate(90deg);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-sun {
+                opacity: 0;
+                transform: translateY(30px) rotate(-90deg);
+            }
+            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-moon {
+                opacity: 1;
+                transform: translateY(0) rotate(0);
+            }
+        }
+
+        /* Mobile nav */
+        .nav-toggle-mobile {
+            display: none;
             background: none;
             border: none;
-            color: white;
-            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-size: 1.5rem;
             cursor: pointer;
+            padding: 8px;
         }
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            padding: 15px;
-        }
-
-        .calendar-cell {
-            text-align: center;
-            padding: 10px 5px;
-            position: relative;
-            min-height: 60px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .calendar-cell.day-header {
-            font-weight: 700;
-            color: var(--secondary-color);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 15px;
-        }
-
-        .calendar-cell.today {
-            background: var(--secondary-color);
-            color: var(--dark-color);
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* ========== CONTAINER ========== */
+        .container {
+            max-width: 1100px;
             margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
         }
 
-        .hijri-day {
-            font-size: 0.8rem;
-            color: var(--secondary-color);
-            margin-top: 3px;
-        }
-
-        .event-indicator {
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 5px;
-            height: 5px;
-            background: var(--secondary-color);
-            border-radius: 50%;
-        }
-
-        .event-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.7rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            z-index: 10;
-        }
-
-        .calendar-cell:hover .event-tooltip {
-            opacity: 1;
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 500;
-            color: var(--secondary-color);
-        }
-
-        .location-settings {
-            display: flex;
-            gap: 10px;
-        }
-
-        input.form-control {
-            flex: 1;
-            padding: 12px 15px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.12);
-            color: var(--light-color);
-            font-size: 16px;
-        }
-
-        input.form-control::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        button.location-auto {
-            padding: 12px 18px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.3s;
-            white-space: nowrap;
-        }
-
-        button.location-auto:hover {
-            background: #21867a;
-        }
-
-        select.form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.12);
-            color: var(--light-color);
-            font-size: 16px;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12L8 12z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 15px;
-        }
-
-        select.form-control option {
-            background: var(--primary-color);
-            color: var(--light-color);
-        }
-
-        .actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        button {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        button.save {
-            background: var(--secondary-color);
-            color: var(--dark-color);
-        }
-
-        button.save:hover {
-            background: #3bc2bb;
-        }
-
-        button.cancel {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--light-color);
-        }
-
-        button.cancel:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* Footer */
-        footer {
+        /* ========== HERO SECTION ========== */
+        .hero {
+            position: relative;
+            padding: 80px 0 70px;
             text-align: center;
-            padding: 20px 0;
-            margin-top: 40px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
+            background: var(--gradient-hero);
+            overflow: hidden;
+            transition: background 0.4s ease;
         }
 
-        /* Responsive Design */
-        @media (max-width: 900px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-
-            .location-settings {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .prayer-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            header {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-            }
-
-            .logo {
-                justify-content: center;
-            }
-
-            .language-switcher {
-                position: relative;
-                top: 0;
-                left: 0;
-                justify-content: center;
-                margin-bottom: 15px;
-            }
-            
-            .calendar-cell {
-                min-height: 50px;
-                padding: 5px 2px;
-            }
-        }
-
-        /* RTL/LTR Support */
-        body[dir="rtl"] {
-            text-align: right;
-        }
-
-        body[dir="ltr"] {
-            text-align: left;
-        }
-
-        body[dir="ltr"] .language-switcher {
-            right: 20px;
-            left: auto;
-        }
-
-        body[dir="ltr"] .calendar-header button:first-child {
-            transform: rotate(180deg);
-        }
-
-        body[dir="ltr"] .calendar-header button:last-child {
-            transform: rotate(180deg);
-        }
-
-        body[dir="ltr"] select.form-control {
-            background-position: left 15px center;
-        }
-        
-        /* Sacred Month Indicator */
-        .sacred-month {
-            border: 1px solid var(--secondary-color) !important;
-        }
-        
-        /* Loading Animation */
-        .loading {
-            opacity: 0.7;
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(76, 215, 208, 0.08) 0%, transparent 70%);
             pointer-events: none;
+            animation: heroPulse 8s ease-in-out infinite;
         }
-        
-        .loading::after {
-            content: "";
+
+        @keyframes heroPulse {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 1;
+            }
+        }
+
+        .hero-icon {
+            position: relative;
+            display: inline-block;
+            font-size: 4.5rem;
+            color: var(--accent-secondary);
+            margin-bottom: 20px;
+            animation: floatIcon 5s ease-in-out infinite;
+            filter: drop-shadow(0 8px 24px rgba(76, 215, 208, 0.4));
+        }
+
+        @keyframes floatIcon {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            35% {
+                transform: translateY(-18px);
+            }
+            70% {
+                transform: translateY(-6px);
+            }
+        }
+
+        .hero-glow {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid var(--secondary-color);
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            border-right-color: transparent;
-            animation: spin 1s linear infinite;
+            background: radial-gradient(circle, rgba(76, 215, 208, 0.35) 0%, transparent 70%);
+            pointer-events: none;
+            animation: glowPulse 4s ease-in-out infinite;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+
+        @keyframes glowPulse {
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.4);
+                opacity: 1;
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+            position: relative;
+            line-height: 1.2;
+        }
+
+        .hero h1 .gt {
+            color: var(--text-primary);
+        }
+
+        .hero h1 .salat {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .hero-tagline {
+            font-size: 1.35rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .hero-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-quran {
+            font-family: 'Amiri Quran', 'Traditional Arabic', serif;
+            font-size: 1.5rem;
+            color: var(--accent-secondary);
+            margin-bottom: 28px;
+            line-height: 2;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: #ffffff;
+            box-shadow: 0 6px 24px rgba(26, 94, 99, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(26, 94, 99, 0.5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent-primary);
+            border: 2px solid var(--border-subtle);
+        }
+
+        .btn-outline:hover {
+            background: var(--badge-bg);
+            border-color: var(--accent-glow);
+            transform: translateY(-3px);
+        }
+
+        .btn-github {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border-card);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-github:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+            border-color: var(--accent-glow);
+        }
+
+        /* ========== SECTION STYLES ========== */
+        .section {
+            padding: 80px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 6px 18px;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        .section-title {
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* ========== FEATURES GRID ========== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 18px;
+            padding: 32px 28px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at top right, rgba(76, 215, 208, 0.08), transparent 70%);
+            pointer-events: none;
+            transition: opacity 0.4s;
+            opacity: 0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-glow);
+            background: var(--bg-card-hover);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: var(--badge-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--accent-secondary);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: var(--accent-secondary);
+            color: #fff;
+            transform: scale(1.08);
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* ========== DOWNLOAD SECTION ========== */
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .download-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-card);
+            border-radius: 18px;
+            padding: 32px 28px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-glow);
+        }
+
+        .download-card.recommended {
+            border-color: var(--accent-glow);
+            box-shadow: var(--shadow-glow), var(--shadow-md);
+        }
+
+        .download-card.recommended::after {
+            content: 'موصى به';
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: var(--gradient-accent);
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .download-icon {
+            font-size: 2.8rem;
+            color: var(--accent-secondary);
+            margin-bottom: 16px;
+        }
+
+        .download-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .download-card .download-distros {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+            min-height: 40px;
+        }
+
+        .download-card .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .download-card .file-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+            direction: ltr;
+            text-align: center;
+        }
+
+        .download-card .file-info code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--code-text);
+        }
+
+        /* ========== COMPARISON TABLE ========== */
+        .comparison-wrapper {
+            overflow-x: auto;
+            border-radius: 18px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow-md);
+            background: var(--bg-card);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        .comparison-table thead th {
+            background: var(--bg-secondary);
+            padding: 16px 20px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-subtle);
+        }
+
+        .comparison-table thead th:first-child {
+            text-align: right;
+            border-radius: 0 18px 0 0;
+        }
+
+        .comparison-table thead th:last-child {
+            border-radius: 18px 0 0 0;
+            color: var(--accent-glow);
+        }
+
+        .comparison-table tbody td {
+            padding: 14px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--divider);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .comparison-table tbody td:first-child {
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .comparison-table tbody tr:hover td {
+            background: var(--table-stripe);
+        }
+
+        .comparison-table tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 18px;
+        }
+
+        .comparison-table tbody tr:last-child td:last-child {
+            border-radius: 0 0 18px 0;
+        }
+
+        .check-icon {
+            color: #2a9d8f;
+            font-weight: 700;
+        }
+
+        .star-icon {
+            color: #4cd7d0;
+        }
+
+        /* ========== SYSTEM REQUIREMENTS ========== */
+        .requirements-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 18px;
+            padding: 32px 28px;
+            box-shadow: var(--shadow-sm);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .requirements-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .req-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .req-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            transition: background 0.3s;
+        }
+
+        .req-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .req-item i {
+            color: var(--accent-secondary);
+            font-size: 1.1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .req-item .req-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .req-item .req-value {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ========== INSTALL NOTES ========== */
+        .install-notes {
+            background: var(--code-bg);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-top: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid var(--border-card);
+            direction: ltr;
+            text-align: left;
+        }
+
+        .install-notes h4 {
+            color: var(--accent-primary);
+            margin-bottom: 12px;
+            font-size: 1rem;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .install-notes pre {
+            background: var(--bg-card);
+            padding: 16px 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            color: var(--code-text);
+            border: 1px solid var(--border-card);
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ========== FOOTER ========== */
+        .site-footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-subtle);
+            padding: 40px 0;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: background 0.4s ease;
+        }
+
+        .site-footer .footer-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .site-footer .footer-brand i {
+            color: var(--accent-secondary);
+        }
+
+        .site-footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .site-footer .footer-links {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .site-footer .footer-links a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .site-footer .footer-links a:hover {
+            color: var(--accent-glow);
+        }
+
+        .footer-credits {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--divider);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer-credits strong {
+            color: var(--accent-primary);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 64px;
+                right: 0;
+                left: 0;
+                background: var(--bg-glass);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 16px 24px;
+                border-bottom: 1px solid var(--border-subtle);
+                gap: 4px;
+                box-shadow: var(--shadow-lg);
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-toggle-mobile {
+                display: block;
+            }
+
+            .hero {
+                padding: 50px 0 45px;
+            }
+
+            .hero-icon {
+                font-size: 3rem;
+            }
+
+            .hero-glow {
+                width: 100px;
+                height: 100px;
+            }
+
+            .section {
+                padding: 50px 0;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .download-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                max-width: 320px;
+            }
+
+            .comparison-table thead th,
+            .comparison-table tbody td {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+
+            .nav-inner {
+                height: 56px;
+            }
+
+            .requirements-card {
+                padding: 20px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 14px;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-quran {
+                font-size: 1.2rem;
+            }
+
+            .feature-card {
+                padding: 22px 18px;
+            }
+
+            .download-card {
+                padding: 22px 18px;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Staggered animation delays for feature cards */
+        .feature-card:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+        .feature-card:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+        .feature-card:nth-child(3) {
+            transition-delay: 0.15s;
+        }
+        .feature-card:nth-child(4) {
+            transition-delay: 0.2s;
+        }
+        .feature-card:nth-child(5) {
+            transition-delay: 0.25s;
+        }
+        .feature-card:nth-child(6) {
+            transition-delay: 0.3s;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Install Prompt -->
-        <div class="install-prompt" id="install-prompt">
-            <p data-ar="تثبيت التطبيق للوصول السريع" data-en="Install app for quick access">تثبيت التطبيق للوصول السريع</p>
-            <div class="install-buttons">
-                <button class="install-btn secondary" id="install-cancel" data-ar="لاحقاً" data-en="Later">لاحقاً</button>
-                <button class="install-btn primary" id="install-confirm" data-ar="تثبيت" data-en="Install">تثبيت</button>
-            </div>
-        </div>
-
-        <div class="language-switcher">
-            <button class="lang-btn active" id="lang-ar">AR</button>
-            <button class="lang-btn" id="lang-en">EN</button>
-        </div>
-
-        <header>
-            <div class="logo">
-                <i class="fas fa-mosque"></i>
-                <h1>GT-<span>Salat</span></h1>
-            </div>
-            <div class="current-date">
-                <div id="gregorian-date">جاري التحميل...</div>
-                <div id="hijri-date" class="hijri-date">جاري التحميل...</div>
-            </div>
-        </header>
-
-        <div class="main-content">
-            <section class="prayer-times">
-                <h2 class="section-title" data-ar="مواقيت الصلاة" data-en="Prayer Times">مواقيت الصلاة</h2>
-
-                <div class="prayer-cards">
-                    <div class="prayer-card">
-                        <div class="prayer-name" data-ar="الفجر" data-en="Fajr">الفجر</div>
-                        <div class="prayer-time">--:--</div>
-                    </div>
-                    <div class="prayer-card">
-                        <div class="prayer-name" data-ar="الظهر" data-en="Dhuhr">الظهر</div>
-                        <div class="prayer-time">--:--</div>
-                    </div>
-                    <div class="prayer-card">
-                        <div class="prayer-name" data-ar="العصر" data-en="Asr">العصر</div>
-                        <div class="prayer-time">--:--</div>
-                    </div>
-                    <div class="prayer-card">
-                        <div class="prayer-name" data-ar="المغرب" data-en="Maghrib">المغرب</div>
-                        <div class="prayer-time">--:--</div>
-                    </div>
-                    <div class="prayer-card">
-                        <div class="prayer-name" data-ar="العشاء" data-en="Isha">العشاء</div>
-                        <div class="prayer-time">--:--</div>
-                    </div>
-                </div>
-
-                <div class="countdown">
-                    <div class="countdown-text" data-ar="جاري التحميل..." data-en="Loading...">جاري التحميل...</div>
-                    <div class="countdown-time">00:00:00</div>
-                </div>
-            </section>
-
-            <section class="calendar-section">
-                <h2 class="section-title" data-ar="التقويم الهجري" data-en="Hijri Calendar">التقويم الهجري</h2>
-
-                <div class="calendar">
-                    <div class="calendar-header">
-                        <button id="prev-month"><i class="fas fa-chevron-right"></i></button>
-                        <div id="calendar-month" data-ar="جاري التحميل..." data-en="Loading...">جاري التحميل...</div>
-                        <button id="next-month"><i class="fas fa-chevron-left"></i></button>
-                    </div>
-
-                    <div class="calendar-grid" id="calendar-grid">
-                        <!-- سيتم ملء التقويم ديناميكيًا -->
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <section class="settings-panel">
-            <h2 class="section-title" data-ar="إعدادات المواقيت" data-en="Prayer Settings">إعدادات المواقيت</h2>
-
-            <div class="form-group">
-                <label data-ar="الموقع الجغرافي" data-en="Location">الموقع الجغرافي</label>
-                <div class="location-settings">
-                    <input type="text" class="form-control" id="prayer-location" placeholder="اسم المدينة" data-ar-placeholder="اسم المدينة" data-en-placeholder="City name">
-                    <button class="location-auto" id="prayer-location-auto">
-                        <i class="fas fa-location-arrow"></i>
-                        <span data-ar="التحديد التلقائي" data-en="Auto Detect">التحديد التلقائي</span>
+    <!-- Navigation -->
+    <nav class="site-nav" role="navigation" aria-label="القائمة الرئيسية">
+        <div class="nav-inner">
+            <a href="#" class="nav-brand" aria-label="GT-SALAT الرئيسية">
+                <i class="fas fa-mosque" aria-hidden="true"></i>
+                <span>GT-<em>Salat</em></span>
+            </a>
+            <button class="nav-toggle-mobile" id="nav-toggle" aria-label="فتح القائمة" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#features">المزايا</a></li>
+                <li><a href="#downloads">التحميل</a></li>
+                <li><a href="#comparison">المقارنة</a></li>
+                <li><a href="#requirements">المتطلبات</a></li>
+                <li>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="تبديل المظهر">
+                        <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
+                        <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
                     </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" role="banner">
+        <div class="container">
+            <div class="hero-icon" aria-hidden="true">
+                <div class="hero-glow"></div>
+                <i class="fas fa-mosque"></i>
+            </div>
+            <h1>
+                <span class="gt">GT-</span><span class="salat">SALAT</span>
+            </h1>
+            <p class="hero-tagline">الجيل الجديد من GT-salat-dikr</p>
+            <p class="hero-subtitle">
+                تطبيق سطح مكتب متكامل لمواقيت الصلاة والأذكار على غنو/لينكس — بواجهة رسومية عصرية
+                مبنية بتقنيات Electron + React + TypeScript
+            </p>
+            <p class="hero-quran" lang="ar">
+                بِسْم اللَّهِ توكَّلْتُ عَلَى اللَّهِ، وَلا حوْلَ وَلا قُوةَ إلاَّ بِاللَّهِ
+            </p>
+            <div class="hero-buttons">
+                <a href="#downloads" class="btn btn-primary">
+                    <i class="fas fa-download" aria-hidden="true"></i> تحميل التطبيق
+                </a>
+                <a href="https://github.com/SalehGNUTUX/GT-SALAT" target="_blank" rel="noopener" class="btn btn-github">
+                    <i class="fab fa-github" aria-hidden="true"></i> GitHub
+                </a>
+                <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-1.0.0" target="_blank" rel="noopener" class="btn btn-outline">
+                    <i class="fas fa-tag" aria-hidden="true"></i> الإصدار 1.0.0
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">المزايا</span>
+                <h2 class="section-title">لماذا GT-SALAT؟</h2>
+                <p class="section-desc">تطوير كامل للتطبيق الأصلي مع الحفاظ على جميع الميزات وإضافة واجهة رسومية تفاعلية حديثة</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                    <h3>مواقيت الصلاة</h3>
+                    <p>حساب مواقيت الصلاة الخمس بـ 22 طريقة حسابية تشمل أم القرى وISNA ورابطة العالم الإسلامي والمغرب والجزائر وغيرها، مع مصدر مزدوج: API أولاً وحساب محلي احتياطي يعمل دون إنترنت.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                    <h3>الإشعارات والأذان</h3>
+                    <p>إشعارات قبل الصلاة بفترة قابلة للضبط، تشغيل الأذان عند دخول الوقت بخيارين (كامل وقصير)، دعم رفع أذان مخصص بصيغ OGG وMP3 وWAV، مع دعاء بعد الأذان وأذكار بعد الصلاة.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-book-open"></i></div>
+                    <h3>الأذكار</h3>
+                    <p>قاعدة بيانات كاملة للأذكار مع بحث فوري في النصوص، وعداد لكل ذكر محفوظ محلياً، وعرض ذكر عشوائي في لوحة التحكم الرئيسية.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-terminal"></i></div>
+                    <h3>التكامل مع الطرفية</h3>
+                    <p>عند فتح أي طرفية جديدة يظهر تلقائياً: ترويسة &laquo;بسم الله الرحمن الرحيم&raquo; وذكر عشوائي واسم الصلاة القادمة ووقتها والوقت المتبقي. يدعم bash وzsh وfish.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-desktop"></i></div>
+                    <h3>التكامل مع النظام</h3>
+                    <p>أيقونة شريط المهام مع قائمة سياق، تصغير إلى شريط المهام بدلاً من الإغلاق، بدء تشغيل تلقائي مع الجهاز، وفتح مجلد جداول المواقيت مباشرة من الإعدادات.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                    <h3>واجهة عصرية</h3>
+                    <p>وضعان: مظلم وفاتح، خطوط Ubuntu Arabic وAmiri Quran مضمّنة تعمل بلا اتصال إنترنت، واجهة عربية RTL كاملة، ومعالج إعداد خطوة بخطوة للتهيئة الأولى.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Downloads Section -->
+    <section class="section" id="downloads" style="background: var(--bg-secondary); transition: background 0.4s ease;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">التحميل</span>
+                <h2 class="section-title">حزمة تناسب توزيعتك</h2>
+                <p class="section-desc">اختر صيغة التحميل المناسبة لنظام التشغيل الخاص بك — جميع الحزم موقعة وجاهزة للتشغيل</p>
+            </div>
+            <div class="download-grid">
+                <!-- AppImage -->
+                <div class="download-card recommended">
+                    <div class="download-icon"><i class="fas fa-cube"></i></div>
+                    <h3>AppImage</h3>
+                    <p class="download-distros">جميع التوزيعات<br>Ubuntu &middot; Fedora &middot; Arch &middot; openSUSE</p>
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/GT-SALAT-1.0.0-x86_64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
+                        <i class="fas fa-download" aria-hidden="true"></i> تحميل AppImage
+                    </a>
+                    <p class="file-info">
+                        <code>GT-SALAT-1.0.0-x86_64.AppImage</code><br>
+                        <small>104 MB &middot; sha256: cff08aa7...</small>
+                    </p>
+                </div>
+                <!-- DEB -->
+                <div class="download-card">
+                    <div class="download-icon"><i class="fab fa-ubuntu"></i></div>
+                    <h3>DEB</h3>
+                    <p class="download-distros">Debian &middot; Ubuntu &middot; Linux Mint<br>ومشتقاتها</p>
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/GT-SALAT_1.0.0_amd64.deb" class="btn btn-primary" target="_blank" rel="noopener">
+                        <i class="fas fa-download" aria-hidden="true"></i> تحميل DEB
+                    </a>
+                    <p class="file-info">
+                        <code>GT-SALAT_1.0.0_amd64.deb</code><br>
+                        <small>72.4 MB &middot; sha256: eb212278...</small>
+                    </p>
+                </div>
+                <!-- RPM -->
+                <div class="download-card">
+                    <div class="download-icon"><i class="fab fa-fedora"></i></div>
+                    <h3>RPM</h3>
+                    <p class="download-distros">Fedora &middot; RHEL &middot; Rocky Linux<br>ومشتقاتها</p>
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/gt-salat-1.0.0.x86_64.rpm" class="btn btn-primary" target="_blank" rel="noopener">
+                        <i class="fas fa-download" aria-hidden="true"></i> تحميل RPM
+                    </a>
+                    <p class="file-info">
+                        <code>gt-salat-1.0.0.x86_64.rpm</code><br>
+                        <small>102 MB &middot; sha256: 66cf5e98...</small>
+                    </p>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label data-ar="طريقة الحساب" data-en="Calculation Method">طريقة الحساب</label>
-                <select class="form-control" id="prayer-method">
-                    <!-- سيتم ملؤه ديناميكيًا -->
-                </select>
-            </div>
+            <!-- Installation notes -->
+            <div class="install-notes">
+                <h4>تثبيت سريع</h4>
+                <pre># Debian / Ubuntu / Linux Mint
+                    sudo dpkg -i GT-SALAT_*.deb
+                sudo apt-get install -f
 
-            <div class="actions">
-                <button class="save" id="save-settings" data-ar="حفظ الإعدادات" data-en="Save Settings">حفظ الإعدادات</button>
-                <button class="cancel" id="cancel-settings" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
-            </div>
-        </section>
+                # Fedora / RHEL / Rocky
+                sudo rpm -i gt-salat-*.rpm
 
-        <footer>
-            <p>GT-Salat by gnutux &copy; 2025</p>
-        </footer>
+            # AppImage (جميع التوزيعات)
+            chmod +x GT-SALAT_*.AppImage
+        ./GT-SALAT_*.AppImage</pre>
     </div>
+</div>
+</section>
 
-    <script>
-        // الثوابت والإعدادات
-        const DEFAULT_CITY = "مكة المكرمة";
-        const DEFAULT_METHOD = 4; // Umm Al-Qura University, Makkah
-        const PRAYER_NAMES = {
-            Fajr: { ar: "الفجر", en: "Fajr" },
-            Dhuhr: { ar: "الظهر", en: "Dhuhr" },
-            Asr: { ar: "العصر", en: "Asr" },
-            Maghrib: { ar: "المغرب", en: "Maghrib" },
-            Isha: { ar: "العشاء", en: "Isha" }
+<!-- Comparison Section -->
+<section class="section" id="comparison">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-label">المقارنة</span>
+            <h2 class="section-title">الفرق بين GT-SALAT و GT-salat-dikr</h2>
+            <p class="section-desc">تطوير شامل مع الحفاظ على روح المشروع الأصلي</p>
+        </div>
+        <div class="comparison-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>الجانب</th>
+                        <th>GT-salat-dikr (الأصل)</th>
+                        <th>GT-SALAT (الجديد)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>الواجهة</td>
+                        <td>طرفية (Bash)</td>
+                        <td><span class="star-icon">★</span> رسومية كاملة (Electron + React)</td>
+                    </tr>
+                    <tr>
+                        <td>التكامل مع الطرفية</td>
+                        <td>افتراضي</td>
+                        <td><span class="star-icon">★</span> اختياري من الإعدادات</td>
+                    </tr>
+                    <tr>
+                        <td>التثبيت</td>
+                        <td>bash script</td>
+                        <td><span class="star-icon">★</span> AppImage / DEB / RPM</td>
+                    </tr>
+                    <tr>
+                        <td>الخطوط</td>
+                        <td>خطوط النظام</td>
+                        <td><span class="star-icon">★</span> Ubuntu Arabic + Amiri Quran مضمّنة</td>
+                    </tr>
+                    <tr>
+                        <td>الإعداد</td>
+                        <td>متغيرات بيئة / CLI</td>
+                        <td><span class="star-icon">★</span> معالج رسومي 5 خطوات</td>
+                    </tr>
+                    <tr>
+                        <td>الأذان</td>
+                        <td>ملف صوتي ثابت</td>
+                        <td><span class="star-icon">★</span> افتراضي (كامل/قصير) + مخصص</td>
+                    </tr>
+                    <tr>
+                        <td>المواقيت</td>
+                        <td>حساب محلي</td>
+                        <td><span class="star-icon">★</span> API + حساب محلي احتياطي</td>
+                    </tr>
+                    <tr>
+                        <td>الحالة</td>
+                        <td>النسخة الأصلية</td>
+                        <td><span class="star-icon">★</span> الجيل الجديد</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Requirements Section -->
+<section class="section" id="requirements" style="background: var(--bg-secondary); transition: background 0.4s ease;">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-label">متطلبات النظام</span>
+            <h2 class="section-title">الحد الأدنى للتشغيل</h2>
+            <p class="section-desc">تطبيق خفيف يعمل على معظم توزيعات غنو/لينكس</p>
+        </div>
+        <div class="requirements-card">
+            <h3><i class="fas fa-microchip" aria-hidden="true"></i> مواصفات الجهاز</h3>
+            <div class="req-grid">
+                <div class="req-item">
+                    <i class="fab fa-linux"></i>
+                    <div>
+                        <div class="req-label">نظام التشغيل</div>
+                        <div class="req-value">Linux (x86_64)</div>
+                    </div>
+                </div>
+                <div class="req-item">
+                    <i class="fas fa-memory"></i>
+                    <div>
+                        <div class="req-label">الذاكرة</div>
+                        <div class="req-value">256 ميغابايت</div>
+                    </div>
+                </div>
+                <div class="req-item">
+                    <i class="fas fa-microchip"></i>
+                    <div>
+                        <div class="req-label">المعالج</div>
+                        <div class="req-value">أي معالج حديث</div>
+                    </div>
+                </div>
+                <div class="req-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <div>
+                        <div class="req-label">مكتبات النظام</div>
+                        <div class="req-value">libnotify &middot; GTK3 &middot; ALSA</div>
+                    </div>
+                </div>
+                <div class="req-item">
+                    <i class="fas fa-volume-up"></i>
+                    <div>
+                        <div class="req-label">مشغّل الصوت</div>
+                        <div class="req-value">mpv (موصى به) أو ffplay أو cvlc أو paplay أو sox</div>
+                    </div>
+                </div>
+            </div>
+            <div class="install-notes" style="margin-top: 24px;">
+                <h4>تثبيت مشغّل الصوت الموصى به</h4>
+                <pre>sudo apt install mpv        # Debian/Ubuntu
+                    sudo dnf install mpv        # Fedora
+                sudo pacman -S mpv          # Arch</pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-brand">
+            <i class="fas fa-mosque" aria-hidden="true"></i> GT-SALAT
+        </div>
+        <p>الجيل الجديد من تطبيق مواقيت الصلاة والأذكار على غنو/لينكس</p>
+        <div class="footer-links">
+            <a href="https://github.com/SalehGNUTUX/GT-SALAT" target="_blank" rel="noopener">
+                <i class="fab fa-github"></i> GitHub
+            </a>
+            <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases" target="_blank" rel="noopener">
+                <i class="fas fa-tag"></i> الإصدارات
+            </a>
+            <a href="https://github.com/SalehGNUTUX/GT-SALAT/blob/main/LICENSE" target="_blank" rel="noopener">
+                <i class="fas fa-balance-scale"></i> GPL-3.0
+            </a>
+            <a href="https://github.com/SalehGNUTUX/GT-salat-dikr" target="_blank" rel="noopener">
+                <i class="fas fa-code-branch"></i> المشروع الأصلي
+            </a>
+        </div>
+        <div class="footer-credits">
+            بقلم <strong>SalehGNUTUX</strong> &copy; 2026 — مرخص بموجب
+            <a href="https://github.com/SalehGNUTUX/GT-SALAT/blob/main/LICENSE" target="_blank" rel="noopener" style="color: var(--accent-primary);">رخصة GNU العامة الإصدار 3 (GPL-3.0)</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    (function() {
+        // ========== THEME MANAGEMENT ==========
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        const THEME_KEY = 'gt-salat-theme-preference';
+
+        function getSystemPreference() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function getStoredTheme() {
+            return localStorage.getItem(THEME_KEY);
+        }
+
+        function applyTheme(theme) {
+            html.classList.remove('dark-mode', 'light-mode');
+            if (theme === 'dark') {
+                html.classList.add('dark-mode');
+            } else if (theme === 'light') {
+                html.classList.add('light-mode');
+            }
+        }
+
+        function getCurrentEffectiveTheme() {
+            if (html.classList.contains('dark-mode')) return 'dark';
+            if (html.classList.contains('light-mode')) return 'light';
+            return getSystemPreference();
+        }
+
+        function cycleTheme() {
+            const stored = getStoredTheme();
+            const system = getSystemPreference();
+
+            if (!stored || stored === 'auto') {
+                const newTheme = system === 'dark' ? 'light' : 'dark';
+                localStorage.setItem(THEME_KEY, newTheme);
+                applyTheme(newTheme);
+            } else if (stored === 'dark') {
+                localStorage.setItem(THEME_KEY, 'light');
+                applyTheme('light');
+            } else if (stored === 'light') {
+                localStorage.setItem(THEME_KEY, 'auto');
+                applyTheme('auto');
+            }
+        }
+
+        const stored = getStoredTheme();
+        if (stored && stored !== 'auto') {
+            applyTheme(stored);
+        } else {
+            applyTheme('auto');
+        }
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', cycleTheme);
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (!getStoredTheme() || getStoredTheme() === 'auto') {
+                applyTheme('auto');
+            }
+        });
+
+        // ========== MOBILE NAVIGATION ==========
+        const navToggle = document.getElementById('nav-toggle');
+        const navLinks = document.getElementById('nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navLinks.classList.toggle('open');
+                navToggle.setAttribute('aria-expanded', isOpen);
+                navToggle.querySelector('i').className = isOpen ? 'fas fa-times' : 'fas fa-bars';
+            });
+
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navToggle.querySelector('i').className = 'fas fa-bars';
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!navLinks.contains(e.target) && !navToggle.contains(e.target)) {
+                    navLinks.classList.remove('open');
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navToggle.querySelector('i').className = 'fas fa-bars';
+                }
+            });
+        }
+
+        // ========== SCROLL ANIMATIONS ==========
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -60px 0px',
+            threshold: 0.1
         };
 
-        // المناسبات الدينية والأشهر الحرم
-        const ISLAMIC_EVENTS = {
-            "01-10": { ar: "عاشوراء", en: "Ashura" },
-            "03-12": { ar: "المولد النبوي", en: "Mawlid al-Nabi" },
-            "07-01": { ar: "رأس السنة الهجرية", en: "Islamic New Year" },
-            "07-27": { ar: "الإسراء والمعراج", en: "Isra and Mi'raj" },
-            "08-15": { ar: "ليلة النصف من شعبان", en: "Mid-Sha'ban" },
-            "09-01": { ar: "رمضان", en: "Ramadan" },
-            "09-27": { ar: "ليلة القدر", en: "Laylat al-Qadr" },
-            "10-01": { ar: "عيد الفطر", en: "Eid al-Fitr" },
-            "12-08": { ar: "يوم عرفة", en: "Day of Arafah" },
-            "12-09": { ar: "يوم عرفة", en: "Day of Arafah" },
-            "12-10": { ar: "عيد الأضحى", en: "Eid al-Adha" }
-        };
-
-        const SACRED_MONTHS = [1, 7, 11, 12]; // محرم، رجب، ذو القعدة، ذو الحجة
-
-        // كائن الترجمة
-        const translations = {
-            ar: {
-                loading: "جاري التحميل...",
-                timeUntil: "متبقي حتى صلاة",
-                locationError: "تعذر الحصول على موقعك، سيتم استخدام مكة المكرمة.",
-                geolocationError: "المتصفح لا يدعم تحديد الموقع.",
-                settingsSaved: "تم حفظ الإعدادات!",
-                changesCancelled: "تم إلغاء التغييرات",
-                gregorianDate: "التاريخ الميلادي",
-                hijriDate: "التاريخ الهجري",
-                installPrompt: "تثبيت التطبيق للوصول السريع",
-                installLater: "لاحقاً",
-                installConfirm: "تثبيت",
-                updateAvailable: "يتوفر تحديث جديد. هل تريد تحديث التطبيق؟"
-            },
-            en: {
-                loading: "Loading...",
-                timeUntil: "Time until",
-                locationError: "Could not get your location, using Mecca instead.",
-                geolocationError: "Browser does not support geolocation.",
-                settingsSaved: "Settings saved!",
-                changesCancelled: "Changes cancelled",
-                gregorianDate: "Gregorian Date",
-                hijriDate: "Hijri Date",
-                installPrompt: "Install app for quick access",
-                installLater: "Later",
-                installConfirm: "Install",
-                updateAvailable: "A new update is available. Would you like to update the app?"
-            }
-        };
-
-        // حالة التطبيق
-        let currentLanguage = 'ar';
-        let currentMethod = DEFAULT_METHOD;
-        let currentLocation = DEFAULT_CITY;
-        let currentCoords = { lat: 21.3891, lng: 39.8579 }; // مكة المكرمة
-        let currentCalendarDate = new Date();
-
-        // عناصر DOM
-        const prayerCards = document.querySelectorAll('.prayer-card');
-        const countdownText = document.querySelector('.countdown-text');
-        const countdownTime = document.querySelector('.countdown-time');
-        const gregorianDateEl = document.getElementById('gregorian-date');
-        const hijriDateEl = document.getElementById('hijri-date');
-        const calendarMonthEl = document.getElementById('calendar-month');
-        const calendarGridEl = document.getElementById('calendar-grid');
-        const prayerMethodSelect = document.getElementById('prayer-method');
-        const prayerLocationInput = document.getElementById('prayer-location');
-        const langArBtn = document.getElementById('lang-ar');
-        const langEnBtn = document.getElementById('lang-en');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-        const installPromptEl = document.getElementById('install-prompt');
-        const installConfirmBtn = document.getElementById('install-confirm');
-        const installCancelBtn = document.getElementById('install-cancel');
-
-        // طرق الحساب (مأخوذة من القائمة المطلوبة)
-        const calculationMethods = [
-            { value: 0, ar: "رابطة العالم الإسلامي", en: "Muslim World League" },
-            { value: 1, ar: "الجمعية الإسلامية لأمريكا الشمالية", en: "Islamic Society of North America" },
-            { value: 2, ar: "الهيئة العامة للمساحة المصرية", en: "Egyptian General Authority of Survey" },
-            { value: 3, ar: "أم القرى، مكة المكرمة", en: "Umm Al-Qura University, Makkah" },
-            { value: 4, ar: "جامعة العلوم الإسلامية، كراتشي", en: "University of Islamic Sciences, Karachi" },
-            { value: 5, ar: "معهد الجيوفيزياء، جامعة طهران", en: "Institute of Geophysics, University of Tehran" },
-            { value: 7, ar: "الشيعة الإثنا عشرية، معهد ليفا، قم", en: "Shia Ithna-Ashari, Leva Institute, Qum" },
-            { value: 8, ar: "منطقة الخليج", en: "Gulf Region" },
-            { value: 9, ar: "الكويت", en: "Kuwait" },
-            { value: 10, ar: "قطر", en: "Qatar" },
-            { value: 11, ar: "مجلس الأغاسي الإسلامي سنغافورة", en: "Majlis Ugama Islam Singapura, Singapore" },
-            { value: 12, ar: "اتحاد المنظمات الإسلامية في فرنسا", en: "Union Organization islamic de France" },
-            { value: 13, ar: "رئاسة الشؤون الإسلامية التركية", en: "Diyanet İşleri Başkanlığı, Turkey" },
-            { value: 14, ar: "الإدارة الروحية للمسلمين في روسيا", en: "Spiritual Administration of Muslims of Russia" },
-            { value: 15, ar: "لجنة رؤية الهلال", en: "Moonsighting Committee" },
-            { value: 16, ar: "دبي، الإمارات (تطبيقات بتول)", en: "Dubai, UAE (Batoul Apps)" },
-            { value: 17, ar: "جابان كيماجوان إسلام ماليزيا (JAKIM)", en: "Jabatan Kemajuan Islam Malaysia (JAKIM)" },
-            { value: 18, ar: "تونس", en: "Tunisia" },
-            { value: 19, ar: "الجزائر", en: "Algeria" },
-            { value: 20, ar: "وزارة الشؤون الدينية الإندونيسية", en: "Kementerian Agama Republik Indonesia" },
-            { value: 21, ar: "المغرب", en: "Morocco" },
-            { value: 22, ar: "الجالية الإسلامية لشبونة، البرتغال", en: "Comunidate Islamica de Lisboa, Portugal" }
-        ];
-
-        // تهيئة التطبيق
-        function initApp() {
-            loadSettings();
-            populateMethodDropdown();
-            setupEventListeners();
-            getUserLocation();
-            updateLanguage(currentLanguage);
-            generateHijriCalendar(currentCalendarDate);
-            setupPWA();
-        }
-
-        // إعداد PWA
-        function setupPWA() {
-            // تسجيل Service Worker
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered with scope:', registration.scope);
-                        
-                        // التحقق من وجود تحديثات
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            console.log('New service worker found!');
-                            
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // هناك تحديث متاح
-                                    showUpdatePrompt();
-                                }
-                            });
-                        });
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-
-                // التحقق من حالة Service Worker
-                navigator.serviceWorker.ready.then(registration => {
-                    console.log('Service Worker is ready');
-                });
-            }
-
-            // إظهار موجه التثبيت
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                setTimeout(() => {
-                    showInstallPrompt();
-                }, 5000);
-            });
-
-            // إظهار موجه التحديث
-            function showUpdatePrompt() {
-                if (confirm(translations[currentLanguage].updateAvailable)) {
-                    window.location.reload();
-                }
-            }
-
-            // إظهار موجه التثبيت
-            function showInstallPrompt() {
-                installPromptEl.classList.add('show');
-            }
-
-            installConfirmBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                        // تتبع التحليلات هنا
-                    } else {
-                        console.log('User dismissed the install prompt');
-                    }
-                    deferredPrompt = null;
-                    installPromptEl.classList.remove('show');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
                 }
             });
+        }, observerOptions);
 
-            installCancelBtn.addEventListener('click', () => {
-                installPromptEl.classList.remove('show');
-            });
+        document.querySelectorAll('.feature-card').forEach(card => {
+            observer.observe(card);
+        });
 
-            // إخفاء موجه التثبيت عند التثبيت
-            window.addEventListener('appinstalled', (evt) => {
-                console.log('App was installed');
-                installPromptEl.classList.remove('show');
-                deferredPrompt = null;
-            });
-        }
+        document.querySelectorAll('.download-card').forEach(card => {
+            observer.observe(card);
+        });
 
-        // تحميل الإعدادات المحفوظة
-        function loadSettings() {
-            const savedSettings = JSON.parse(localStorage.getItem('gtSalatSettings')) || {};
-            currentLanguage = savedSettings.language || 'ar';
-            currentMethod = savedSettings.method || DEFAULT_METHOD;
-            currentLocation = savedSettings.location || DEFAULT_CITY;
-            currentCoords = savedSettings.coords || { lat: 21.3891, lng: 39.8579 };
-
-            prayerLocationInput.value = currentLocation;
-            prayerMethodSelect.value = currentMethod;
-        }
-
-        // حفظ الإعدادات
-        function saveSettings() {
-            const settings = {
-                language: currentLanguage,
-                method: parseInt(prayerMethodSelect.value),
-                location: prayerLocationInput.value,
-                coords: currentCoords
-            };
-
-            localStorage.setItem('gtSalatSettings', JSON.stringify(settings));
-            currentMethod = settings.method;
-            currentLocation = settings.location;
-            currentCoords = settings.coords;
-
-            fetchPrayerTimes(currentCoords.lat, currentCoords.lng, currentMethod);
-
-            showNotification(translations[currentLanguage].settingsSaved);
-        }
-
-        // تعبئة قائمة طرق الحساب
-        function populateMethodDropdown() {
-            prayerMethodSelect.innerHTML = '';
-
-            calculationMethods.forEach(method => {
-                const option = document.createElement('option');
-                option.value = method.value;
-                option.textContent = currentLanguage === 'ar' ? method.ar : method.en;
-                option.selected = (method.value == currentMethod);
-                prayerMethodSelect.appendChild(option);
-            });
-        }
-
-        // إعداد مستمعي الأحداث
-        function setupEventListeners() {
-            document.getElementById('prayer-location-auto').addEventListener('click', getUserLocation);
-            document.getElementById('save-settings').addEventListener('click', saveSettings);
-            document.getElementById('cancel-settings').addEventListener('click', cancelSettings);
-            langArBtn.addEventListener('click', () => updateLanguage('ar'));
-            langEnBtn.addEventListener('click', () => updateLanguage('en'));
-            prayerMethodSelect.addEventListener('change', () => {
-                if (navigator.onLine) {
-                    fetchPrayerTimes(currentCoords.lat, currentCoords.lng, parseInt(prayerMethodSelect.value));
-                }
-            });
-            prevMonthBtn.addEventListener('click', () => {
-                currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-                generateHijriCalendar(currentCalendarDate);
-            });
-            nextMonthBtn.addEventListener('click', () => {
-                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-                generateHijriCalendar(currentCalendarDate);
-            });
-        }
-
-        // تحديث اللغة
-        function updateLanguage(lang) {
-            currentLanguage = lang;
-
-            // تحديث نص العناصر
-            document.querySelectorAll('[data-ar], [data-en]').forEach(element => {
-                element.textContent = element.getAttribute(`data-${lang}`);
-            });
-
-            // تحديث النص البديل
-            document.querySelectorAll('[data-ar-placeholder], [data-en-placeholder]').forEach(element => {
-                element.placeholder = element.getAttribute(`data-${lang}-placeholder`);
-            });
-
-            // تحديث اتجاه الصفحة
-            document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            document.documentElement.lang = lang;
-
-            // تحديث أزرار اللغة
-            langArBtn.classList.toggle('active', lang === 'ar');
-            langEnBtn.classList.toggle('active', lang === 'en');
-
-            // إعادة تعبئة قائمة طرق الحساب
-            populateMethodDropdown();
-
-            // إعادة جلب البيانات إذا كانت متاحة
-            if (navigator.onLine) {
-                fetchPrayerTimes(currentCoords.lat, currentCoords.lng, currentMethod);
-            }
-
-            // إعادة إنشاء التقويم
-            generateHijriCalendar(currentCalendarDate);
-
-            // حفظ الإعدادات
-            const settings = JSON.parse(localStorage.getItem('gtSalatSettings') || '{}');
-            settings.language = lang;
-            localStorage.setItem('gtSalatSettings', JSON.stringify(settings));
-        }
-
-        // إلغاء الإعدادات
-        function cancelSettings() {
-            prayerLocationInput.value = currentLocation;
-            prayerMethodSelect.value = currentMethod;
-            showNotification(translations[currentLanguage].changesCancelled);
-        }
-
-        // الحصول على موقع المستخدم
-        function getUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        currentCoords = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-                        reverseGeocode(currentCoords.lat, currentCoords.lng);
-                        fetchPrayerTimes(currentCoords.lat, currentCoords.lng, currentMethod);
-                    },
-                    error => {
-                        showNotification(translations[currentLanguage].locationError);
-                        currentCoords = { lat: 21.3891, lng: 39.8579 }; // مكة المكرمة
-                        prayerLocationInput.value = DEFAULT_CITY;
-                        fetchPrayerTimes(currentCoords.lat, currentCoords.lng, currentMethod);
-                    }
-                );
-            } else {
-                showNotification(translations[currentLanguage].geolocationError);
-                currentCoords = { lat: 21.3891, lng: 39.8579 }; // مكة المكرمة
-                prayerLocationInput.value = DEFAULT_CITY;
-                fetchPrayerTimes(currentCoords.lat, currentCoords.lng, currentMethod);
-            }
-        }
-
-        // تحويل الإحداثيات إلى اسم المدينة
-        function reverseGeocode(lat, lng) {
-            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=${currentLanguage}`)
-                .then(response => response.json())
-                .then(data => {
-                    prayerLocationInput.value = data.city || data.locality || DEFAULT_CITY;
-                    currentLocation = prayerLocationInput.value;
-                })
-                .catch(error => {
-                    console.error("Error in reverse geocoding:", error);
-                    prayerLocationInput.value = DEFAULT_CITY;
-                });
-        }
-
-        // جلب أوقات الصلاة من API
-        function fetchPrayerTimes(lat, lng, method) {
-            const timestamp = Math.floor(Date.now() / 1000);
-
-            fetch(`https://api.aladhan.com/v1/timings/${timestamp}?latitude=${lat}&longitude=${lng}&method=${method}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.code === 200) {
-                        updatePrayerTimes(data.data.timings);
-                        updateDateInfo(data.data.date);
-                        startCountdown(data.data.timings);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching prayer times:", error);
-                    // استخدام أوقات افتراضية في حالة الخطأ
-                    const defaultTimings = {
-                        Fajr: "05:30",
-                        Dhuhr: "12:15",
-                        Asr: "15:40",
-                        Maghrib: "18:05",
-                        Isha: "19:30"
-                    };
-                    updatePrayerTimes(defaultTimings);
-                });
-        }
-
-        // تحديث أوقات الصلاة في الواجهة
-        function updatePrayerTimes(timings) {
-            prayerCards.forEach(card => {
-                const prayerNameElement = card.querySelector('.prayer-name');
-                const prayerKey = Object.keys(PRAYER_NAMES).find(
-                    key => PRAYER_NAMES[key][currentLanguage] === prayerNameElement.textContent
-                );
-
-                if (prayerKey && timings[prayerKey]) {
-                    card.querySelector('.prayer-time').textContent = timings[prayerKey];
-                }
-            });
-        }
-
-        // تحديث معلومات التاريخ
-        function updateDateInfo(dateInfo) {
-            if (currentLanguage === 'ar') {
-                gregorianDateEl.textContent = `التاريخ الميلادي: ${dateInfo.gregorian.date}`;
-                hijriDateEl.textContent = `التاريخ الهجري: ${dateInfo.hijri.date}`;
-            } else {
-                gregorianDateEl.textContent = `Gregorian: ${dateInfo.gregorian.date}`;
-                hijriDateEl.textContent = `Hijri: ${dateInfo.hijri.date}`;
-            }
-        }
-
-        // بدء العد التنازلي للصلاة التالية
-        function startCountdown(timings) {
-            clearInterval(window.countdownInterval);
-
-            function update() {
-                const now = new Date();
-                let nextPrayer = null;
-                let minDiff = Infinity;
-
-                Object.keys(timings).forEach(prayer => {
-                    if (Object.keys(PRAYER_NAMES).includes(prayer)) {
-                        const [hours, minutes] = timings[prayer].split(':').map(Number);
-                        const prayerTime = new Date();
-                        prayerTime.setHours(hours);
-                        prayerTime.setMinutes(minutes);
-                        prayerTime.setSeconds(0);
-
-                        let diff = prayerTime - now;
-                        if (diff < 0) {
-                            diff += 24 * 60 * 60 * 1000; // add 24 hours if time has passed
-                        }
-
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            nextPrayer = prayer;
-                        }
-                    }
-                });
-
-                if (nextPrayer) {
-                    const hours = Math.floor(minDiff / (1000 * 60 * 60));
-                    const minutes = Math.floor((minDiff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((minDiff % (1000 * 60)) / 1000);
-
-                    countdownText.textContent = `${translations[currentLanguage].timeUntil} ${PRAYER_NAMES[nextPrayer][currentLanguage]}`;
-                    countdownTime.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-                    // تحديث البطاقة النشطة
-                    prayerCards.forEach(card => {
-                        const prayerName = card.querySelector('.prayer-name').textContent;
-                        card.classList.toggle('active',
-                            prayerName === PRAYER_NAMES[nextPrayer][currentLanguage]);
+        // ========== SMOOTH SCROLL ==========
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                const targetEl = document.querySelector(targetId);
+                if (targetEl) {
+                    e.preventDefault();
+                    const navHeight = document.querySelector('.site-nav')?.offsetHeight || 64;
+                    const targetPosition = targetEl.getBoundingClientRect().top + window.pageYOffset -
+                        navHeight - 16;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
                     });
                 }
-            }
+            });
+        });
 
-            update();
-            window.countdownInterval = setInterval(update, 1000);
+        // ========== ACTIVE NAV LINK ==========
+        const sections = document.querySelectorAll('section[id], header[id]');
+        const navAnchors = document.querySelectorAll('.nav-links a[href^="#"]');
+
+        function updateActiveNavLink() {
+            let currentId = '';
+            const navHeight = document.querySelector('.site-nav')?.offsetHeight || 64;
+            const offset = navHeight + 80;
+
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
+                if (window.pageYOffset + offset >= sectionTop) {
+                    currentId = section.getAttribute('id');
+                }
+            });
+
+            navAnchors.forEach(anchor => {
+                anchor.style.color = '';
+                anchor.style.background = '';
+                if (anchor.getAttribute('href') === '#' + currentId) {
+                    anchor.style.color = 'var(--accent-primary)';
+                    anchor.style.background = 'var(--badge-bg)';
+                }
+            });
         }
 
-        // إنشاء التقويم الهجري
-        function generateHijriCalendar(date) {
-            const monthNames = {
-                ar: ["محرم", "صفر", "ربيع الأول", "ربيع الثاني", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"],
-                en: ["Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani", "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu al-Qi'dah", "Dhu al-Hijjah"]
-            };
+        window.addEventListener('scroll', updateActiveNavLink, { passive: true });
+        updateActiveNavLink();
 
-            const dayNames = {
-                ar: ["أحد", "إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"],
-                en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-            };
-
-            // تحديث عنوان الشهر
-            const month = date.getMonth();
-            const year = date.getFullYear();
-            calendarMonthEl.textContent = `${monthNames[currentLanguage][month]} ${year}`;
-
-            // مسح التقويم الحالي
-            calendarGridEl.innerHTML = '';
-
-            // إضافة رؤوس الأيام
-            for (let i = 0; i < 7; i++) {
-                const dayCell = document.createElement('div');
-                dayCell.className = 'calendar-cell day-header';
-                dayCell.textContent = dayNames[currentLanguage][i];
-                calendarGridEl.appendChild(dayCell);
-            }
-
-            // الحصول على اليوم الأول من الشهر
-            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-            // الحصول على عدد أيام الشهر
-            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-
-            // إضافة الخلايا الفارغة قبل اليوم الأول
-            for (let i = 0; i < firstDay; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'calendar-cell';
-                calendarGridEl.appendChild(emptyCell);
-            }
-
-            // إضافة أيام الشهر
-            const today = new Date();
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement('div');
-                dayCell.className = 'calendar-cell';
-                
-                // التحقق مما إذا كان اليوم الحالي
-                if (day === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) {
-                    dayCell.classList.add('today');
-                }
-                
-                dayCell.textContent = day;
-                
-                // إضافة التاريخ الهجري المقابل
-                const hijriDay = convertToHijri(new Date(date.getFullYear(), date.getMonth(), day));
-                const hijriElement = document.createElement('div');
-                hijriElement.className = 'hijri-day';
-                hijriElement.textContent = hijriDay.day;
-                dayCell.appendChild(hijriElement);
-                
-                // التحقق مما إذا كان هناك مناسبة دينية
-                const hijriDate = `${hijriDay.month.toString().padStart(2, '0')}-${hijriDay.day.toString().padStart(2, '0')}`;
-                if (ISLAMIC_EVENTS[hijriDate]) {
-                    const eventIndicator = document.createElement('div');
-                    eventIndicator.className = 'event-indicator';
-                    dayCell.appendChild(eventIndicator);
-                    
-                    const eventTooltip = document.createElement('div');
-                    eventTooltip.className = 'event-tooltip';
-                    eventTooltip.textContent = ISLAMIC_EVENTS[hijriDate][currentLanguage];
-                    dayCell.appendChild(eventTooltip);
-                }
-                
-                // تمييز الأشهر الحرم
-                if (SACRED_MONTHS.includes(hijriDay.month)) {
-                    dayCell.classList.add('sacred-month');
-                }
-                
-                calendarGridEl.appendChild(dayCell);
-            }
-        }
-
-        // تحويل التاريخ الميلادي إلى هجري
-        function convertToHijri(gregorianDate) {
-            // هذه دالة مبسطة للتحويل، يمكن استبدالها بمكتبة أكثر دقة
-            const hijriAdjust = 0; // تعديل للتقريب
-            const startHijri = 622; // سنة الهجرة
-            const startGregorian = new Date(622, 6, 16); // 16 يوليو 622م
-            
-            const diffTime = Math.abs(gregorianDate - startGregorian);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            // حساب السنوات والأشهر والأيام الهجرية (تقريبي)
-            const hijriYears = Math.floor(diffDays / 354.367);
-            const remainingDays = diffDays % 354.367;
-            
-            // أشهر السنة الهجرية (عدد أيام كل شهر)
-            const hijriMonths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-            
-            let month = 0;
-            let day = Math.floor(remainingDays);
-            
-            for (let i = 0; i < hijriMonths.length; i++) {
-                if (day <= hijriMonths[i]) {
-                    month = i + 1;
-                    break;
-                }
-                day -= hijriMonths[i];
-            }
-            
-            return {
-                year: startHijri + hijriYears + hijriAdjust,
-                month: month,
-                day: day
-            };
-        }
-
-        // عرض الإشعارات
-        function showNotification(message) {
-            // إنشاء عنصر الإشعار
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--accent-color);
-                color: white;
-                padding: 15px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                z-index: 1000;
-                transform: translateX(150%);
-                transition: transform 0.3s ease;
-                max-width: 300px;
-                word-wrap: break-word;
-            `;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            // إظهار الإشعار
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-            
-            // إخفاء الإشعار بعد 3 ثوان
-            setTimeout(() => {
-                notification.style.transform = 'translateX(150%)';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
-
-        // بدء التطبيق عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+        console.log('%c🕌 GT-SALAT %c| %cالجيل الجديد من GT-salat-dikr',
+            'font-size:1.4em;font-weight:bold;color:#4cd7d0;',
+            '',
+            'color:#2a9d8f;');
+        console.log('%c🚀 Electron + React + TypeScript %c| %cGPL-3.0',
+            'color:#1a5e63;',
+            '',
+            'color:#6b8084;');
+        console.log('%c🖥️ https://github.com/SalehGNUTUX/GT-SALAT',
+            'color:#4cd7d0;text-decoration:underline;');
+    })();
+</script>
 </body>
 </html>
