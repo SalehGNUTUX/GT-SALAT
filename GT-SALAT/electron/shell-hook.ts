@@ -137,12 +137,20 @@ function addBlockToFile(file: string, block: string): void {
   const dir = path.dirname(file);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   let content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : '';
-  // إزالة أي block سابق قبل الإضافة
+  // إزالة أي block سابق
   const re = new RegExp(`\\n?${MARK_BEGIN}[\\s\\S]*?${MARK_END}\\n?`, 'g');
   content = content.replace(re, '');
-  if (!content.endsWith('\n')) content += '\n';
-  content += '\n' + block;
-  fs.writeFileSync(file, content, 'utf-8');
+  // إضافة في أعلى الملف
+  content = content.replace(/^\n+/, '');
+  fs.writeFileSync(file, block + '\n' + content, 'utf-8');
+}
+
+export function checkShellIntegration(): { shell: ShellName; exists: boolean }[] {
+  return SHELLS.map((spec) => {
+    if (!fs.existsSync(spec.rcPath)) return { shell: spec.name, exists: false };
+    const content = fs.readFileSync(spec.rcPath, 'utf-8');
+    return { shell: spec.name, exists: content.includes(MARK_BEGIN) };
+  });
 }
 
 export interface ApplyOptions {

@@ -47,7 +47,7 @@ export function StatusPage({ settings }: Props) {
     {
       label: 'وضع عدم الإزعاج',
       value: settings.doNotDisturb ? 'مفعّل' : 'غير مفعّل',
-      ok: !settings.doNotDisturb,
+      ok: settings.doNotDisturb,
     },
     {
       label: 'تكامل الطرفية',

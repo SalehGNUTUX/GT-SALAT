@@ -29,6 +29,7 @@ import {
   applyShellIntegration,
   removeAllShellIntegration,
   detectInstalledShells,
+  checkShellIntegration,
 } from './shell-hook.js';
 import { setAutoStart, isAutoStartEnabled } from './autostart.js';
 import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
@@ -99,6 +100,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   });
 
   // ── Shell integration ───────────────────────────────────
+  ipcMain.handle('shell:check', () => checkShellIntegration());
   ipcMain.handle('shell:apply', (_e, opts: { enabledShells: any[]; showZikr: boolean; showSalat: boolean }) => {
     return applyShellIntegration({
       ...opts,

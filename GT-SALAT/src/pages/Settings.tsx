@@ -33,6 +33,7 @@ export function SettingsPage({ settings, update }: Props) {
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [installedShells, setInstalledShells] = useState<string[]>([]);
   const [shellApplyStatus, setShellApplyStatus] = useState<string>('');
+  const [shellConfirmReset, setShellConfirmReset] = useState(false);
 
   useEffect(() => {
     window.gtSalat.prayer.methods().then(setMethods);
@@ -62,7 +63,7 @@ export function SettingsPage({ settings, update }: Props) {
     }
   };
 
-  const applyShellIntegration = async () => {
+  const doApplyShell = async () => {
     const shells = settings.terminalShells.length > 0 ? settings.terminalShells : installedShells;
     const res = await window.gtSalat.shell.apply({
       enabledShells: shells,
@@ -72,6 +73,17 @@ export function SettingsPage({ settings, update }: Props) {
     const ok = (res as Array<{ ok: boolean }>).every((r) => r.ok);
     setShellApplyStatus(ok ? '✓ تم تطبيق تكامل الطرفية' : '⚠ فشل بعض أنواع الصدفات');
     setTimeout(() => setShellApplyStatus(''), 4000);
+  };
+
+  const applyShellIntegration = async () => {
+    const checks = await window.gtSalat.shell.check() as { shell: string; exists: boolean }[];
+    const shells = settings.terminalShells.length > 0 ? settings.terminalShells : installedShells;
+    const alreadyExists = checks.some((c) => shells.includes(c.shell) && c.exists);
+    if (alreadyExists) {
+      setShellConfirmReset(true);
+    } else {
+      await doApplyShell();
+    }
   };
 
   const removeShellIntegration = async () => {
@@ -306,6 +318,15 @@ export function SettingsPage({ settings, update }: Props) {
                   ▶ اختبار
                 </Button>
               )}
+              {settings.customAdhanPath && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => update({ customAdhanPath: '', useCustomAdhan: false })}
+                >
+                  ✕
+                </Button>
+              )}
             </div>
             {settings.useCustomAdhan && !settings.customAdhanPath && (
               <div style={{ fontSize: 11, color: 'var(--color-warning)', marginTop: 4 }}>
@@ -357,6 +378,35 @@ export function SettingsPage({ settings, update }: Props) {
             );
           })}
         </div>
+        {shellConfirmReset && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: '12px 16px',
+              background: 'rgba(255,152,0,0.1)',
+              border: '1px solid rgba(255,152,0,0.4)',
+              borderRadius: 8,
+              fontSize: 13,
+              color: 'var(--fg-primary)',
+            }}
+          >
+            <div style={{ marginBottom: 10 }}>
+              ⚠ تم اكتشاف تكامل موجود مسبقاً في الطرفية. هل تريد إعادة تطبيقه؟
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={async () => { setShellConfirmReset(false); await doApplyShell(); }}
+              >
+                إعادة التطبيق
+              </Button>
+              <Button size="sm" onClick={() => setShellConfirmReset(false)}>
+                إلغاء
+              </Button>
+            </div>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 10, marginTop: 16, alignItems: 'center' }}>
           <Button variant="primary" onClick={applyShellIntegration}>
             ✓ تطبيق تكامل الطرفية

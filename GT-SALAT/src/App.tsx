@@ -20,7 +20,7 @@ const PAGE_LABELS: Record<PageId, string> = {
 };
 
 export function App() {
-  const [page, setPage] = useState<PageId>(() => (localStorage.getItem('gt_page') as PageId) || 'dashboard');
+  const [page, setPage] = useState<PageId>('dashboard');
   const [version, setVersion] = useState('');
   const [settings, updateSettings] = useSettings();
   const time = useClock();
@@ -36,7 +36,6 @@ export function App() {
 
   const nav = (p: PageId) => {
     setPage(p);
-    localStorage.setItem('gt_page', p);
   };
 
   if (!settings) {

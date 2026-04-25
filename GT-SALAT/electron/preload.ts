@@ -47,6 +47,7 @@ const api = {
       ipcRenderer.invoke('shell:apply', opts),
     remove: () => ipcRenderer.invoke('shell:remove'),
     detect: () => ipcRenderer.invoke('shell:detect'),
+    check: () => ipcRenderer.invoke('shell:check'),
   },
   autostart: {
     get: () => ipcRenderer.invoke('autostart:get'),

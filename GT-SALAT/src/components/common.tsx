@@ -90,6 +90,7 @@ export function Button({
     <button
       onClick={onClick}
       disabled={disabled}
+      className="btn-press"
       style={{
         padding,
         fontSize,
@@ -119,16 +120,17 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 }
 
 export function StatusDot({ ok, color }: { ok?: boolean; color?: string }) {
-  const c = color ?? (ok ? 'var(--color-success)' : 'var(--color-warning)');
+  const inactive = ok === false && !color;
+  const c = color ?? (ok ? 'var(--color-success)' : 'var(--color-error)');
   return (
     <div
-      className="pulse-dot"
+      className={inactive ? 'blink-error' : 'pulse-dot'}
       style={{
         width: 8,
         height: 8,
         borderRadius: '50%',
         background: c,
-        boxShadow: `0 0 8px ${c}`,
+        boxShadow: inactive ? undefined : `0 0 8px ${c}`,
         flexShrink: 0,
       }}
     />

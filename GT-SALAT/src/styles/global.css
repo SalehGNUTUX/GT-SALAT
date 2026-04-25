@@ -69,3 +69,19 @@ input, select, textarea {
 .pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+
+@keyframes blink-error {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--color-error); }
+  50% { opacity: 0.25; box-shadow: none; }
+}
+
+.blink-error {
+  background: var(--color-error) !important;
+  animation: blink-error 1.2s ease-in-out infinite;
+}
+
+.btn-press:active:not(:disabled) {
+  transform: scale(0.93);
+  opacity: 0.75;
+  transition: transform 0.07s, opacity 0.07s;
+}
