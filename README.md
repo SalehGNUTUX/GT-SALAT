@@ -1,13 +1,17 @@
-<div dir="rtl">
+<div dir="rtl" align="center">
 
-# GT-SALAT — 
-الجيل الجديد من GT-salat-dikr
+![GT-SALAT](https://github.com/SalehGNUTUX/GT-SALAT/blob/main/icon/icon-152x152.png?raw=true)
+
+# GT-SALAT
+
+### الجيل الجديد من GT-salat-dikr
 
 **واجهة رسومية متكاملة لمواقيت الصلاة والأذكار على غنو/لينكس**
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
-[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-green.svg)]()
+[![Platform: GNU/Linux](https://img.shields.io/badge/Platform-GNU%2FLinux-green.svg)]()
 [![Built with: Electron + React](https://img.shields.io/badge/Stack-Electron%20%2B%20React-61dafb.svg)]()
+[![Release: 1.0.0](https://img.shields.io/badge/Release-1.0.0-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-1.0.0)
 
 ---
 
@@ -26,7 +30,7 @@
 
 ## المزايا
 
-### الصلاة والمواقيت
+### 🕌 الصلاة والمواقيت
 - حساب مواقيت الصلاة الخمس بـ 22 طريقة حسابية (ISNA، أم القرى، MWL، الجزائر، المغرب…)
 - ضبط تلقائي لطريقة الحساب بناءً على البلد المكتشف جغرافياً
 - مصدر مزدوج: AlAdhan API أولاً ← حساب محلي احتياطي (مكتبة adhan) يعمل دون إنترنت
@@ -34,7 +38,7 @@
 - عداد تنازلي حي لوقت الصلاة القادمة
 - التاريخ الهجري (من API) بجانب التاريخ الميلادي بأرقام لاتينية (0-9)
 
-### الإشعارات والصوت
+### 🔊 الإشعارات والصوت
 - إشعار نظام قبل الصلاة بفترة قابلة للضبط (1–60 دقيقة)
 - إشعار عند دخول وقت الصلاة مع تشغيل الأذان
 - **أذان مخصص**: رفع ملف صوتي خاص (OGG / MP3 / WAV) يُستخدم بدلاً من الأذان الافتراضي
@@ -45,13 +49,13 @@
 - نغمة تذكير الأذكار على فترات منتظمة
 - وضع "لا إزعاج" بزر واحد
 
-### الأذكار
+### 📿 الأذكار
 - قاعدة بيانات الأذكار الكاملة (azkar.txt)
 - بحث فوري في النصوص
 - عداد لكل ذكر محفوظ محلياً
 - عرض ذكر عشوائي في لوحة التحكم
 
-### التكامل مع الطرفية
+### 💻 التكامل مع الطرفية
 - عند فتح أي طرفية جديدة يظهر تلقائياً:
   - ترويسة "بسم الله الرحمن الرحيم — GT-SALAT" بحدود مزدوجة
   - ذكر عشوائي من قاعدة الأذكار
@@ -60,18 +64,18 @@
 - يُحدَّث السكربت تلقائياً عند كل تشغيل للتطبيق
 - يمكن تفعيله/إلغاؤه في أي وقت من الإعدادات
 
-### التكامل مع النظام
+### ⚙️ التكامل مع النظام
 - أيقونة شريط المهام مع قائمة سياق
 - تصغير إلى شريط المهام بدلاً من الإغلاق
 - بدء تشغيل تلقائي مع الجهاز
 - فتح مجلد جداول المواقيت مباشرة من الإعدادات
 
-### إعداد أولي وترحيل
+### 🧭 إعداد أولي وترحيل
 - معالج إعداد خطوة بخطوة (5 خطوات)
 - اكتشاف تلقائي للموقع الجغرافي مع اقتراح طريقة الحساب المناسبة
 - استيراد إعدادات GT-salat-dikr القديمة تلقائياً
 
-### الواجهة
+### 🎨 الواجهة
 - خطوط Ubuntu Arabic + Amiri Quran مضمّنة (بلا اتصال إنترنت)
 - وضع مظلم وفاتح
 - واجهة عربية RTL كاملة
@@ -83,7 +87,7 @@
 
 | المتطلب | الحد الأدنى |
 |--------|------------|
-| نظام التشغيل | Linux (x86_64) |
+| نظام التشغيل | GNU/Linux (x86_64) |
 | معالج | أي معالج حديث |
 | ذاكرة | 256 ميغابايت |
 | مكتبات النظام | libnotify، GTK3، ALSA |
@@ -98,7 +102,17 @@
 
 ---
 
-## التثبيت من الحزم الجاهزة
+## التحميل والتثبيت
+
+### 📥 روابط التحميل المباشر (الإصدار 1.0.0)
+
+| الصيغة | التوزيعات المدعومة | الرابط | الحجم | المجموع الاختباري (SHA256) |
+|--------|-------------------|--------|-------|---------------------------|
+| **AppImage** | جميع التوزيعات | [GT-SALAT-1.0.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/GT-SALAT-1.0.0-x86_64.AppImage) | 104 MB | `cff08aa797f0061afe1ab0f614fee1e7f276400d4283f2985cfa9da1b04f8f85` |
+| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_1.0.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/GT-SALAT_1.0.0_amd64.deb) | 72.4 MB | `eb212278879743695dc78df61da65323eee2ba9631ec3e86138c29b4ae5e2847` |
+| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-1.0.0.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/gt-salat-1.0.0.x86_64.rpm) | 102 MB | `66cf5e98c252515404bae4b747e19b6dc4ddcc20b97147d0498d47c2c9d50591` |
+
+> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-1.0.0)
 
 ### Debian / Ubuntu / Linux Mint
 
@@ -107,10 +121,10 @@ sudo dpkg -i GT-SALAT_*.deb
 sudo apt-get install -f   # لحل الاعتماديات إن وُجدت
 ```
 
-### Fedora / RHEL / Rocky
+### Fedora / RHEL / Rocky Linux
 
 ```bash
-sudo rpm -i GT-SALAT-*.rpm
+sudo rpm -i gt-salat-*.rpm
 ```
 
 ### AppImage (جميع التوزيعات)
@@ -118,6 +132,15 @@ sudo rpm -i GT-SALAT-*.rpm
 ```bash
 chmod +x GT-SALAT_*.AppImage
 ./GT-SALAT_*.AppImage
+```
+
+### التحقق من المجموع الاختباري (اختياري)
+
+```bash
+# بعد التحميل، تحقق من سلامة الملف
+sha256sum GT-SALAT-1.0.0-x86_64.AppImage
+sha256sum GT-SALAT_1.0.0_amd64.deb
+sha256sum gt-salat-1.0.0.x86_64.rpm
 ```
 
 ---
@@ -203,14 +226,14 @@ GT-SALAT/
 
 | الجانب | GT-salat-dikr (الأصل) | GT-SALAT (هذه النسخة) |
 |--------|----------------------|----------------------|
-| الواجهة | طرفية (Bash) | رسومية كاملة (Electron + React) |
-| التكامل مع الطرفية | افتراضي | اختياري من الإعدادات |
-| التثبيت | bash script | AppImage / DEB / RPM |
-| الخطوط | خطوط النظام | Ubuntu Arabic + Amiri Quran مضمّنة |
-| الإعداد | متغيرات بيئة / CLI | معالج رسومي 5 خطوات |
-| الأذان | ملف صوتي ثابت | افتراضي (كامل/قصير) + مخصص |
-| المواقيت | حساب محلي | API + حساب محلي احتياطي |
-| الحالة | النسخة الأصلية | الجيل الجديد |
+| الواجهة | طرفية (Bash) | ★ رسومية كاملة (Electron + React) |
+| التكامل مع الطرفية | افتراضي | ★ اختياري من الإعدادات |
+| التثبيت | bash script | ★ AppImage / DEB / RPM |
+| الخطوط | خطوط النظام | ★ Ubuntu Arabic + Amiri Quran مضمّنة |
+| الإعداد | متغيرات بيئة / CLI | ★ معالج رسومي 5 خطوات |
+| الأذان | ملف صوتي ثابت | ★ افتراضي (كامل/قصير) + مخصص |
+| المواقيت | حساب محلي | ★ API + حساب محلي احتياطي |
+| الحالة | النسخة الأصلية | ★ الجيل الجديد |
 
 ---
 
@@ -219,13 +242,29 @@ GT-SALAT/
 هذا المشروع مرخص بموجب
 [رخصة GNU العامة الإصدار 3](LICENSE) (GPL-3.0).
 
+Copyright &copy; 2026 **SalehGNUTUX**
+
 ---
 
-## الفضل والشكر بعد توفيق الله و رعايته.
+## الفضل والشكر
 
 - **SalehGNUTUX** — مؤلف المشروع الأصلي GT-salat-dikr الذي شكّل الأساس لهذا العمل
 - **AlAdhan.com** — واجهة برمجية مجانية لمواقيت الصلاة
-- **مشروع Adhan** مكتبة حساب المواقيت المحلية
+- **مشروع Adhan** — مكتبة حساب المواقيت المحلية
 - **مشروع Electron** — إطار العمل لتطبيقات سطح المكتب
+
+---
+
+<div align="center">
+
+[![GT-SALAT](https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/icons/icon-192x192.png)](https://github.com/SalehGNUTUX/GT-SALAT)
+
+**🕌 GT-SALAT — الجيل الجديد من GT-salat-dikr**
+
+[🌐 الموقع الرسمي](https://salehgnutux.github.io/GT-SALAT/) &nbsp;|&nbsp;
+[📦 التحميل](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-1.0.0) &nbsp;|&nbsp;
+[💻 المستودع](https://github.com/SalehGNUTUX/GT-SALAT)
+
+</div>
 
 </div>
