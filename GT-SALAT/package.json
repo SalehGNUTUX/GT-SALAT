@@ -5,10 +5,15 @@
   "main": "dist-electron/main.js",
   "author": {
     "name": "SalehGNUTUX",
+    "email": "gnutux.arabic@gmail.com",
     "url": "https://salehgnutux.github.io/gnutux/"
   },
   "license": "GPL-3.0",
-  "homepage": "./",
+  "homepage": "https://github.com/SalehGNUTUX/GT-SALAT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SalehGNUTUX/GT-SALAT.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && electron-builder",
@@ -57,37 +62,63 @@
       {
         "from": "resources",
         "to": ".",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] },
-        { "target": "deb", "arch": ["x64"] },
-        { "target": "rpm", "arch": ["x64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "category": "Utility;Qt;",
+      "category": "Education;",
       "icon": "build/icons",
       "desktop": {
         "Name": "GT-SALAT",
         "Name[ar]": "GT-SALAT ـ تذكير الصلاة والأذكار",
-        "Comment": "Modern GUI for prayer times and dhikr reminders",
+        "Comment": "Prayer times and dhikr reminders for Linux",
         "Comment[ar]": "واجهة حديثة لتذكير الصلاة وعرض الأذكار",
-        "Keywords": "prayer;salat;dhikr;islam;adhan;muslim;",
+        "Keywords": "prayer;salat;dhikr;islam;adhan;muslim;quran;",
+        "Keywords[ar]": "صلاة;أذان;ذكر;إسلام;مواقيت;",
         "StartupWMClass": "gt-salat"
       },
       "maintainer": "SalehGNUTUX <gnutux.arabic@gmail.com>",
-      "vendor": "SalehGNUTUX"
+      "vendor": "SalehGNUTUX",
+      "synopsis": "Prayer times and dhikr reminders for Linux"
     },
     "appImage": {
       "artifactName": "${productName}-${version}-${arch}.AppImage"
     },
     "deb": {
-      "depends": ["libnotify4", "libgtk-3-0", "libasound2 | libasound2t64"],
+      "depends": [
+        "libnotify4",
+        "libgtk-3-0",
+        "libasound2 | libasound2t64"
+      ],
       "artifactName": "${productName}_${version}_${arch}.deb"
     },
     "rpm": {
-      "depends": ["libnotify", "gtk3"],
+      "depends": [
+        "libnotify",
+        "gtk3"
+      ],
       "artifactName": "${productName}-${version}.${arch}.rpm"
     }
   }
