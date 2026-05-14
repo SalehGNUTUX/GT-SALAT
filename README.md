@@ -27,6 +27,8 @@
 > الواجهة الرسومية، مع بقاء التكامل مع الطرفية خياراً اختيارياً من الإعدادات.
 
 ---
+![GT-SALAT](https://github.com/SalehGNUTUX/GT-SALAT/blob/main/%D9%84%D9%82%D8%B7%D8%A7%D8%AA%20%D8%A7%D9%84%D8%B4%D8%A7%D8%B4%D8%A9/Screenshot_%D9%84%D9%88%D8%AD%D8%A9_%D8%A7%D9%84%D8%AA%D8%AD%D9%83%D9%85.png?raw=true)
+
 
 ## المزايا
 
