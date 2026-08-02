@@ -1,4 +1,4 @@
-import { ipcMain, app, BrowserWindow, shell, dialog } from 'electron';
+import { ipcMain, app, BrowserWindow, shell, dialog, clipboard } from 'electron';
 import path from 'node:path';
 import {
   getSettings,
@@ -36,6 +36,7 @@ import {
 } from './shell-hook.js';
 import { setAutoStart, isAutoStartEnabled } from './autostart.js';
 import { checkForUpdate, lastUpdateInfo, RELEASES_URL } from './updates.js';
+import { backupSizes, exportBackup, importBackup, inspectBackup, type BackupOptions } from './backup.js';
 import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
 import { refreshTray } from './tray.js';
 
@@ -201,6 +202,38 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
     return result.canceled ? null : result.filePaths[0] ?? null;
   });
 
+  // ── Backup (متوافق مع نسخة الهاتف) ──────────────────────
+  ipcMain.handle('backup:sizes', () => backupSizes());
+  ipcMain.handle('backup:export', async (_e, opts: BackupOptions) => {
+    const win = getMainWindow();
+    const res = await dialog.showSaveDialog(win ?? (undefined as any), {
+      title: 'تصدير نسخة احتياطية',
+      defaultPath: 'GT-SALAT-backup.zip',
+      filters: [{ name: 'حزمة نسخٍ احتياطي', extensions: ['zip'] }],
+    });
+    if (res.canceled || !res.filePath) return null;
+    return exportBackup(res.filePath, opts);
+  });
+  ipcMain.handle('backup:pick', async () => {
+    const win = getMainWindow();
+    const res = await dialog.showOpenDialog(win ?? (undefined as any), {
+      title: 'اختر حزمة النسخ الاحتياطي',
+      filters: [{ name: 'حزمة نسخٍ احتياطي', extensions: ['zip'] }],
+      properties: ['openFile'],
+    });
+    if (res.canceled || !res.filePaths[0]) return null;
+    return { path: res.filePaths[0], contents: inspectBackup(res.filePaths[0]) };
+  });
+  ipcMain.handle('backup:import', (_e, filePath: string, opts: BackupOptions) => {
+    const result = importBackup(filePath, opts);
+    if (result.settings) {
+      // الإعدادات تغيّرت من خارج الواجهة — نُعلمها ونُعيد تسليح المجدول.
+      getMainWindow()?.webContents.send('settings:changed', getSettings());
+      restartSchedulerIfRunning();
+    }
+    return result;
+  });
+
   // ── Updates ─────────────────────────────────────────────
   ipcMain.handle('update:check', () => checkForUpdate());
   ipcMain.handle('update:last', () => lastUpdateInfo());
@@ -212,4 +245,9 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   ipcMain.handle('app:open-url', (_e, url: string) => shell.openExternal(url));
   ipcMain.handle('app:open-path', (_e, p: string) => shell.openPath(p));
   ipcMain.handle('app:user-data-dir', () => app.getPath('userData'));
+  // النسخ عبر حافظة Electron لا عبر واجهة الويب — تعمل في كل الحالات بلا اشتراط سياقٍ آمن.
+  ipcMain.handle('app:copy', (_e, text: string) => {
+    clipboard.writeText(String(text ?? ''));
+    return true;
+  });
 }

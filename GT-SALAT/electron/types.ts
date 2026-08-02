@@ -323,6 +323,24 @@ export interface UpdateInfo {
   checked: boolean;
 }
 
+/** ما تحتويه حزمة النسخ الاحتياطي عند فحصها قبل الاستيراد. */
+export interface BackupContents {
+  hasSettings: boolean;
+  prayersCount: number;
+  phoneFiles: number;
+  phoneBytes: number;
+  /** الحزمة صُدِّرت من نسخة الهاتف (فيها ملفّات صوت/مصحف). */
+  fromPhone: boolean;
+}
+
+/** نتيجة تصديرٍ أو استيراد. */
+export interface BackupResult {
+  ok: boolean;
+  settings: boolean;
+  prayers: number;
+  error?: string;
+}
+
 /** مصدرٌ حرٌّ اعتُمد في إثراء التطبيق. */
 export interface CreditSource {
   name: string;

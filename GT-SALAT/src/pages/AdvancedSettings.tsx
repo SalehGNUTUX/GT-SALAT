@@ -10,7 +10,7 @@ import {
   Toggle,
 } from '../components/common';
 import type { AppSettings } from '../hooks/useSettings';
-import type { AlertMode, AsrMadhab, CalendarKind, CreditSource, MonthScheme } from '@electron/types';
+import type { AlertMode, AsrMadhab, BackupContents, CalendarKind, CreditSource, MonthScheme } from '@electron/types';
 import { formatGregorian, formatHijri, formatHour, gregorianMonthName } from '../utils/format';
 
 interface Props {
@@ -46,10 +46,16 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
   const [pruneMsg, setPruneMsg] = useState('');
   const [updateMsg, setUpdateMsg] = useState('');
   const [checking, setChecking] = useState(false);
+  const [backupPrayers, setBackupPrayers] = useState(0);
+  const [backupMsg, setBackupMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<{ path: string; contents: BackupContents } | null>(null);
+  const [pick, setPick] = useState({ settings: true, prayers: true });
 
   useEffect(() => {
     window.gtSalat.prayer.cachedMonths().then(setCachedMonths);
     window.gtSalat.content.credits().then(setCredits);
+    window.gtSalat.backup.sizes().then((b) => setBackupPrayers(b.prayersCount));
   }, []);
 
   // متابعة الصوت الجاري كي تتبدّل أزرار المعاينة بين تشغيل وإيقاف.
@@ -378,6 +384,113 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             </label>
           </div>
         </div>
+      </Collapsible>
+
+      {/* ── النسخ الاحتياطي ─────────────────────────────── */}
+      <Collapsible title="النسخ الاحتياطي" icon="💾" expanded={open === 'النسخ الاحتياطي'} onToggle={() => toggle('النسخ الاحتياطي')}>
+        <div style={{ fontSize: 12.5, color: 'var(--fg-muted)', marginBottom: 14, lineHeight: 1.9 }}>
+          حزمةٌ واحدةٌ (<span className="mono">zip</span>) فيها إعداداتك ومواقيتك المخزَّنة.
+          <strong style={{ color: 'var(--teal-400)' }}> الحزمة نفسها تعمل في نسخة الهاتف</strong> —
+          صدّر من هنا واستورد هناك أو العكس. ما يخصّ سطح المكتب (تكامل الطرفية، الإذاعات المخصّصة،
+          الأقسام المثبّتة) يُحفَظ في الحزمة ويتجاهله الهاتف ويعيده سليماً.
+        </div>
+
+        <SettingRow label="ما سيُصدَّر" sub={`الإعدادات · ${backupPrayers} يوماً من المواقيت المخزَّنة`}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {backupMsg && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>{backupMsg}</span>}
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setBackupMsg('');
+                const res = await window.gtSalat.backup.export({ settings: true, prayers: true });
+                setBusy(false);
+                if (!res) return;                        // ألغى المستخدم حوار الحفظ
+                setBackupMsg(res.ok ? `✓ صُدِّرت (${res.prayers} يوماً)` : '⚠ تعذّر التصدير');
+                setTimeout(() => setBackupMsg(''), 4000);
+              }}
+            >
+              💾 تصدير
+            </Button>
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                const picked = await window.gtSalat.backup.pick();
+                setBusy(false);
+                if (!picked) return;
+                if (!picked.contents.hasSettings && picked.contents.prayersCount === 0) {
+                  setBackupMsg('⚠ الحزمة فارغة أو غير صالحة');
+                  setTimeout(() => setBackupMsg(''), 4000);
+                  return;
+                }
+                setPick({ settings: picked.contents.hasSettings, prayers: picked.contents.prayersCount > 0 });
+                setPending(picked);
+              }}
+            >
+              📥 استيراد
+            </Button>
+          </div>
+        </SettingRow>
+
+        {/* اختيار ما يُستعاد — يُعرَض المتاح في الحزمة فقط */}
+        {pending && (
+          <div style={{ marginTop: 14, padding: '14px 16px', border: '1px solid var(--teal-500)', borderRadius: 'var(--radius-sm)', background: 'var(--accent-tint)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg-primary)', marginBottom: 4 }}>
+              ماذا تستعيد من هذه الحزمة؟
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--fg-muted)', marginBottom: 12 }}>
+              {pending.contents.fromPhone
+                ? `حزمةٌ من نسخة الهاتف — فيها ${pending.contents.phoneFiles} ملفّ صوتٍ/مصحف تخصّ الهاتف، تُترَك كما هي.`
+                : 'حزمةٌ من نسخة سطح المكتب.'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: pending.contents.hasSettings ? 'pointer' : 'not-allowed', opacity: pending.contents.hasSettings ? 1 : 0.45 }}>
+                <input
+                  type="checkbox"
+                  checked={pick.settings && pending.contents.hasSettings}
+                  disabled={!pending.contents.hasSettings}
+                  onChange={(e) => setPick((v) => ({ ...v, settings: e.target.checked }))}
+                  style={{ accentColor: 'var(--teal-500)' }}
+                />
+                الإعدادات {pending.contents.hasSettings ? '' : '(غير متوفّرة)'}
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: pending.contents.prayersCount ? 'pointer' : 'not-allowed', opacity: pending.contents.prayersCount ? 1 : 0.45 }}>
+                <input
+                  type="checkbox"
+                  checked={pick.prayers && pending.contents.prayersCount > 0}
+                  disabled={!pending.contents.prayersCount}
+                  onChange={(e) => setPick((v) => ({ ...v, prayers: e.target.checked }))}
+                  style={{ accentColor: 'var(--teal-500)' }}
+                />
+                المواقيت المخزَّنة {pending.contents.prayersCount ? `(${pending.contents.prayersCount} يوماً)` : '(غير متوفّرة)'}
+              </label>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={busy || (!pick.settings && !pick.prayers)}
+                onClick={async () => {
+                  setBusy(true);
+                  const res = await window.gtSalat.backup.import(pending.path, pick);
+                  setBusy(false);
+                  setPending(null);
+                  setBackupMsg(res.ok ? `✓ استُعيد (${res.prayers} يوماً)` : '⚠ تعذّر الاستيراد');
+                  setCachedMonths(await window.gtSalat.prayer.cachedMonths());
+                  setBackupPrayers((await window.gtSalat.backup.sizes()).prayersCount);
+                  setTimeout(() => setBackupMsg(''), 5000);
+                }}
+              >
+                استعادة
+              </Button>
+              <Button size="sm" onClick={() => setPending(null)}>إلغاء</Button>
+            </div>
+          </div>
+        )}
       </Collapsible>
 
       {/* ── المصادر المعتمَدة ───────────────────────────── */}

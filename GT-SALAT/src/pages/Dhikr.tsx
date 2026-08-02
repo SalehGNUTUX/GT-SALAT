@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Button } from '../components/common';
+import { Card, Button, CopyButton } from '../components/common';
 
 interface Dhikr {
   id: number;
@@ -80,7 +80,10 @@ export function DhikrPage() {
                 {d.text}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: 12, color: 'var(--fg-muted)' }}>#{d.id + 1}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>#{d.id + 1}</span>
+                  <CopyButton text={d.text} source="من أذكار GT-SALAT" />
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button
                     onClick={() => incr(d.id)}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card } from '../../components/common';
+import { Button, Card, CopyButton } from '../../components/common';
 import type { SessionDhikr } from '@electron/types';
 
 /**
@@ -92,7 +92,10 @@ export function AdhkarSessionPage({ type }: { type: 'morning' | 'evening' }) {
                 {d.text}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="mono" style={{ fontSize: 11, color: 'var(--fg-muted)' }}>#{d.n}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="mono" style={{ fontSize: 11, color: 'var(--fg-muted)' }}>#{d.n}</span>
+                  <CopyButton text={d.text} source={type === 'morning' ? 'أذكار الصباح' : 'أذكار المساء'} />
+                </div>
                 <span
                   title={complete ? 'انقر لإعادة الضبط' : 'انقر في أي موضعٍ من البطاقة'}
                   style={{

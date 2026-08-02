@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, EmptyState, SearchInput } from '../../components/common';
+import { Button, Card, CopyButton, EmptyState, SearchInput } from '../../components/common';
 import type { HisnCategory, HisnCategoryInfo } from '@electron/types';
 
 /**
@@ -41,7 +41,7 @@ export function HisnPage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {(open.items ?? []).map((d) => (
-            <DhikrCard key={d.n} n={d.n} text={d.text} count={d.count ?? 1} />
+            <DhikrCard key={d.n} n={d.n} text={d.text} count={d.count ?? 1} source={open.name} />
           ))}
         </div>
       </div>
@@ -74,7 +74,7 @@ export function HisnPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {(cat.items ?? []).map((d) => (
-                    <DhikrCard key={d.n} n={d.n} text={d.text} count={d.count ?? 1} />
+                    <DhikrCard key={d.n} n={d.n} text={d.text} count={d.count ?? 1} source={cat.name} />
                   ))}
                 </div>
               </div>
@@ -108,7 +108,7 @@ export function HisnPage() {
  * بطاقة ذكرٍ بعدّادِ تكرار. **النقر في أي موضعٍ من البطاقة يعدّ مرّة** — لا يلزم إصابة
  * زرٍّ صغير، فالمستخدم يذكر وعينه على النصّ لا على الزرّ. والنقر بعد الاكتمال يُصفّر.
  */
-function DhikrCard({ n, text, count }: { n: number; text: string; count: number }) {
+function DhikrCard({ n, text, count, source }: { n: number; text: string; count: number; source?: string }) {
   const [done, setDone] = useState(0);
   const complete = done >= count;
   const tap = () => setDone((d) => (d >= count ? 0 : d + 1));
@@ -133,7 +133,10 @@ function DhikrCard({ n, text, count }: { n: number; text: string; count: number 
         {text}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="mono" style={{ fontSize: 11, color: 'var(--fg-muted)' }}>#{n}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="mono" style={{ fontSize: 11, color: 'var(--fg-muted)' }}>#{n}</span>
+          <CopyButton text={text} source={source ? `حصن المسلم — ${source}` : 'حصن المسلم'} />
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {count > 1 && (
             <span style={{ fontSize: 12, color: 'var(--gold-500)' }}>تُقال {count} مرّات</span>

@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { copyWithSignature } from '../utils/share';
 
 export function Card({
   children,
@@ -337,6 +338,60 @@ export function LinkRow({ title, sub, url }: { title: string; sub?: string; url:
       </div>
       <span style={{ fontSize: 12, color: 'var(--fg-muted)', flexShrink: 0 }}>↗</span>
     </div>
+  );
+}
+
+/**
+ * زرّ نسخٍ يضيف إلى المنسوخ مصدرَه وتعريفاً بالتطبيق ورابطَي النسختين.
+ *
+ * يوقف تصاعد الحدث دائماً: بطاقات الأذكار نفسها أزرارُ عدٍّ، فنقرةٌ على «نسخ»
+ * كانت ستُحصي ذكراً بلا قصد.
+ */
+export function CopyButton({
+  text,
+  source,
+  label,
+  size = 'sm',
+}: {
+  text: string;
+  source?: string;
+  /** نصٌّ بجانب الأيقونة (يُترك فارغاً للأزرار الأيقونية داخل البطاقات). */
+  label?: string;
+  size?: 'sm' | 'md';
+}) {
+  const [done, setDone] = useState(false);
+
+  const onCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const ok = await copyWithSignature(text, source);
+    if (!ok) return;
+    setDone(true);
+    setTimeout(() => setDone(false), 1600);
+  };
+
+  return (
+    <button
+      onClick={onCopy}
+      title={done ? 'نُسخ مع رابط التطبيق' : 'نسخ (مع المصدر ورابط التطبيق)'}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        background: done ? 'rgba(76,175,80,0.12)' : 'transparent',
+        border: `1px solid ${done ? 'var(--color-success)' : 'var(--border-subtle)'}`,
+        borderRadius: 'var(--radius-sm)',
+        padding: size === 'sm' ? '5px 10px' : '7px 14px',
+        color: done ? 'var(--color-success)' : 'var(--fg-muted)',
+        fontSize: size === 'sm' ? 11.5 : 13,
+        fontFamily: 'inherit',
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+        flexShrink: 0,
+      }}
+    >
+      <span>{done ? '✓' : '⧉'}</span>
+      {(label || done) && <span>{done ? 'نُسخ' : label}</span>}
+    </button>
   );
 }
 

@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type {
   AppSettings,
+  BackupContents,
+  BackupResult,
   UpdateInfo,
   AsmaName,
   AyahHit,
@@ -120,6 +122,14 @@ const api = {
   dialog: {
     openAudio: () => ipcRenderer.invoke('dialog:open-audio'),
   },
+  backup: {
+    sizes: (): Promise<{ prayersCount: number }> => ipcRenderer.invoke('backup:sizes'),
+    export: (opts: { settings: boolean; prayers: boolean }): Promise<BackupResult | null> =>
+      ipcRenderer.invoke('backup:export', opts),
+    pick: (): Promise<{ path: string; contents: BackupContents } | null> => ipcRenderer.invoke('backup:pick'),
+    import: (filePath: string, opts: { settings: boolean; prayers: boolean }): Promise<BackupResult> =>
+      ipcRenderer.invoke('backup:import', filePath, opts),
+  },
   nav: {
     onGo: (cb: (route: string) => void) => {
       const listener = (_e: unknown, route: string) => cb(route);
@@ -143,6 +153,7 @@ const api = {
     openUrl: (url: string) => ipcRenderer.invoke('app:open-url', url),
     openPath: (p: string) => ipcRenderer.invoke('app:open-path', p),
     userDataDir: () => ipcRenderer.invoke('app:user-data-dir'),
+    copy: (text: string): Promise<boolean> => ipcRenderer.invoke('app:copy', text),
   },
 };
 

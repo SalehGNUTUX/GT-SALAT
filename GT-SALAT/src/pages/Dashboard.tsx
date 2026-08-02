@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Button, SectionTitle } from '../components/common';
+import { Card, Button, CopyButton, SectionTitle } from '../components/common';
 import type { PrayerTime, DayTimetable, NextPrayerInfo } from '../hooks/usePrayer';
 import type { AppSettings } from '../hooks/useSettings';
 import type { DailyAyah, Hikmah, HistoryEvent } from '@electron/types';
@@ -140,9 +140,10 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
         <Card style={{ display: 'flex', flexDirection: 'column' }}>
           <SectionTitle
             action={
-              <Button size="sm" onClick={newDhikr}>
-                ذكر جديد
-              </Button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {dhikr && <CopyButton text={dhikr.text} source="ذكر اليوم" />}
+                <Button size="sm" onClick={newDhikr}>ذكر جديد</Button>
+              </div>
             }
           >
             ذكر اليوم
@@ -170,7 +171,8 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
             <Card style={{ display: 'flex', flexDirection: 'column' }}>
               <SectionTitle
                 action={
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {ayah && <CopyButton text={ayah.text} source={`سورة ${ayah.surah} — الآية ${ayah.n}`} />}
                     <Button size="sm" onClick={() => setSeed((s) => s + 1)}>آية أخرى</Button>
                     <Button size="sm" variant="secondary" onClick={() => onOpenMore('quran')}>القرآن ←</Button>
                   </div>
@@ -195,7 +197,14 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
 
           {settings.enableDailyHikmah && (
             <Card style={{ display: 'flex', flexDirection: 'column' }}>
-              <SectionTitle action={<Button size="sm" onClick={() => setSeed((s) => s + 1)}>حكمة أخرى</Button>}>
+              <SectionTitle
+                action={
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {hikmah && <CopyButton text={hikmah.text} source={hikmah.sayer || 'حكمة اليوم'} />}
+                    <Button size="sm" onClick={() => setSeed((s) => s + 1)}>حكمة أخرى</Button>
+                  </div>
+                }
+              >
                 حكمة اليوم
               </SectionTitle>
               <div

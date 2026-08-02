@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, ChipGroup, EmptyState, SearchInput } from '../../components/common';
+import { Card, ChipGroup, CopyButton, EmptyState, SearchInput } from '../../components/common';
 import type { AsmaName, DuaCategory, HadithCollection, HikamCategory, HistoryEvent } from '@electron/types';
 
 /** تطبيعٌ عربيٌّ خفيف للبحث في الواجهة (نفس منطق العملية الرئيسية). */
@@ -69,9 +69,11 @@ export function DuasPage() {
                   <div className="dhikr-text" style={{ fontSize: 19, color: 'var(--fg-primary)', lineHeight: 2.1, marginBottom: 10 }}>
                     {d.text}
                   </div>
-                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12 }}>
+                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, alignItems: 'center' }}>
                     {d.source && <span style={{ color: 'var(--gold-500)' }}>📖 {d.source}</span>}
                     {d.context && <span style={{ color: 'var(--fg-muted)' }}>{d.context}</span>}
+                    <div style={{ flex: 1 }} />
+                    <CopyButton text={d.text} source={d.source ? `${c.name} — ${d.source}` : c.name} />
                   </div>
                 </Card>
               ))}
@@ -120,9 +122,11 @@ export function HikamPage() {
                   <div style={{ fontSize: 17, color: 'var(--fg-primary)', lineHeight: 2, marginBottom: 10 }}>
                     «{h.text}»
                   </div>
-                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12 }}>
+                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, alignItems: 'center' }}>
                     {h.sayer && <span style={{ color: 'var(--gold-500)' }}>— {h.sayer}</span>}
                     {h.source && <span style={{ color: 'var(--fg-muted)' }}>{h.source}</span>}
+                    <div style={{ flex: 1 }} />
+                    <CopyButton text={h.text} source={[h.sayer, h.source].filter(Boolean).join(' · ') || c.name} />
                   </div>
                 </Card>
               ))}
@@ -204,10 +208,15 @@ export function HadithPage() {
               <div className="dhikr-text" style={{ fontSize: 18, color: 'var(--fg-primary)', lineHeight: 2.1, marginBottom: 10 }}>
                 {h.text}
               </div>
-              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12 }}>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, alignItems: 'center' }}>
                 {h.narrator && <span style={{ color: 'var(--fg-secondary)' }}>🗣 {h.narrator}</span>}
                 {h.source && <span style={{ color: 'var(--gold-500)' }}>📚 {h.source}</span>}
                 {h.grade && <span style={{ color: 'var(--fg-muted)' }}>{h.grade}</span>}
+                <div style={{ flex: 1 }} />
+                <CopyButton
+                  text={h.text}
+                  source={[current?.name, h.chapter, h.source].filter(Boolean).join(' · ')}
+                />
               </div>
             </Card>
           ))}
@@ -270,6 +279,13 @@ export function AsmaPage() {
                         {n.ref}
                       </div>
                     )}
+                    <div style={{ marginTop: 12 }}>
+                      <CopyButton
+                        text={[n.arabic, n.meaning, n.ref].filter(Boolean).join('\n')}
+                        source="أسماء الله الحسنى"
+                        label="نسخ"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div
@@ -342,6 +358,9 @@ export function EventsPage() {
                 )}
               </div>
               {e.text && <div style={{ fontSize: 13.5, color: 'var(--fg-secondary)', lineHeight: 2 }}>{e.text}</div>}
+              <div style={{ marginTop: 10 }}>
+                <CopyButton text={[e.title, e.text].filter(Boolean).join('\n')} source={e.year} />
+              </div>
             </Card>
           ))}
         </div>

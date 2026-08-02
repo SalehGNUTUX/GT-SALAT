@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, ChipGroup, EmptyState, SearchInput, Toggle } from '../../components/common';
+import { Button, Card, ChipGroup, CopyButton, EmptyState, SearchInput, Toggle } from '../../components/common';
 import type { AyahHit, QuranMeta, SurahMeta, TafsirSurah, TafsirSurahInfo } from '@electron/types';
 import type { AppSettings } from '../../hooks/useSettings';
 
@@ -402,20 +402,25 @@ function SurahReader({
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => toggleBookmark(a.n)}
-                    title={marked ? 'إزالة الإشارة' : 'إشارة مرجعية'}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      fontSize: 16,
-                      cursor: 'pointer',
-                      opacity: marked ? 1 : 0.3,
-                      flexShrink: 0,
-                    }}
-                  >
-                    🔖
-                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                    <button
+                      onClick={() => toggleBookmark(a.n)}
+                      title={marked ? 'إزالة الإشارة' : 'إشارة مرجعية'}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        fontSize: 16,
+                        cursor: 'pointer',
+                        opacity: marked ? 1 : 0.3,
+                      }}
+                    >
+                      🔖
+                    </button>
+                    <CopyButton
+                      text={showTafsir && a.tafsir ? `${a.text}\n\n${a.tafsir}` : a.text}
+                      source={`سورة ${meta?.ar ?? surah?.name ?? ''} — الآية ${a.n}`}
+                    />
+                  </div>
                 </div>
               </Card>
             );

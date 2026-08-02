@@ -28,9 +28,11 @@
   },
   "dependencies": {
     "adhan": "^4.4.3",
+    "adm-zip": "^0.5.16",
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
