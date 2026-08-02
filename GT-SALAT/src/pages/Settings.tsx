@@ -1,33 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Card, Button, Toggle, SectionTitle } from '../components/common';
+import { Card, Button, Toggle, SectionTitle, SettingRow } from '../components/common';
 import type { AppSettings } from '../hooks/useSettings';
 
 interface Props {
   settings: AppSettings;
   update: (patch: Partial<AppSettings>) => Promise<void>;
+  onOpenAdvanced: () => void;
 }
 
-function SettingRow({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '14px 0',
-        borderBottom: '1px solid var(--bg-elevated)',
-      }}
-    >
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--fg-primary)' }}>{label}</div>
-        {sub && <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 2 }}>{sub}</div>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-export function SettingsPage({ settings, update }: Props) {
+export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
   const [methods, setMethods] = useState<{ id: number; nameAr: string }[]>([]);
   const [detecting, setDetecting] = useState(false);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
@@ -366,7 +347,7 @@ export function SettingsPage({ settings, update }: Props) {
                   padding: '8px 16px',
                   borderRadius: 99,
                   border: `1px solid ${active ? 'var(--teal-500)' : 'var(--border-subtle)'}`,
-                  background: active ? 'rgba(0,188,212,0.15)' : 'transparent',
+                  background: active ? 'var(--accent-tint-2)' : 'transparent',
                   color: active ? 'var(--teal-400)' : 'var(--fg-secondary)',
                   fontSize: 13,
                   cursor: available ? 'pointer' : 'not-allowed',
@@ -442,6 +423,23 @@ export function SettingsPage({ settings, update }: Props) {
         <SettingRow label="التحديث التلقائي للمواقيت أسبوعياً">
           <Toggle on={settings.autoUpdateTimetables} onChange={(v) => update({ autoUpdateTimetables: v })} />
         </SettingRow>
+      </Card>
+
+      {/* اختصارٌ إلى الصفحة الإضافية (ولها عنصرها في الشريط الجانبي) — كل حقولها لا تظهر هنا */}
+      <Card
+        onClick={onOpenAdvanced}
+        style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}
+      >
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--teal-400)', marginBottom: 4 }}>
+            🎛️ الإعدادات الإضافية
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--fg-muted)', lineHeight: 1.7 }}>
+            مذهب حساب العصر · مستوى صوت الأذان ومعايناته · نمط تنبيهٍ لكل صلاة · التذكيرات اليومية ·
+            نظام 12/24 ساعة · إزاحة التاريخ الهجري · أسماء الأشهر · المظهر واللون · المصادر المعتمَدة
+          </div>
+        </div>
+        <span style={{ fontSize: 20, color: 'var(--fg-muted)', flexShrink: 0 }}>←</span>
       </Card>
 
       {/* إجراءات خطرة */}

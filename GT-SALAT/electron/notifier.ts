@@ -16,6 +16,18 @@ export interface NotifyOptions {
   body: string;
   urgent?: boolean;
   onClick?: () => void;
+  /**
+   * وجهةٌ داخل التطبيق يفتحها النقر على الإشعار: «page» أو «page/sub»
+   * (مثل `more/adhkar-evening`). يُظهر النافذة وينتقل إليها مباشرةً.
+   */
+  route?: string;
+}
+
+/** يضبطه `main.ts`: يُظهر النافذة ويُرسل الوجهة إلى الواجهة. */
+let navHandler: ((route: string) => void) | null = null;
+
+export function setNavHandler(fn: (route: string) => void): void {
+  navHandler = fn;
 }
 
 export function notify(opts: NotifyOptions): boolean {
@@ -39,6 +51,7 @@ export function notify(opts: NotifyOptions): boolean {
       silent: true, // الصوت يُشغّل عبر audio.ts
     });
     if (opts.onClick) n.on('click', opts.onClick);
+    else if (opts.route) n.on('click', () => navHandler?.(opts.route!));
     n.show();
     return true;
   } catch {

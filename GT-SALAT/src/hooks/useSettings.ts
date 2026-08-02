@@ -1,35 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
+import type { AppSettings } from '@electron/types';
 
-export interface AppSettings {
-  lat: number | null;
-  lon: number | null;
-  city: string;
-  country: string;
-  methodId: number;
-  methodName: string;
-  preNotifyMinutes: number;
-  zikrIntervalMinutes: number;
-  adhanType: 'full' | 'short';
-  enableSalatNotify: boolean;
-  enableZikrNotify: boolean;
-  systemSalatNotify: boolean;
-  systemZikrNotify: boolean;
-  terminalSalatNotify: boolean;
-  terminalZikrNotify: boolean;
-  terminalShells: string[];
-  autoUpdateTimetables: boolean;
-  autoStart: boolean;
-  minimizeToTray: boolean;
-  startMinimized: boolean;
-  theme: 'dark' | 'light';
-  doNotDisturb: boolean;
-  setupCompleted: boolean;
-  enableDuaAfterAdhan: boolean;
-  enablePostPrayerDhikr: boolean;
-  postPrayerDhikrDelayMinutes: number;
-  customAdhanPath: string;
-  useCustomAdhan: boolean;
-}
+/**
+ * `AppSettings` مصدرها الوحيد `electron/types.ts` — استيراد أنواعٍ فقط، يُمحى وقت البناء
+ * فلا تتسرّب شيفرة العملية الرئيسية إلى حزمة الواجهة. (كان يُكرَّر يدوياً هنا فتفرّق النسختان.)
+ */
+export type { AppSettings };
 
 export function useSettings(): [AppSettings | null, (patch: Partial<AppSettings>) => Promise<void>] {
   const [settings, setSettings] = useState<AppSettings | null>(null);

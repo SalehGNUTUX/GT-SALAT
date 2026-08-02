@@ -1,7 +1,7 @@
 {
   "name": "gt-salat",
-  "version": "1.0.0",
-  "description": "GT-SALAT — واجهة رسومية حديثة لتذكير الصلاة والأذكار (الجيل الجديد من GT-salat-dikr)",
+  "version": "2.0.0",
+  "description": "GT-SALAT — واجهة رسومية حديثة لتذكير الصلاة والأذكار والقرآن والمحتوى الإسلامي",
   "main": "dist-electron/main.js",
   "author": {
     "name": "SalehGNUTUX",

@@ -2,8 +2,10 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { spawn, execFileSync, ChildProcess } from 'node:child_process';
+import { getSettings } from './settings.js';
 
 let currentPlayer: ChildProcess | null = null;
+let currentKind: string | null = null;
 let cachedPlayers: Array<[string, string[]]> | null = null;
 
 function audioDir(): string {
@@ -32,6 +34,24 @@ const PLAYERS: Array<[string, string[]]> = [
   ['ogg123', ['-q']],
 ];
 
+/**
+ * وسائط ضبط مستوى الصوت لكل مشغّل (0..100). لكل مشغّل صيغته الخاصة:
+ * mpv/ffplay بالنسبة المئوية، paplay بمقياس PulseAudio (65536 = 100٪)،
+ * cvlc بمعامل تضخيمٍ عشري، sox بمعامل ضربٍ عشري. ogg123 لا يدعم ضبط الصوت فيُتجاهَل.
+ */
+function volumeArgs(cmd: string, volume: number): string[] {
+  const v = Math.max(0, Math.min(100, Math.round(volume)));
+  if (v === 100) return [];
+  switch (cmd) {
+    case 'mpv': return [`--volume=${v}`];
+    case 'ffplay': return ['-volume', String(v)];
+    case 'cvlc': return [`--gain=${(v / 100).toFixed(2)}`];
+    case 'paplay': return [`--volume=${Math.round((v / 100) * 65536)}`];
+    case 'play': return ['-v', (v / 100).toFixed(2)];
+    default: return [];
+  }
+}
+
 function getAvailablePlayers(): Array<[string, string[]]> {
   if (cachedPlayers !== null) return cachedPlayers;
   cachedPlayers = PLAYERS.filter(([cmd]) => {
@@ -40,26 +60,35 @@ function getAvailablePlayers(): Array<[string, string[]]> {
   return cachedPlayers;
 }
 
-export function play(kind: AdhanAudioKind, onFinished?: () => void): boolean {
+/** المشغّلات المكتشَفة — تُعرَض في صفحة حالة النظام. */
+export function detectedPlayers(): string[] {
+  return getAvailablePlayers().map(([cmd]) => cmd);
+}
+
+/** تشغيل ملفٍ عبر أول مشغّلٍ متاح، مع تسمية النوع لتتبّع أزرار المعاينة في الواجهة. */
+function spawnPlayer(file: string, kind: string, onFinished?: () => void): boolean {
   stop();
-  const file = audioFilePath(kind);
   if (!fs.existsSync(file)) {
     onFinished?.();
     return false;
   }
 
+  const volume = getSettings().adhanVolume ?? 100;
+
   for (const [cmd, baseArgs] of getAvailablePlayers()) {
     try {
-      const args = [...baseArgs, file];
+      const args = [...baseArgs, ...volumeArgs(cmd, volume), file];
       const proc = spawn(cmd, args, { stdio: 'ignore', detached: false });
       proc.on('error', () => {});
       proc.on('exit', () => {
         if (currentPlayer === proc) {
           currentPlayer = null;
+          currentKind = null;
           onFinished?.();
         }
       });
       currentPlayer = proc;
+      currentKind = kind;
       return true;
     } catch {
       continue;
@@ -69,24 +98,12 @@ export function play(kind: AdhanAudioKind, onFinished?: () => void): boolean {
   return false;
 }
 
-export function playFile(filePath: string, onFinished?: () => void): boolean {
-  stop();
-  if (!fs.existsSync(filePath)) { onFinished?.(); return false; }
+export function play(kind: AdhanAudioKind, onFinished?: () => void): boolean {
+  return spawnPlayer(audioFilePath(kind), kind, onFinished);
+}
 
-  for (const [cmd, baseArgs] of getAvailablePlayers()) {
-    try {
-      const args = [...baseArgs, filePath];
-      const proc = spawn(cmd, args, { stdio: 'ignore', detached: false });
-      proc.on('error', () => {});
-      proc.on('exit', () => {
-        if (currentPlayer === proc) { currentPlayer = null; onFinished?.(); }
-      });
-      currentPlayer = proc;
-      return true;
-    } catch { continue; }
-  }
-  onFinished?.();
-  return false;
+export function playFile(filePath: string, onFinished?: () => void): boolean {
+  return spawnPlayer(filePath, 'custom', onFinished);
 }
 
 export function stop(): void {
@@ -94,8 +111,29 @@ export function stop(): void {
     try { currentPlayer.kill('SIGTERM'); } catch {}
   }
   currentPlayer = null;
+  currentKind = null;
 }
 
 export function isPlaying(): boolean {
   return currentPlayer !== null && !currentPlayer.killed;
+}
+
+/** نوع الصوت الجاري تشغيله (أو null) — تستعمله أزرار المعاينة لتبديل تشغيل/إيقاف. */
+export function playingKind(): string | null {
+  return isPlaying() ? currentKind : null;
+}
+
+/** زرّ معاينة: يشغّل النوع، أو يوقفه إن كان هو الجاري. يعيد النوع الجاري بعد العملية. */
+export function togglePreview(kind: AdhanAudioKind | 'custom', customPath?: string): string | null {
+  if (playingKind() === kind) {
+    stop();
+    return null;
+  }
+  if (kind === 'custom') {
+    if (!customPath) return null;
+    playFile(customPath);
+  } else {
+    play(kind);
+  }
+  return playingKind();
 }

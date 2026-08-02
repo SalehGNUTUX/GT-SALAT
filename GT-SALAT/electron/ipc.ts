@@ -14,6 +14,7 @@ import {
   autoDetectLocation,
   prefetchUpcomingMonths,
   countCachedMonths,
+  pruneTimetableCache,
   CALCULATION_METHODS,
 } from './prayer.js';
 import {
@@ -23,6 +24,8 @@ import {
   getAzkarCount,
   azkarFilePath,
 } from './dhikr.js';
+import * as content from './content.js';
+import { CREDIT_SOURCES, DEVELOPER, GITHUB, PHONE_REPO, PROJECTS, REPO } from './credits.js';
 import * as audio from './audio.js';
 import { notify, getLog, clearLog } from './notifier.js';
 import {
@@ -32,6 +35,7 @@ import {
   checkShellIntegration,
 } from './shell-hook.js';
 import { setAutoStart, isAutoStartEnabled } from './autostart.js';
+import { checkForUpdate, lastUpdateInfo, RELEASES_URL } from './updates.js';
 import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
 import { refreshTray } from './tray.js';
 
@@ -57,6 +61,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   ipcMain.handle('prayer:prefetch', () => prefetchUpcomingMonths());
   ipcMain.handle('prayer:methods', () => CALCULATION_METHODS);
   ipcMain.handle('prayer:cached-months', () => countCachedMonths());
+  ipcMain.handle('prayer:prune-cache', () => pruneTimetableCache());
 
   // ── Dhikr ───────────────────────────────────────────────
   ipcMain.handle('dhikr:random', () => getRandomDhikr());
@@ -64,11 +69,49 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   ipcMain.handle('dhikr:by-index', (_e, i: number) => getDhikrByIndex(i));
   ipcMain.handle('dhikr:count', () => getAzkarCount());
 
+  // ── Content (المحتوى الإسلامي) ──────────────────────────
+  // الفهارس خفيفة؛ المحتوى الثقيل (سورة/باب) يُطلَب واحداً واحداً لا دفعةً واحدة.
+  ipcMain.handle('content:asma', () => content.getAsma());
+  ipcMain.handle('content:hadith', () => content.getHadithCollections());
+  ipcMain.handle('content:duas', () => content.getDuas());
+  ipcMain.handle('content:hikam', () => content.getHikamCategories());
+  ipcMain.handle('content:hikmah', (_e, seed: number) => content.getHikmah(seed));
+  ipcMain.handle('content:hisn-index', () => content.getHisnIndex());
+  ipcMain.handle('content:hisn-category', (_e, id: number) => content.getHisnCategory(id));
+  ipcMain.handle('content:hisn-search', (_e, q: string) => content.searchHisn(q));
+  ipcMain.handle('content:tafsir-index', () => content.getTafsirIndex());
+  ipcMain.handle('content:tafsir-surah', (_e, n: number) => content.getTafsirSurah(n));
+  ipcMain.handle('content:quran-meta', () => content.getQuranMeta());
+  ipcMain.handle('content:quran-search', (_e, q: string) => content.searchAyat(q));
+  ipcMain.handle('content:ayah', (_e, surah: number, ayah: number) => content.getAyah(surah, ayah));
+  ipcMain.handle('content:daily-ayah', (_e, seed: number) => content.getDailyAyah(seed));
+  ipcMain.handle('content:events', () => content.getEvents());
+  ipcMain.handle('content:events-today', (_e, hMonth: number, hDay: number) =>
+    content.getEventsToday(hMonth, hDay),
+  );
+  ipcMain.handle('content:radios', () => content.getRadios());
+  ipcMain.handle('content:session-adhkar', (_e, type: 'morning' | 'evening') =>
+    content.getSessionAdhkar(type),
+  );
+  ipcMain.handle('content:credits', () => ({
+    sources: CREDIT_SOURCES,
+    developer: DEVELOPER,
+    github: GITHUB,
+    repo: REPO,
+    phoneRepo: PHONE_REPO,
+    projects: PROJECTS,
+  }));
+
   // ── Audio ───────────────────────────────────────────────
   ipcMain.handle('audio:play', (_e, kind: audio.AdhanAudioKind) => audio.play(kind));
   ipcMain.handle('audio:play-file', (_e, filePath: string) => audio.playFile(filePath));
   ipcMain.handle('audio:stop', () => audio.stop());
   ipcMain.handle('audio:playing', () => audio.isPlaying());
+  ipcMain.handle('audio:playing-kind', () => audio.playingKind());
+  ipcMain.handle('audio:preview', (_e, kind: audio.AdhanAudioKind | 'custom', customPath?: string) =>
+    audio.togglePreview(kind, customPath),
+  );
+  ipcMain.handle('audio:players', () => audio.detectedPlayers());
 
   // ── Notifications ───────────────────────────────────────
   ipcMain.handle('notify:test', () =>
@@ -131,13 +174,19 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   // ── Tray ────────────────────────────────────────────────
   ipcMain.handle('tray:refresh', () => {
     const win = getMainWindow();
-    refreshTray(() => {
-      if (win) {
-        if (win.isMinimized()) win.restore();
-        win.show();
-        win.focus();
-      }
-    });
+    const show = () => {
+      if (!win) return;
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    };
+    const toggle = () => {
+      if (!win) return;
+      if (win.isMinimized()) { win.restore(); win.focus(); return; }
+      if (win.isVisible()) { win.hide(); return; }
+      show();
+    };
+    refreshTray(show, toggle);
     return true;
   });
 
@@ -151,6 +200,11 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
     });
     return result.canceled ? null : result.filePaths[0] ?? null;
   });
+
+  // ── Updates ─────────────────────────────────────────────
+  ipcMain.handle('update:check', () => checkForUpdate());
+  ipcMain.handle('update:last', () => lastUpdateInfo());
+  ipcMain.handle('update:open-page', () => shell.openExternal(lastUpdateInfo()?.url || RELEASES_URL));
 
   // ── App ─────────────────────────────────────────────────
   ipcMain.handle('app:version', () => app.getVersion());

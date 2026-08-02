@@ -8,6 +8,7 @@ import {
   Madhab,
 } from 'adhan';
 import type {
+  AsrMadhab,
   PrayerTime,
   DayTimetable,
   NextPrayerInfo,
@@ -76,8 +77,19 @@ function cacheDir(): string {
   return dir;
 }
 
-function cacheFile(year: number, month: number, methodId: number): string {
-  return path.join(cacheDir(), `timetable_${year}_${String(month).padStart(2, '0')}_m${methodId}.json`);
+/**
+ * مفتاح الكاش يشمل طريقة الحساب **والمذهب والموقع** — فيبطل تلقائياً عند تغيير أيٍّ منها.
+ * (قبل النسخة 2.0 كان يشمل الطريقة وحدها، فكان تغيير المدينة يُبقي مواقيت المدينة القديمة أسبوعاً.)
+ * الموقع مقرَّب إلى منزلتين عشريتين (نحو 1 كم) كي لا يتكاثر عدد الملفات بلا داعٍ.
+ */
+function locationKey(lat: number, lon: number): string {
+  return `${lat.toFixed(2)}_${lon.toFixed(2)}`;
+}
+
+function cacheFile(year: number, month: number, methodId: number, madhab: AsrMadhab, lat: number, lon: number): string {
+  const school = madhab === 'hanafi' ? 1 : 0;
+  const name = `timetable_${year}_${String(month).padStart(2, '0')}_m${methodId}_s${school}_l${locationKey(lat, lon)}.json`;
+  return path.join(cacheDir(), name);
 }
 
 function pad2(n: number): string {
@@ -114,10 +126,16 @@ function methodToAdhan(id: number) {
 /**
  * حساب محلي كامل للمواقيت باستخدام مكتبة adhan. يعمل offline بدون API.
  */
-export function computeLocal(date: Date, lat: number, lon: number, methodId: number): DayTimetable {
+export function computeLocal(
+  date: Date,
+  lat: number,
+  lon: number,
+  methodId: number,
+  madhab: AsrMadhab = 'shafi',
+): DayTimetable {
   const coords = new Coordinates(lat, lon);
   const params = methodToAdhan(methodId);
-  params.madhab = Madhab.Shafi;
+  params.madhab = madhab === 'hanafi' ? Madhab.Hanafi : Madhab.Shafi;
   const pt = new PrayerTimes(coords, date, params);
 
   const prayers: PrayerTime[] = [
@@ -135,8 +153,17 @@ export function computeLocal(date: Date, lat: number, lon: number, methodId: num
 /**
  * جلب الجدول الشهري من AlAdhan API، ويخزّنه محلياً للعمل بدون إنترنت.
  */
-export async function fetchMonthlyFromApi(year: number, month: number, lat: number, lon: number, methodId: number): Promise<DayTimetable[] | null> {
-  const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lon}&method=${methodId}`;
+export async function fetchMonthlyFromApi(
+  year: number,
+  month: number,
+  lat: number,
+  lon: number,
+  methodId: number,
+  madhab: AsrMadhab = 'shafi',
+): Promise<DayTimetable[] | null> {
+  // school: 0 = الجمهور (الشافعي)، 1 = الحنفي — يؤثّر في وقت العصر فقط.
+  const school = madhab === 'hanafi' ? 1 : 0;
+  const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lon}&method=${methodId}&school=${school}`;
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 10000);
@@ -177,7 +204,7 @@ export async function fetchMonthlyFromApi(year: number, month: number, lat: numb
       };
     });
 
-    fs.writeFileSync(cacheFile(year, month, methodId), JSON.stringify(timetable, null, 2), 'utf-8');
+    fs.writeFileSync(cacheFile(year, month, methodId, madhab, lat, lon), JSON.stringify(timetable, null, 2), 'utf-8');
     return timetable;
   } catch {
     return null;
@@ -193,7 +220,7 @@ export async function getMonthTimetable(year: number, month: number): Promise<Da
     return [];
   }
 
-  const file = cacheFile(year, month, s.methodId);
+  const file = cacheFile(year, month, s.methodId, s.madhab, s.lat, s.lon);
   if (fs.existsSync(file)) {
     try {
       const stat = fs.statSync(file);
@@ -204,15 +231,18 @@ export async function getMonthTimetable(year: number, month: number): Promise<Da
     } catch {}
   }
 
-  const api = await fetchMonthlyFromApi(year, month, s.lat, s.lon, s.methodId);
-  if (api) return api;
+  // عند تعطيل «تحديث المواقيت عبر الإنترنت» نكتفي بالحساب المحلي بلا أي اتصال.
+  if (s.useApiTimetables !== false) {
+    const api = await fetchMonthlyFromApi(year, month, s.lat, s.lon, s.methodId, s.madhab);
+    if (api) return api;
+  }
 
   // fallback: حساب محلي لكل أيام الشهر
   const daysInMonth = new Date(year, month, 0).getDate();
   const local: DayTimetable[] = [];
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month - 1, d);
-    local.push(computeLocal(date, s.lat, s.lon, s.methodId));
+    local.push(computeLocal(date, s.lat, s.lon, s.methodId, s.madhab));
   }
   return local;
 }
@@ -230,7 +260,7 @@ export async function getTodayTimetable(): Promise<DayTimetable | null> {
   const today = month_data.find((d) => d.date === dateStr);
   if (today) return today;
 
-  return computeLocal(now, s.lat, s.lon, s.methodId);
+  return computeLocal(now, s.lat, s.lon, s.methodId, s.madhab);
 }
 
 export async function getNextPrayer(): Promise<NextPrayerInfo | null> {
@@ -250,7 +280,7 @@ export async function getNextPrayer(): Promise<NextPrayerInfo | null> {
     const tomorrow = new Date(Date.now() + 86_400_000);
     const s = getSettings();
     if (s.lat == null || s.lon == null) return null;
-    const t = computeLocal(tomorrow, s.lat, s.lon, s.methodId);
+    const t = computeLocal(tomorrow, s.lat, s.lon, s.methodId, s.madhab);
     prayer = t.prayers.find((p) => p.id === 'fajr')!;
   }
 
@@ -304,4 +334,30 @@ export function countCachedMonths(): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * حذف جداول الأشهر المنصرمة وما لا يطابق الإعدادات الحالية (طريقة/مذهب/موقع قديم).
+ * يعيد عدد الملفات المحذوفة.
+ */
+export function pruneTimetableCache(): number {
+  const s = getSettings();
+  const now = new Date();
+  const currentYm = now.getFullYear() * 100 + (now.getMonth() + 1);
+  let removed = 0;
+  try {
+    for (const f of fs.readdirSync(cacheDir())) {
+      if (!f.startsWith('timetable_') || !f.endsWith('.json')) continue;
+      const m = f.match(/^timetable_(\d{4})_(\d{2})_/);
+      const isPast = m ? Number(m[1]) * 100 + Number(m[2]) < currentYm : true;
+      const matchesCurrent =
+        s.lat != null && s.lon != null &&
+        f === path.basename(cacheFile(Number(m?.[1] ?? 0), Number(m?.[2] ?? 0), s.methodId, s.madhab, s.lat, s.lon));
+      if (isPast || !matchesCurrent) {
+        fs.unlinkSync(path.join(cacheDir(), f));
+        removed++;
+      }
+    }
+  } catch {}
+  return removed;
 }

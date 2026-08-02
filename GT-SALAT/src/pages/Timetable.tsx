@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Card, Button, SectionTitle } from '../components/common';
+import { Card, Button } from '../components/common';
 import type { DayTimetable } from '../hooks/usePrayer';
+import type { AppSettings } from '../hooks/useSettings';
+import { formatClock, gregorianMonthName, hijriParts, HIJRI_MONTHS } from '../utils/format';
 
 type ViewMode = 'weekly' | 'biweekly' | 'monthly';
-
-const MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 const PRAYER_COLORS: Record<string, string> = {
   fajr: 'var(--color-fajr)',
@@ -60,19 +60,30 @@ function getEndDate(start: Date, mode: ViewMode): Date {
   return new Date(start.getFullYear(), start.getMonth() + 1, 0);
 }
 
-function formatRange(start: Date, end: Date, mode: ViewMode): string {
+function formatRange(start: Date, end: Date, mode: ViewMode, s: AppSettings): string {
+  const mn = (d: Date) => gregorianMonthName(d.getMonth() + 1, s.monthScheme, s.country);
   if (mode === 'monthly') {
-    return `${MONTHS_AR[start.getMonth()]} ${start.getFullYear()}`;
+    return `${mn(start)} ${start.getFullYear()}`;
   }
   const sDay = start.getDate();
   const eDay = end.getDate();
   if (start.getMonth() === end.getMonth()) {
-    return `${sDay} — ${eDay} ${MONTHS_AR[start.getMonth()]} ${start.getFullYear()}`;
+    return `${sDay} — ${eDay} ${mn(start)} ${start.getFullYear()}`;
   }
-  return `${sDay} ${MONTHS_AR[start.getMonth()]} — ${eDay} ${MONTHS_AR[end.getMonth()]} ${end.getFullYear()}`;
+  return `${sDay} ${mn(start)} — ${eDay} ${mn(end)} ${end.getFullYear()}`;
 }
 
-export function TimetablePage() {
+/** عمود اليوم: رقمٌ ميلاديٌّ أو هجريٌّ حسب التقويم المختار في الإعدادات المتقدمة. */
+function dayLabel(iso: string, s: AppSettings): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (s.timetableCalendar !== 'hijri') return String(d);
+  const h = hijriParts(new Date(y, m - 1, d), s.hijriOffset ?? 0);
+  if (!h) return String(d);
+  // اسم الشهر يظهر في أول يومٍ منه فقط كي لا يزدحم العمود.
+  return h.day === 1 ? `${h.day} ${HIJRI_MONTHS[h.month - 1]}` : String(h.day);
+}
+
+export function TimetablePage({ settings }: { settings: AppSettings }) {
   const now = todayDate();
   const todayStr = dateStr(now);
 
@@ -129,7 +140,7 @@ export function TimetablePage() {
   };
 
   const endDate = getEndDate(startDate, viewMode);
-  const rangeLabel = formatRange(startDate, endDate, viewMode);
+  const rangeLabel = formatRange(startDate, endDate, viewMode, settings);
 
   return (
     <div style={{ padding: 24, overflowY: 'auto', height: '100%' }}>
@@ -178,12 +189,14 @@ export function TimetablePage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '90px repeat(6, 1fr)',
+            gridTemplateColumns: '110px repeat(6, 1fr)',
             background: 'var(--bg-panel)',
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--fg-muted)' }}>اليوم</div>
+          <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--fg-muted)' }}>
+            {settings.timetableCalendar === 'hijri' ? 'اليوم (هجري)' : 'اليوم'}
+          </div>
           {(['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'] as const).map((id) => (
             <div
               key={id}
@@ -208,9 +221,9 @@ export function TimetablePage() {
               key={day.date}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '90px repeat(6, 1fr)',
+                gridTemplateColumns: '110px repeat(6, 1fr)',
                 borderBottom: '1px solid var(--bg-elevated)',
-                background: isToday ? 'rgba(0,188,212,0.05)' : 'transparent',
+                background: isToday ? 'var(--accent-tint)' : 'transparent',
               }}
             >
               <div
@@ -221,7 +234,7 @@ export function TimetablePage() {
                   fontWeight: isToday ? 700 : 400,
                 }}
               >
-                {parseInt(day.date.split('-')[2], 10)} {isToday && '←'}
+                {dayLabel(day.date, settings)} {isToday && '←'}
               </div>
               {day.prayers.map((p) => (
                 <div
@@ -234,7 +247,7 @@ export function TimetablePage() {
                     textAlign: 'center',
                   }}
                 >
-                  {p.time}
+                  {formatClock(p.time, settings.clock24h)}
                 </div>
               ))}
             </div>

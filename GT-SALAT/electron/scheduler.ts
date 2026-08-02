@@ -2,8 +2,9 @@ import { getNextPrayer, getTodayTimetable } from './prayer.js';
 import { getSettings } from './settings.js';
 import { getRandomDhikr } from './dhikr.js';
 import { notify } from './notifier.js';
+import { isWhiteDay } from './hijri.js';
 import * as audio from './audio.js';
-import type { PrayerTime, NextPrayerInfo } from './types.js';
+import { ALERT_PRAYERS, type AlertMode, type AppSettings, type PrayerTime, type NextPrayerInfo } from './types.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -25,8 +26,9 @@ function writeTerminalStatus(next: NextPrayerInfo | null): void {
 
 let tickTimer: NodeJS.Timeout | null = null;
 let zikrTimer: NodeJS.Timeout | null = null;
-let announcedForPrayer = new Set<string>(); // مفاتيح "prayerId@timestamp"
+let announcedForPrayer = new Set<string>(); // مفاتيح "prayerId@YYYY-MM-DD"
 let announcedApproaching = new Set<string>();
+let announcedReminders = new Set<string>();  // مفاتيح "reminderId@YYYY-MM-DD"
 
 function resetDayIfNeeded(): void {
   const today = new Date().toISOString().slice(0, 10);
@@ -36,6 +38,23 @@ function resetDayIfNeeded(): void {
   for (const key of [...announcedApproaching]) {
     if (!key.endsWith(today)) announcedApproaching.delete(key);
   }
+  for (const key of [...announcedReminders]) {
+    if (!key.endsWith(today)) announcedReminders.delete(key);
+  }
+}
+
+/**
+ * نمط تنبيه صلاةٍ بعينها، بأسبقيةٍ معلَنة:
+ * 1. مفاتيح الصفحة الأساسية هي الأعلى — إن أُطفئت «إشعارات النظام للصلاة» فالنمط صامتٌ دائماً.
+ * 2. فإن لم يُفعَّل «تنبيه مخصّص لكل صلاة» فالنمط أذانٌ كامل (السلوك التاريخي للتطبيق).
+ * 3. وإلا فالنمط المختار لتلك الصلاة في الصفحة المتقدمة.
+ */
+function alertModeFor(id: PrayerTime['id'], s: AppSettings): AlertMode {
+  if (!s.systemSalatNotify) return 'silent';
+  if (!s.perPrayerAlerts) return 'adhan';
+  const idx = (ALERT_PRAYERS as readonly string[]).indexOf(id);
+  if (idx < 0) return 'adhan';
+  return s.prayerAlerts?.[idx] ?? 'adhan';
 }
 
 async function tick(): Promise<void> {
@@ -48,7 +67,12 @@ async function tick(): Promise<void> {
       getNextPrayer().then(writeTerminalStatus).catch(() => {});
     }
 
-    if (s.doNotDisturb || !s.enableSalatNotify || !s.setupCompleted) return;
+    if (s.doNotDisturb || !s.setupCompleted) return;
+
+    // التذكيرات اليومية مستقلة عن مفتاح إشعارات الصلاة.
+    checkDailyReminders(s);
+
+    if (!s.enableSalatNotify) return;
 
     const today = await getTodayTimetable();
     if (!today) return;
@@ -91,20 +115,27 @@ function announceApproaching(p: PrayerTime, minutes: number): void {
     title: `⏰ تبقى ${minutes} دقيقة على صلاة ${p.name}`,
     body: 'استعد للصلاة',
     urgent: false,
+    route: 'dashboard',
   });
-  if (s.systemSalatNotify) audio.play('approaching');
+  if (s.systemSalatNotify && s.enablePreNotifySound !== false) audio.play('approaching');
 }
 
 function announcePrayer(p: PrayerTime): void {
   const s = getSettings();
+  const mode = alertModeFor(p.id, s);
+
   notify({
     type: 'salat',
     title: `🕌 حان الآن وقت صلاة ${p.name}`,
     body: 'الله أكبر',
     urgent: true,
+    route: 'dashboard',
   });
 
-  if (s.systemSalatNotify) {
+  if (mode === 'tone') {
+    // رنّة تنبيهٍ قصيرة بدل الأذان الكامل.
+    audio.play('approaching');
+  } else if (mode === 'adhan') {
     const afterAdhan = () => {
       const cur = getSettings();
       if (!cur.doNotDisturb && cur.enableDuaAfterAdhan) {
@@ -118,16 +149,53 @@ function announcePrayer(p: PrayerTime): void {
       s.enableDuaAfterAdhan ? audio.play(s.adhanType, afterAdhan) : audio.play(s.adhanType);
     }
   }
+  // mode === 'silent' → الإشعار وحده بلا صوت.
 
   if (s.enablePostPrayerDhikr) {
     const delayMs = Math.max(s.postPrayerDhikrDelayMinutes, 1) * 60_000;
     setTimeout(() => {
       const cur = getSettings();
       if (!cur.doNotDisturb && cur.enablePostPrayerDhikr) {
-        notify({ type: 'zikr', title: '📿 أذكار وأدعية بعد الصلاة', body: p.name });
+        notify({ type: 'zikr', title: '📿 أذكار وأدعية بعد الصلاة', body: p.name, route: 'dhikr' });
         audio.play('post_prayer_dhikr');
       }
     }, delayMs);
+  }
+}
+
+/**
+ * التذكيرات اليومية (أذكار الصباح/المساء، الأيام البيض).
+ *
+ * تُطلَق مرةً واحدةً في اليوم عند بلوغ ساعتها، مع نافذة سماحٍ ساعةً كاملةً بعدها —
+ * فلو كان الحاسوب مطفأً أو التطبيق مغلقاً لحظةَ الموعد وصل التذكير عند أول تشغيلٍ ضمن الساعة،
+ * ولا يصل متأخراً بساعاتٍ فيفقد معناه.
+ */
+const REMINDER_GRACE_MS = 60 * 60_000;
+
+function fireReminderOnce(id: string, hour: number, now: Date, title: string, body: string, route?: string): void {
+  const dateStr = now.toISOString().slice(0, 10);
+  const key = `${id}@${dateStr}`;
+  if (announcedReminders.has(key)) return;
+
+  const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0).getTime();
+  const diff = now.getTime() - target;
+  if (diff < 0 || diff > REMINDER_GRACE_MS) return;
+
+  announcedReminders.add(key);
+  notify({ type: 'zikr', title, body, route });
+}
+
+function checkDailyReminders(s: AppSettings): void {
+  const now = new Date();
+
+  if (s.enableMorningAdhkarReminder) {
+    fireReminderOnce('morning-adhkar', s.morningAdhkarHour ?? 6, now, '☀️ أذكار الصباح', 'انقر لفتح جلسة أذكار الصباح', 'more/adhkar-morning');
+  }
+  if (s.enableEveningAdhkarReminder) {
+    fireReminderOnce('evening-adhkar', s.eveningAdhkarHour ?? 17, now, '🌙 أذكار المساء', 'انقر لفتح جلسة أذكار المساء', 'more/adhkar-evening');
+  }
+  if (s.enableWhiteDaysReminder && isWhiteDay(now, s.hijriOffset ?? 0)) {
+    fireReminderOnce('white-days', s.morningAdhkarHour ?? 6, now, '🤍 الأيام البيض', 'اليوم من الأيام البيض (13/14/15) — يُستحبّ صيامها', 'timetable');
   }
 }
 
@@ -140,6 +208,7 @@ async function zikrTick(): Promise<void> {
     type: 'zikr',
     title: '🕊️ ذكر',
     body: d.text.length > 200 ? d.text.slice(0, 200) + '…' : d.text,
+    route: 'dhikr',
   });
 }
 

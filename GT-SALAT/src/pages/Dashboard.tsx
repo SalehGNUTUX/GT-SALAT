@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, Button, SectionTitle } from '../components/common';
-import { useNextPrayer, type PrayerTime, type DayTimetable } from '../hooks/usePrayer';
+import type { PrayerTime, DayTimetable, NextPrayerInfo } from '../hooks/usePrayer';
+import type { AppSettings } from '../hooks/useSettings';
+import type { DailyAyah, Hikmah, HistoryEvent } from '@electron/types';
+import { formatClock, hijriParts, ramadanRange } from '../utils/format';
 
 const PRAYER_COLORS: Record<string, string> = {
   fajr: 'var(--color-fajr)',
@@ -21,18 +24,53 @@ const PRAYER_ICONS: Record<string, string> = {
 };
 
 interface Props {
-  city: string;
+  settings: AppSettings;
   today: DayTimetable | null;
+  /** تأتي من `App` — مصدرٌ واحدٌ يشترك فيه الشريط العلوي ولوحة التحكم. */
+  next: NextPrayerInfo | null;
+  onOpenMore: (id: string) => void;
 }
 
-export function DashboardPage({ city, today }: Props) {
-  const next = useNextPrayer(1000);
+/** بذرةٌ ثابتةٌ لليوم: نفس الآية/الحكمة طوال اليوم، وتتغيّر غداً. */
+function daySeed(): number {
+  const d = new Date();
+  const dayOfYear = Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 86_400_000);
+  return d.getFullYear() * 1000 + dayOfYear;
+}
+
+/** بعد الظهر نقترح أذكار المساء بدل الصباح. */
+function isEvening(): boolean {
+  return new Date().getHours() >= 12;
+}
+
+export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
+  const city = settings.city;
   const [dhikr, setDhikr] = useState<{ id: number; text: string } | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [ayah, setAyah] = useState<DailyAyah | null>(null);
+  const [hikmah, setHikmah] = useState<Hikmah | null>(null);
+  const [events, setEvents] = useState<HistoryEvent[]>([]);
+  const [seed, setSeed] = useState(daySeed());
 
   useEffect(() => {
     window.gtSalat.dhikr.random().then(setDhikr);
   }, []);
+
+  useEffect(() => {
+    if (settings.enableDailyAyah) window.gtSalat.content.dailyAyah(seed).then(setAyah);
+    if (settings.enableDailyHikmah) window.gtSalat.content.hikmah(seed).then(setHikmah);
+  }, [seed, settings.enableDailyAyah, settings.enableDailyHikmah]);
+
+  // حدث اليوم يُطابَق باليوم الهجري (مع إزاحة المستخدم).
+  useEffect(() => {
+    if (!settings.enableTodayEvent) {
+      setEvents([]);
+      return;
+    }
+    const h = hijriParts(new Date(), settings.hijriOffset ?? 0);
+    if (!h) return;
+    window.gtSalat.content.eventsToday(h.month, h.day).then(setEvents);
+  }, [settings.enableTodayEvent, settings.hijriOffset]);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -49,6 +87,8 @@ export function DashboardPage({ city, today }: Props) {
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, height: '100%', overflowY: 'auto' }}>
+      {settings.enableRamadanCard && <RamadanCard settings={settings} onOpen={() => onOpenMore('imsakiah')} />}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
         {/* Next prayer */}
         <Card style={{ position: 'relative', overflow: 'hidden', padding: '22px 26px' }}>
@@ -71,7 +111,7 @@ export function DashboardPage({ city, today }: Props) {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 14 }}>
                 <span style={{ fontSize: 42, fontWeight: 700, color: 'var(--gold-500)' }}>{next.prayer.name}</span>
                 <span className="mono" style={{ fontSize: 24, color: 'var(--fg-primary)' }}>
-                  {next.prayer.time}
+                  {formatClock(next.prayer.time, settings.clock24h)}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -117,14 +157,90 @@ export function DashboardPage({ city, today }: Props) {
         </Card>
       </div>
 
+      {/* آية اليوم + حكمة اليوم */}
+      {(settings.enableDailyAyah || settings.enableDailyHikmah) && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: settings.enableDailyAyah && settings.enableDailyHikmah ? '1.4fr 1fr' : '1fr',
+            gap: 16,
+          }}
+        >
+          {settings.enableDailyAyah && (
+            <Card style={{ display: 'flex', flexDirection: 'column' }}>
+              <SectionTitle
+                action={
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Button size="sm" onClick={() => setSeed((s) => s + 1)}>آية أخرى</Button>
+                    <Button size="sm" variant="secondary" onClick={() => onOpenMore('quran')}>القرآن ←</Button>
+                  </div>
+                }
+              >
+                آية اليوم
+              </SectionTitle>
+              <div
+                className="dhikr-text fade-in"
+                key={`${ayah?.surah}-${ayah?.n}`}
+                style={{ fontSize: 20, color: 'var(--fg-primary)', lineHeight: 2.3, flex: 1 }}
+              >
+                {ayah?.text ?? '…'}
+              </div>
+              {ayah && (
+                <div style={{ fontSize: 12, color: 'var(--gold-500)', marginTop: 10 }}>
+                  سورة {ayah.surah} — الآية {ayah.n}
+                </div>
+              )}
+            </Card>
+          )}
+
+          {settings.enableDailyHikmah && (
+            <Card style={{ display: 'flex', flexDirection: 'column' }}>
+              <SectionTitle action={<Button size="sm" onClick={() => setSeed((s) => s + 1)}>حكمة أخرى</Button>}>
+                حكمة اليوم
+              </SectionTitle>
+              <div
+                className="fade-in"
+                key={hikmah?.n}
+                style={{ fontSize: 15, color: 'var(--fg-primary)', lineHeight: 2.1, flex: 1 }}
+              >
+                «{hikmah?.text ?? '…'}»
+              </div>
+              {hikmah?.sayer && (
+                <div style={{ fontSize: 12, color: 'var(--gold-500)', marginTop: 10 }}>— {hikmah.sayer}</div>
+              )}
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* حدث اليوم — يظهر فقط إن صادف اليومَ الهجريَّ حدث */}
+      {events.length > 0 && (
+        <Card onClick={() => onOpenMore('events')} style={{ borderColor: 'var(--gold-600)' }}>
+          <SectionTitle>🏛️ في مثل هذا اليوم</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {events.map((e, i) => (
+              <div key={i}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--fg-primary)' }}>{e.title}</span>
+                  <span style={{ fontSize: 12, color: 'var(--gold-500)' }}>{e.year}</span>
+                </div>
+                {e.text && (
+                  <div style={{ fontSize: 13, color: 'var(--fg-secondary)', lineHeight: 1.9, marginTop: 4 }}>{e.text}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Today timetable */}
       <Card>
         <SectionTitle>مواقيت اليوم{city ? ` — ${city}` : ''}</SectionTitle>
         {today ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
             {today.prayers.map((p) => {
-              const next = isNext(p);
-              const past = !next && isPast(p);
+              const isNextPrayer = isNext(p);
+              const past = !isNextPrayer && isPast(p);
               return (
                 <div
                   key={p.id}
@@ -134,8 +250,8 @@ export function DashboardPage({ city, today }: Props) {
                     justifyContent: 'space-between',
                     padding: '10px 14px',
                     borderRadius: 8,
-                    background: next ? 'rgba(245,197,24,0.08)' : 'transparent',
-                    borderRight: next ? '3px solid var(--gold-500)' : '3px solid transparent',
+                    background: isNextPrayer ? 'rgba(245,197,24,0.08)' : 'transparent',
+                    borderRight: isNextPrayer ? '3px solid var(--gold-500)' : '3px solid transparent',
                     opacity: past ? 0.5 : 1,
                   }}
                 >
@@ -144,8 +260,8 @@ export function DashboardPage({ city, today }: Props) {
                     <span
                       style={{
                         fontSize: 14,
-                        fontWeight: next ? 700 : 500,
-                        color: next ? PRAYER_COLORS[p.id] : 'var(--fg-primary)',
+                        fontWeight: isNextPrayer ? 700 : 500,
+                        color: isNextPrayer ? PRAYER_COLORS[p.id] : 'var(--fg-primary)',
                       }}
                     >
                       {p.name}
@@ -155,11 +271,11 @@ export function DashboardPage({ city, today }: Props) {
                     className="mono"
                     style={{
                       fontSize: 14,
-                      color: next ? 'var(--gold-500)' : 'var(--fg-secondary)',
-                      fontWeight: next ? 700 : 400,
+                      color: isNextPrayer ? 'var(--gold-500)' : 'var(--fg-secondary)',
+                      fontWeight: isNextPrayer ? 700 : 400,
                     }}
                   >
-                    {p.time}
+                    {formatClock(p.time, settings.clock24h)}
                   </span>
                 </div>
               );
@@ -170,18 +286,55 @@ export function DashboardPage({ city, today }: Props) {
         )}
       </Card>
 
-      {/* Quick actions */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <Button variant="secondary" onClick={() => window.gtSalat.prayer.prefetch()}>
-          🔄 تحديث المواقيت
+      {/* وصولٌ سريع */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Button variant="secondary" onClick={() => onOpenMore('quran')}>📖 القرآن</Button>
+        <Button variant="secondary" onClick={() => onOpenMore('hisn')}>🛡️ حصن المسلم</Button>
+        <Button variant="secondary" onClick={() => onOpenMore(isEvening() ? 'adhkar-evening' : 'adhkar-morning')}>
+          {isEvening() ? '🌙 أذكار المساء' : '☀️ أذكار الصباح'}
         </Button>
+        <Button variant="secondary" onClick={() => onOpenMore('tasbih')}>📿 التسبيح</Button>
+        <div style={{ flex: 1 }} />
+        <Button onClick={() => window.gtSalat.prayer.prefetch()}>🔄 تحديث المواقيت</Button>
         <Button onClick={() => window.gtSalat.notify.test()}>🔔 اختبار إشعار</Button>
-        <Button onClick={() => window.gtSalat.notify.testAdhan()}>🎵 اختبار الأذان الكامل</Button>
-        <Button onClick={() => window.gtSalat.notify.testAdhanShort()}>🎵 اختبار الأذان القصير</Button>
-        <Button onClick={() => window.gtSalat.notify.testApproaching()}>⏰ اختبار تنبيه الاقتراب</Button>
-        <Button onClick={() => window.gtSalat.audio.play('dua_after_adhan')}>🤲 اختبار دعاء الأذان</Button>
-        <Button onClick={() => window.gtSalat.audio.play('post_prayer_dhikr')}>📿 اختبار أذكار الصلاة</Button>
       </div>
     </div>
+  );
+}
+
+/** بطاقة رمضان: عدّادٌ قبل الشهر، ورقم اليوم أثناءه. */
+function RamadanCard({ settings, onOpen }: { settings: AppSettings; onOpen: () => void }) {
+  const h = hijriParts(new Date(), settings.hijriOffset ?? 0);
+  const range = ramadanRange(new Date(), settings.hijriOffset ?? 0);
+  if (!h || !range) return null;
+
+  const inRamadan = h.month === 9;
+  const daysLeft = Math.ceil((range.start.getTime() - Date.now()) / 86_400_000);
+
+  // لا تظهر البطاقة إلا في رمضان أو قبله بشهرٍ على الأكثر، كي لا تزاحم لوحة التحكم طوال السنة.
+  if (!inRamadan && daysLeft > 30) return null;
+
+  return (
+    <Card
+      onClick={onOpen}
+      style={{
+        borderColor: 'var(--gold-600)',
+        background: 'linear-gradient(90deg, rgba(245,197,24,0.07) 0%, transparent 70%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+      }}
+    >
+      <span style={{ fontSize: 28 }}>🌛</span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--gold-500)' }}>
+          {inRamadan ? `رمضان — اليوم ${h.day}` : `بقي على رمضان ${Math.max(0, daysLeft)} يوماً`}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 3 }}>
+          انقر لفتح إمساكية الشهر
+        </div>
+      </div>
+      <span style={{ fontSize: 18, color: 'var(--fg-muted)' }}>←</span>
+    </Card>
   );
 }

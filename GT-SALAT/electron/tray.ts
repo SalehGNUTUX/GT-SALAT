@@ -15,18 +15,25 @@ function trayIconPath(): string {
   return path.join(app.getAppPath(), 'resources', 'icons', file);
 }
 
-export function createTray(showMainWindow: () => void): Tray {
+/**
+ * أيقونة شريط المهام.
+ *
+ * النقر على الأيقونة **يبدّل** حالة النافذة (يفتحها إن كانت مخفيّة، ويخفيها إن كانت ظاهرة).
+ * وبما أنّ بعض أسطح المكتب على لينكس لا تُمرّر حدث النقر إلى التطبيق أصلاً (تكتفي بفتح
+ * قائمة السياق)، فالقائمة تحوي عنصر «إظهار/إخفاء الواجهة» بنفس الوظيفة ضماناً.
+ */
+export function createTray(showMainWindow: () => void, toggleMainWindow: () => void): Tray {
   const img = nativeImage.createFromPath(trayIconPath());
   tray = new Tray(img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 22, height: 22 }));
   tray.setToolTip('GT-SALAT');
-  tray.on('click', showMainWindow);
-  tray.on('double-click', showMainWindow);
+  tray.on('click', toggleMainWindow);
+  tray.on('double-click', toggleMainWindow);
 
-  refreshMenu(showMainWindow);
+  refreshMenu(showMainWindow, toggleMainWindow);
   updateTooltip();
 
   updateTimer = setInterval(() => {
-    refreshMenu(showMainWindow);
+    refreshMenu(showMainWindow, toggleMainWindow);
     updateTooltip();
   }, 30_000);
 
@@ -49,7 +56,7 @@ async function updateTooltip(): Promise<void> {
   }
 }
 
-async function refreshMenu(showMainWindow: () => void): Promise<void> {
+async function refreshMenu(showMainWindow: () => void, toggleMainWindow: () => void): Promise<void> {
   if (!tray) return;
   const s = getSettings();
   let nextLabel = 'الصلاة القادمة: —';
@@ -64,15 +71,15 @@ async function refreshMenu(showMainWindow: () => void): Promise<void> {
     { label: nextLabel, enabled: false },
     { type: 'separator' },
     {
-      label: 'فتح الواجهة الرئيسية',
-      click: showMainWindow,
+      label: 'إظهار/إخفاء الواجهة',
+      click: toggleMainWindow,
     },
     {
       label: 'عرض ذكر الآن',
       click: () => {
         const d = getRandomDhikr();
         if (d) {
-          notify({ type: 'zikr', title: '🕊️ ذكر', body: d.text });
+          notify({ type: 'zikr', title: '🕊️ ذكر', body: d.text, route: 'dhikr' });
         }
       },
     },
@@ -89,7 +96,7 @@ async function refreshMenu(showMainWindow: () => void): Promise<void> {
       checked: s.doNotDisturb,
       click: () => {
         setSettings({ doNotDisturb: !s.doNotDisturb });
-        refreshMenu(showMainWindow);
+        refreshMenu(showMainWindow, toggleMainWindow);
       },
     },
     {
@@ -98,7 +105,7 @@ async function refreshMenu(showMainWindow: () => void): Promise<void> {
       checked: s.enableSalatNotify,
       click: () => {
         setSettings({ enableSalatNotify: !s.enableSalatNotify });
-        refreshMenu(showMainWindow);
+        refreshMenu(showMainWindow, toggleMainWindow);
       },
     },
     {
@@ -107,7 +114,7 @@ async function refreshMenu(showMainWindow: () => void): Promise<void> {
       checked: s.enableZikrNotify,
       click: () => {
         setSettings({ enableZikrNotify: !s.enableZikrNotify });
-        refreshMenu(showMainWindow);
+        refreshMenu(showMainWindow, toggleMainWindow);
       },
     },
     { type: 'separator' },
@@ -135,7 +142,7 @@ export function destroyTray(): void {
   updateTimer = null;
 }
 
-export function refreshTray(showMainWindow: () => void): void {
-  refreshMenu(showMainWindow);
+export function refreshTray(showMainWindow: () => void, toggleMainWindow: () => void): void {
+  refreshMenu(showMainWindow, toggleMainWindow);
   updateTooltip();
 }
