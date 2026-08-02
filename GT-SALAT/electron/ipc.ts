@@ -15,6 +15,7 @@ import {
   prefetchUpcomingMonths,
   countCachedMonths,
   pruneTimetableCache,
+  suggestMethodByCountry,
   CALCULATION_METHODS,
 } from './prayer.js';
 import {
@@ -61,6 +62,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   ipcMain.handle('prayer:auto-detect', () => autoDetectLocation());
   ipcMain.handle('prayer:prefetch', () => prefetchUpcomingMonths());
   ipcMain.handle('prayer:methods', () => CALCULATION_METHODS);
+  ipcMain.handle('prayer:suggest-method', (_e, country: string) => suggestMethodByCountry(country));
   ipcMain.handle('prayer:cached-months', () => countCachedMonths());
   ipcMain.handle('prayer:prune-cache', () => pruneTimetableCache());
 
@@ -91,6 +93,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
     content.getEventsToday(hMonth, hDay),
   );
   ipcMain.handle('content:radios', () => content.getRadios());
+  ipcMain.handle('content:places', (_e, q?: string) => (q ? content.searchPlaces(q) : content.getPlaces()));
   ipcMain.handle('content:session-adhkar', (_e, type: 'morning' | 'evening') =>
     content.getSessionAdhkar(type),
   );

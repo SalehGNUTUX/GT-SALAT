@@ -260,6 +260,14 @@ export interface HistoryEvent {
   text?: string;
 }
 
+/** موقعٌ مُضمَّن (بلد/مدينة + إحداثيّات) لاختيار الموقع دون إنترنت — مشترك مع نسخة الهاتف. */
+export interface Place {
+  country: string;
+  city: string;
+  lat: number;
+  lon: number;
+}
+
 /** إذاعةٌ قرآنية (اسم + وصف + رابط بثّ). */
 export interface Radio {
   name: string;

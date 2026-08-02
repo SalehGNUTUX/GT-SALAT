@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../components/common';
+import { PlacePicker } from '../components/PlacePicker';
 import appIcon from '@/assets/icons/app-icon.png';
 
 interface Props {
@@ -18,6 +19,7 @@ export function WelcomePage({ onDone }: Props) {
   const [enableZikr, setEnableZikr] = useState(true);
   const [enableTerminal, setEnableTerminal] = useState(false);
   const [detecting, setDetecting] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   useEffect(() => {
     window.gtSalat.prayer.methods().then(setMethods);
@@ -145,9 +147,26 @@ export function WelcomePage({ onDone }: Props) {
                 style={welcomeInput}
               />
             </div>
-            <Button variant="secondary" onClick={detect} disabled={detecting}>
-              {detecting ? '🔎 جاري الاكتشاف…' : '🌍 اكتشف الموقع تلقائياً'}
-            </Button>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Button variant="secondary" onClick={detect} disabled={detecting}>
+                {detecting ? '🔎 جاري الاكتشاف…' : '🌍 اكتشف الموقع تلقائياً'}
+              </Button>
+              {/* بديلٌ يعمل بلا إنترنت — أهمّ ما يكون عند أوّل تشغيلٍ بلا اتصال */}
+              <Button variant="secondary" onClick={() => setPicking(true)}>🏙️ اختر مدينتك</Button>
+            </div>
+            {picking && (
+              <PlacePicker
+                onClose={() => setPicking(false)}
+                onPick={(pl) => {
+                  setLat(pl.lat);
+                  setLon(pl.lon);
+                  setCity(pl.city);
+                  setCountry(pl.country);
+                  window.gtSalat.prayer.suggestMethod(pl.country).then((id) => id && setMethodId(id));
+                  setPicking(false);
+                }}
+              />
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
               <Button onClick={() => setStep('hello')}>→ رجوع</Button>
               <Button variant="primary" onClick={() => setStep('method')} disabled={lat == null || lon == null}>

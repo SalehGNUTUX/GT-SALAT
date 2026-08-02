@@ -15,6 +15,7 @@ import type {
   HisnCategory,
   HisnCategoryInfo,
   HistoryEvent,
+  Place,
   QuranMeta,
   Radio,
   SessionDhikr,
@@ -42,6 +43,7 @@ const api = {
     autoDetect: () => ipcRenderer.invoke('prayer:auto-detect'),
     prefetch: () => ipcRenderer.invoke('prayer:prefetch'),
     methods: () => ipcRenderer.invoke('prayer:methods'),
+    suggestMethod: (country: string): Promise<number> => ipcRenderer.invoke('prayer:suggest-method', country),
     cachedMonths: (): Promise<number> => ipcRenderer.invoke('prayer:cached-months'),
     pruneCache: (): Promise<number> => ipcRenderer.invoke('prayer:prune-cache'),
   },
@@ -70,6 +72,7 @@ const api = {
     eventsToday: (hMonth: number, hDay: number): Promise<HistoryEvent[]> =>
       ipcRenderer.invoke('content:events-today', hMonth, hDay),
     radios: (): Promise<Radio[]> => ipcRenderer.invoke('content:radios'),
+    places: (query?: string): Promise<Place[]> => ipcRenderer.invoke('content:places', query),
     sessionAdhkar: (type: 'morning' | 'evening'): Promise<SessionDhikr[]> =>
       ipcRenderer.invoke('content:session-adhkar', type),
     credits: (): Promise<{

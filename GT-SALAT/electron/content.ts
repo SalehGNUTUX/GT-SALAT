@@ -22,6 +22,7 @@ import type {
   HisnCategoryInfo,
   HistoryEvent,
   QuranMeta,
+  Place,
   Radio,
   SessionDhikr,
   TafsirSurah,
@@ -203,6 +204,20 @@ export function getEventsToday(hMonth: number, hDay: number): HistoryEvent[] {
 // ── الإذاعات ───────────────────────────────────────────
 export function getRadios(): Radio[] {
   return load<{ radios: Radio[] }>('radios.json')?.radios ?? [];
+}
+
+// ── المواقع المُضمَّنة (دون إنترنت) ─────────────────────
+export function getPlaces(): Place[] {
+  return load<{ places: Place[] }>('places.json')?.places ?? [];
+}
+
+/** بحثٌ في المدن والدول بتطبيعٍ عربيّ — «طنجه» تطابق «طنجة». */
+export function searchPlaces(query: string): Place[] {
+  const q = normalizeArabic(query);
+  if (!q) return getPlaces();
+  return getPlaces().filter(
+    (p) => normalizeArabic(p.city).includes(q) || normalizeArabic(p.country).includes(q),
+  );
 }
 
 // ── أذكار الصباح والمساء ───────────────────────────────

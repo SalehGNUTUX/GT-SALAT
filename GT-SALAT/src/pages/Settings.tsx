@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, Button, Toggle, SectionTitle, SettingRow } from '../components/common';
+import { PlacePicker } from '../components/PlacePicker';
 import type { AppSettings } from '../hooks/useSettings';
 
 interface Props {
@@ -15,6 +16,7 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
   const [installedShells, setInstalledShells] = useState<string[]>([]);
   const [shellApplyStatus, setShellApplyStatus] = useState<string>('');
   const [shellConfirmReset, setShellConfirmReset] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   useEffect(() => {
     window.gtSalat.prayer.methods().then(setMethods);
@@ -146,6 +148,8 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
           <Button variant="secondary" onClick={detect} disabled={detecting}>
             {detecting ? '🔎 جاري الاكتشاف…' : '🌍 اكتشف الموقع تلقائياً'}
           </Button>
+          {/* بديلٌ يعمل بلا إنترنت: قاعدة مواقع مُضمَّنة مشتركة مع نسخة الهاتف */}
+          <Button variant="secondary" onClick={() => setPicking(true)}>🏙️ اختر مدينتك</Button>
           <Button
             variant="primary"
             onClick={async () => {
@@ -158,6 +162,26 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
           </Button>
         </div>
       </Card>
+
+      {picking && (
+        <PlacePicker
+          onClose={() => setPicking(false)}
+          onPick={async (pl) => {
+            setPicking(false);
+            const methodId = await window.gtSalat.prayer.suggestMethod(pl.country);
+            const m = methods.find((x) => x.id === methodId);
+            await update({
+              lat: pl.lat,
+              lon: pl.lon,
+              city: pl.city,
+              country: pl.country,
+              ...(methodId ? { methodId, methodName: m?.nameAr ?? '' } : {}),
+              setupCompleted: true,
+            });
+            await window.gtSalat.prayer.prefetch();
+          }}
+        />
+      )}
 
       {/* الإشعارات */}
       <Card style={{ marginBottom: 16 }}>
