@@ -941,6 +941,82 @@
         }
 
         /* ========== INSTALL NOTES ========== */
+        /* ── جدول الأوامر مع أزرار النسخ ── */
+        .cmd-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            direction: rtl;
+        }
+
+        .cmd-table td {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-card);
+            border-bottom: 1px solid var(--border-card);
+            padding: 11px 14px;
+            vertical-align: middle;
+        }
+
+        .cmd-table td:first-child {
+            border-right: 1px solid var(--border-card);
+            border-radius: 0 10px 10px 0;
+            white-space: nowrap;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            width: 1%;
+        }
+
+        .cmd-table td:last-child {
+            border-left: 1px solid var(--border-card);
+            border-radius: 10px 0 0 10px;
+            width: 1%;
+        }
+
+        /* الأمر نفسه لاتينيّ دائماً — لا يعبث به اتجاه الصفحة */
+        .cmd-table code {
+            direction: ltr;
+            display: block;
+            text-align: left;
+            unicode-bidi: isolate;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--code-text);
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-card);
+            color: var(--accent-primary);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-card);
+        }
+
+        .copy-btn.copied {
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .copy-btn.copied:hover {
+            background: #4caf50;
+            color: var(--bg-card);
+        }
+
+        @media (max-width: 600px) {
+            .cmd-table td:first-child { display: none; }
+        }
+
         .install-notes {
             background: var(--code-bg);
             border-radius: 14px;
@@ -1389,16 +1465,35 @@
             <!-- Installation notes -->
             <div class="install-notes">
                 <h4>تثبيت سريع</h4>
-                <pre># Debian / Ubuntu / Linux Mint
-                    sudo dpkg -i GT-SALAT_*.deb
-                sudo apt-get install -f
-
-                # Fedora / RHEL / Rocky
-                sudo rpm -i gt-salat-*.rpm
-
-            # AppImage (جميع التوزيعات)
-            chmod +x GT-SALAT_*.AppImage
-        ./GT-SALAT_*.AppImage</pre>
+                <table class="cmd-table">
+                    <tbody>
+                        <tr>
+                            <td>Debian &middot; Ubuntu &middot; Mint</td>
+                            <td><code>sudo dpkg -i GT-SALAT_*.deb</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo dpkg -i GT-SALAT_*.deb">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>حلّ الاعتماديات</td>
+                            <td><code>sudo apt-get install -f</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo apt-get install -f">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>Fedora &middot; RHEL &middot; Rocky</td>
+                            <td><code>sudo rpm -i gt-salat-*.rpm</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo rpm -i gt-salat-*.rpm">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>AppImage &mdash; تصريح التنفيذ</td>
+                            <td><code>chmod +x GT-SALAT_*.AppImage</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="chmod +x GT-SALAT_*.AppImage">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>AppImage &mdash; التشغيل</td>
+                            <td><code>./GT-SALAT_*.AppImage</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="./GT-SALAT_*.AppImage">نسخ</button></td>
+                        </tr>
+                    </tbody>
+                </table>
     </div>
 </div>
 </section>
@@ -1516,9 +1611,30 @@
             </div>
             <div class="install-notes" style="margin-top: 24px;">
                 <h4>تثبيت مشغّل الصوت الموصى به</h4>
-                <pre>sudo apt install mpv        # Debian/Ubuntu
-                    sudo dnf install mpv        # Fedora
-                sudo pacman -S mpv          # Arch</pre>
+                <table class="cmd-table">
+                    <tbody>
+                        <tr>
+                            <td>Debian &middot; Ubuntu</td>
+                            <td><code>sudo apt install mpv</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo apt install mpv">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>Fedora</td>
+                            <td><code>sudo dnf install mpv</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo dnf install mpv">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>Arch</td>
+                            <td><code>sudo pacman -S mpv</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo pacman -S mpv">نسخ</button></td>
+                        </tr>
+                        <tr>
+                            <td>openSUSE</td>
+                            <td><code>sudo zypper install mpv</code></td>
+                            <td><button class="copy-btn" type="button" data-cmd="sudo zypper install mpv">نسخ</button></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -1729,6 +1845,40 @@
             'color:#6b8084;');
         console.log('%c🖥️ https://github.com/SalehGNUTUX/GT-SALAT',
             'color:#4cd7d0;text-decoration:underline;');
+
+        // ========== COPY COMMAND BUTTONS ==========
+        // تفويضٌ واحدٌ لكل الأزرار، مع بديلٍ لبيئات لا تتيح clipboard API.
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.copy-btn');
+            if (!btn) return;
+            var cmd = btn.getAttribute('data-cmd') || '';
+            var done = function () {
+                var original = btn.textContent;
+                btn.textContent = 'تمّ النسخ ✓';
+                btn.classList.add('copied');
+                setTimeout(function () {
+                    btn.textContent = original;
+                    btn.classList.remove('copied');
+                }, 1600);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(cmd).then(done).catch(function () { fallback(cmd, done); });
+            } else {
+                fallback(cmd, done);
+            }
+        });
+
+        function fallback(text, done) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (err) { /* تُترَك للنسخ اليدوي */ }
+            document.body.removeChild(ta);
+        }
+
     })();
 </script>
 </body>
