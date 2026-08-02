@@ -6,12 +6,13 @@
 
 ### الجيل الجديد من GT-salat-dikr
 
-**واجهة رسومية متكاملة لمواقيت الصلاة والأذكار على غنو/لينكس**
+**تطبيق إسلامي شامل: مواقيت الصلاة والأذان والأذكار والقرآن الكريم على غنو/لينكس**
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Platform: GNU/Linux](https://img.shields.io/badge/Platform-GNU%2FLinux-green.svg)]()
 [![Built with: Electron + React](https://img.shields.io/badge/Stack-Electron%20%2B%20React-61dafb.svg)]()
-[![Release: 1.0.0](https://img.shields.io/badge/Release-1.0.0-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-1.0.0)
+[![Release: 2.0.0](https://img.shields.io/badge/Release-2.0.0-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.0.0)
+[![Android: GT-SALAT-PHONE](https://img.shields.io/badge/%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%87%D8%A7%D8%AA%D9%81-Android-3ddc84.svg)](https://salehgnutux.github.io/GT-SALAT-PHONE/)
 
 ---
 
@@ -29,6 +30,14 @@
 ---
 ![GT-SALAT](https://github.com/SalehGNUTUX/GT-SALAT/blob/main/%D9%84%D9%82%D8%B7%D8%A7%D8%AA%20%D8%A7%D9%84%D8%B4%D8%A7%D8%B4%D8%A9/Screenshot_%D9%84%D9%88%D8%AD%D8%A9_%D8%A7%D9%84%D8%AA%D8%AD%D9%83%D9%85.png?raw=true)
 
+
+## 📱 نسخة الهاتف
+
+GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google:
+
+**[salehgnutux.github.io/GT-SALAT-PHONE](https://salehgnutux.github.io/GT-SALAT-PHONE/)** — [المستودع](https://github.com/SalehGNUTUX/GT-SALAT-PHONE)
+
+---
 
 ## المزايا
 
@@ -56,6 +65,23 @@
 - بحث فوري في النصوص
 - عداد لكل ذكر محفوظ محلياً
 - عرض ذكر عشوائي في لوحة التحكم
+
+### 📖 المحتوى الإسلامي — قسم «المزيد» (جديد في 2.0)
+- **القرآن الكريم**: 114 سورة بالرسم العثماني، بحث شامل في 6236 آية بتطبيع عربي، إشارات مرجعية، متابعة موضع القراءة، وتمرير تلقائي بمهلة تناسب طول كل آية
+- **التفسير الميسّر**: تفسير كل آية يظهر تحتها
+- **حصن المسلم**: 132 باباً و267 ذكراً ببحث وعدّاد تكرار
+- **أذكار الصباح والمساء**: جلسة بعدّاد وشريط تقدّم يُحفظ ليومه
+- **التسبيح** · **الأدعية المأثورة** (28) · **الأحاديث** (90) · **أسماء الله الحسنى** (100) · **الحِكَم** (32) · **الأحداث التاريخية** (59)
+- **الإذاعات**: 36 إذاعة قرآنية مباشرة، قابلة للتحرير والإضافة، بمشغّل لا ينقطع عند التنقّل
+- **إمساكية رمضان**: الإمساك والفجر والمغرب طوال الشهر
+- المحتوى كلّه مُضمَّن في الحزمة ويعمل دون إنترنت، ومشترك حرفياً مع [نسخة الهاتف](https://salehgnutux.github.io/GT-SALAT-PHONE/)
+
+### ⚙️ الإعدادات الإضافية (جديد في 2.0)
+- مذهب حساب العصر (الجمهور/الحنفي) · مستوى صوت الأذان مع معاينة كل صوت
+- **نمط تنبيه لكل صلاة على حدة**: أذان كامل أو رنّة قصيرة أو إشعار صامت
+- تذكيرات يومية (أذكار الصباح والمساء، الأيام البيض) · نظام 12/24 ساعة
+- **إزاحة التاريخ الهجري ±3 أيام** · أسماء الأشهر: قياسية أو مغاربية أو شامية
+- سِمة فاتحة/داكنة ولون مميّز مخصّص · العمل دون إنترنت كلياً
 
 ### 💻 التكامل مع الطرفية
 - عند فتح أي طرفية جديدة يظهر تلقائياً:
@@ -106,15 +132,15 @@
 
 ## التحميل والتثبيت
 
-### 📥 روابط التحميل المباشر (الإصدار 1.0.0)
+### 📥 روابط التحميل المباشر (الإصدار 2.0.0)
 
 | الصيغة | التوزيعات المدعومة | الرابط | الحجم | المجموع الاختباري (SHA256) |
 |--------|-------------------|--------|-------|---------------------------|
-| **AppImage** | جميع التوزيعات | [GT-SALAT-1.0.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/GT-SALAT-1.0.0-x86_64.AppImage) | 104 MB | `cff08aa797f0061afe1ab0f614fee1e7f276400d4283f2985cfa9da1b04f8f85` |
-| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_1.0.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/GT-SALAT_1.0.0_amd64.deb) | 72.4 MB | `eb212278879743695dc78df61da65323eee2ba9631ec3e86138c29b4ae5e2847` |
-| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-1.0.0.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-1.0.0/gt-salat-1.0.0.x86_64.rpm) | 102 MB | `66cf5e98c252515404bae4b747e19b6dc4ddcc20b97147d0498d47c2c9d50591` |
+| **AppImage** | جميع التوزيعات | [GT-SALAT-2.0.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT-2.0.0-x86_64.AppImage) | 105 MB | `c841966add1eba79f633cfdbe92b86628a0b8e7c04b69d7bece44d3eee8dd9fd` |
+| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_2.0.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT_2.0.0_amd64.deb) | 73 MB | `896da650a9ddb55a0979469984f1473704543befba4f7c08798d08dc2bb550d1` |
+| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-2.0.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/gt-salat-2.0.0-2.x86_64.rpm) | 103 MB | `0b486086547d58a55772daf7414ad7e2a2e699a5b9dbbb17a120d6fd8c78a5f8` |
 
-> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-1.0.0)
+> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.0.0)
 
 ### Debian / Ubuntu / Linux Mint
 
@@ -140,9 +166,9 @@ chmod +x GT-SALAT_*.AppImage
 
 ```bash
 # بعد التحميل، تحقق من سلامة الملف
-sha256sum GT-SALAT-1.0.0-x86_64.AppImage
-sha256sum GT-SALAT_1.0.0_amd64.deb
-sha256sum gt-salat-1.0.0.x86_64.rpm
+sha256sum GT-SALAT-2.0.0-x86_64.AppImage
+sha256sum GT-SALAT_2.0.0_amd64.deb
+sha256sum gt-salat-2.0.0-2.x86_64.rpm
 ```
 
 ---

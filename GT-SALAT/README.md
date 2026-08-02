@@ -121,6 +121,31 @@
 
 ---
 
+## 📱 نسخة الهاتف
+
+GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google:
+**[salehgnutux.github.io/GT-SALAT-PHONE](https://salehgnutux.github.io/GT-SALAT-PHONE/)**
+
+---
+
+## التحميل (الإصدار 2.0.0)
+
+| الصيغة | التوزيعات | الملف | الحجم |
+|--------|-----------|-------|-------|
+| **AppImage** | جميع التوزيعات | [GT-SALAT-2.0.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT-2.0.0-x86_64.AppImage) | 105 MB |
+| **DEB** | Debian · Ubuntu · Mint | [GT-SALAT_2.0.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT_2.0.0_amd64.deb) | 73 MB |
+| **RPM** | Fedora · RHEL · Rocky | [gt-salat-2.0.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/gt-salat-2.0.0-2.x86_64.rpm) | 103 MB |
+
+للتحقّق من سلامة التنزيل (sha256):
+
+```
+c841966add1eba79f633cfdbe92b86628a0b8e7c04b69d7bece44d3eee8dd9fd  GT-SALAT-2.0.0-x86_64.AppImage
+896da650a9ddb55a0979469984f1473704543befba4f7c08798d08dc2bb550d1  GT-SALAT_2.0.0_amd64.deb
+0b486086547d58a55772daf7414ad7e2a2e699a5b9dbbb17a120d6fd8c78a5f8  gt-salat-2.0.0-2.x86_64.rpm
+```
+
+---
+
 ## التثبيت من الحزم الجاهزة
 
 ### Debian / Ubuntu / Linux Mint
