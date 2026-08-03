@@ -17,7 +17,19 @@ npm run typecheck
 ./scripts/build-all.sh appimage   # AppImage فقط
 ./scripts/build-all.sh deb        # DEB فقط
 ./scripts/build-all.sh rpm        # RPM (يتحول تلقائياً لـ alien على Debian)
+
+# تشغيل بناء الإنتاج للفحص البصري (يقرأ dist/ لا خادم Vite)
+npx vite build && npx electron .
 ```
+
+**لا اختبارات وحدة ولا linter** — الفحص الوحيد `npm run typecheck`. للتحقّق من منطقٍ في
+`electron/` بمعزلٍ عن Electron: احزمه بـesbuild واستبدل `electron`/`electron-store` بأثوابٍ
+عبر `Module._load` (هكذا اختُبر `backup.ts` في الاتجاهين قبل إصداره).
+
+**مزلق قفل النسخة الواحدة:** `app.requestSingleInstanceLock()` يجعل `npx electron .` يخرج فوراً
+إن كانت نسخةٌ مثبَّتةٌ تعمل في شريط المهام — فتظنّ أنّك تنظر إلى بنائك وأنت تنظر إلى القديم.
+شغّل بملفّ تعريفٍ منفصل (`--user-data-dir=/tmp/…`)، أو أغلق العاملة أولاً. ولإظهار نافذةٍ بدأت
+مصغَّرةً (`startMinimized`) شغّل نسخةً ثانيةً: يلتقطها القفل فيُظهر الأصليّة.
 
 ---
 
@@ -219,6 +231,34 @@ npm run typecheck
 رسالتا الشريطين تحترمان قرار المستخدم وتحفظانه في الإعدادات لا في localStorage:
 `dismissedUpdateVersion` (نسخةٌ بعينها) · `phonePromoUntil` (صمتٌ أسبوعين) · `phonePromoNever` (للأبد).
 
+### التزامن مع نسخة الهاتف
+
+المشروعان توأمان (`../GT-SALAT-PHONE`)، وأربعة أسطحٍ **يجب أن تبقى متطابقة** — كلّ تعديلٍ في
+أحدها يُنقَل إلى الآخر في الدفعة نفسها:
+
+| السطح | سطح المكتب | الهاتف |
+|-------|-----------|--------|
+| ملفّات المحتوى | `resources/content/*.json` | `app/src/main/assets/content/` (تُنسَخ كما هي) |
+| اقتراح طريقة الحساب | `suggestMethodByCountry` في `prayer.ts` | `CalculationMethods.suggestByCountry` |
+| صيغة النسخ الاحتياطي | `electron/backup.ts` | `BackupManager.kt` + `SettingsRepository.exportJson` |
+| مفتاح الموقع | `locationKey()` = `%.2f_%.2f` | `PrayerRepository.locKey` |
+
+للتحقّق من تطابق اقتراح الطريقة (يستخرج الأنماط من المصدرين الحيَّين ويمرّر عليها دول `places.json`):
+
+```bash
+python3 - <<'EOF'
+import io, re, json
+ts = io.open('electron/prayer.ts', encoding='utf-8').read()
+kt = io.open('../GT-SALAT-PHONE/app/src/main/java/io/github/salehgnutux/gtsalat/domain/CalculationMethods.kt', encoding='utf-8').read()
+desk  = re.findall(r'if \(/([^/]+)/\.test\(lc\)\) return (\d+);', ts)
+phone = re.findall(r'Regex\("([^"]+)"\)\.containsMatchIn\(lc\) -> (\d+)', kt)
+pick = lambda rules, c: next((int(m) for p, m in rules if re.search(p, c.lower())), 3)
+cs = list(dict.fromkeys(p['country'] for p in json.load(io.open('resources/content/places.json', encoding='utf-8'))['places']))
+bad = [(c, pick(desk, c), pick(phone, c)) for c in cs if pick(desk, c) != pick(phone, c)]
+print('اختلافات:', bad or 'لا شيء ✓')
+EOF
+```
+
 ### Content Security Policy
 
 لا توجد CSP في `index.html` (محذوفة لتجنّب تعارضها مع inline scripts الخاصة بـ Vite/React Refresh).
@@ -244,3 +284,57 @@ CSP مُطبَّقة في `electron/main.ts` عبر `session.webRequest.onHeader
    - **مشكلة**: الوصف العربي يجعل حقل `Summary:` فارغاً — الحل في `package.json` بحقل `linux.synopsis` الإنجليزي.
    - alien يضع الـ RPM الناتج في مجلد الأب نسبةً لـ CWD، لذا تحتاج البحث بـ `find` لا افتراض المسار.
 3. إن غاب كلاهما يشرح للمستخدم: `sudo apt install alien` أو `sudo apt install rpm-build`.
+
+**مزلق:** `fakeroot`/`alien` قد يتركان في `release/` ملفّاتٍ يملكها المستخدم الجذر، فيفشل البناء
+التالي بـ`Permission denied` ولا يُجدي `rm -rf` بلا صلاحيات. الحلّ بلا sudo: أعِد **تسمية** المجلّد
+(`mv release release-old`) — النقل داخل مجلّدٍ تملكه لا يحتاج حذف محتوياته.
+
+**تبعيةٌ وقت التشغيل:** `adm-zip` (للنسخ الاحتياطي) ليست في `rollupOptions.external`، فيدمجها
+rollup داخل `dist-electron/main.js`. عند إضافة تبعيةٍ جديدة تأكّد أنّها تُدمَج فعلاً:
+`grep -c "اسم رمزٍ داخلها" dist-electron/main.js` — وإلّا انهار التطبيق المحزَّم عند أول استدعاء.
+
+---
+
+## النشر والإصدار
+
+**هذا المجلّد ليس مستودع git.** المستودع البعيد `SalehGNUTUX/GT-SALAT` بنيته مختلفة:
+
+```
+الجذر/            صفحة الموقع (index.html · manifest.json · sw.js · fonts/ · icon/ · screenshots/)
+└── GT-SALAT/     شيفرة التطبيق (ما في هذا المجلّد)
+```
+
+فالنشر يتمّ بنسخة عملٍ من المستودع، لا بدفعٍ من هنا:
+
+```bash
+git clone https://github.com/SalehGNUTUX/GT-SALAT.git /tmp/repo
+rsync -a --delete \
+  --exclude 'node_modules/' --exclude 'release/' --exclude 'dist/' --exclude 'dist-electron/' \
+  --exclude '*.tsbuildinfo' --exclude 'vite.config.js' --exclude 'vite.config.d.ts' \
+  --exclude 'لقطات الشاشة/' --exclude '.claude/' --exclude '*.log' \
+  ./ /tmp/repo/GT-SALAT/
+```
+
+**قائمة الاستثناء ليست تجميلاً:** مخلّفات البناء كانت مرفوعةً في المستودع قبل 2.0 وحُذفت منه.
+
+### الترتيب عند إصدارٍ جديد
+
+1. رفع `version` في `package.json` + مدخل `CHANGELOG.md` (عربيّ، بالأقسام).
+2. `./scripts/build-all.sh` ثم `sha256sum` للحزم الثلاث.
+3. تحديث البصمات في **ثلاثة مواضع**: `index.html` (بادئة 8 محارف) · `README.md` الجذر (كاملة في
+   الجدول) · `GT-SALAT/README.md`. مطابَقةً **باسم الملفّ** لا بالبصمة القديمة.
+4. **رفع `CACHE_NAME` في `sw.js`** — عامل الخدمة يُخبّئ الصفحة، فبلا رفعه يبقى الزوّار السابقون
+   على النسخة القديمة مهما نشرتَ.
+5. commit + push، ثم:
+   - إصدارٌ جديد: `gh release create <tag> <ملفّات> --latest --notes-file <ملفّ>`
+   - **استبدال حزم إصدارٍ قائم: `gh release upload <tag> <ملفّات> --clobber`**
+6. التحقّق: انتظر `gh api repos/.../pages/builds/latest --jq '.status'` = `built` **وأن يطابق
+   `.commit` رأس main**، ثم اقرأ البصمات من الموقع الحيّ. وقارن أحجام الملفّات المرفوعة بالمحلّية
+   بالبايت (`gh release view … --json assets`).
+
+**العربية في `--notes`:** استعمل `--notes-file` حصراً — النصّ العربيّ والـbacktick في سطر الأمر
+يكسران الصدفة.
+
+**اللقطات** في `screenshots/` بأسماءٍ لاتينيّة (`dashboard`, `timetable`…): المسارات العربية تُرمَّز
+في الروابط إلى `%D9%84…` فتصير هشّة. صيغة الموقع `webp`، ولقطة واجهة المستودع `png` (أضمن في
+عارض GitHub). معرض الموقع يقرأ الأسماء نفسها في `index.html`.
