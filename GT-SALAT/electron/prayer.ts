@@ -61,6 +61,7 @@ export function suggestMethodByCountry(country: string): number {
   if (/emirates|uae|الإمارات|دبي/.test(lc)) return 8;
   if (/bahrain|البحرين|oman|عمان|عُمان/.test(lc)) return 8;
   if (/turkey|türkiye|تركيا/.test(lc)) return 13;
+  if (/pakistan|باكستان|bangladesh|بنغلاديش/.test(lc)) return 1;
   if (/malaysia|ماليزيا/.test(lc)) return 17;
   if (/indonesia|إندونيسيا/.test(lc)) return 20;
   if (/france|فرنسا/.test(lc)) return 12;
