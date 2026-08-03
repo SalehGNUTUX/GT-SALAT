@@ -1017,6 +1017,136 @@
             .cmd-table td:first-child { display: none; }
         }
 
+        /* ── معرض اللقطات: عرضٌ تلقائيٌّ بشرائح ── */
+        .shots {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .shots-frame {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+            aspect-ratio: 1440 / 900;
+        }
+
+        .shots-track {
+            position: absolute;
+            inset: 0;
+        }
+
+        .shot {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .shot.active { opacity: 1; }
+
+        .shot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* شريط التسمية أسفل الشريحة */
+        .shot-label {
+            position: absolute;
+            inset-inline: 0;
+            bottom: 0;
+            padding: 26px 22px 14px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .shot-label small {
+            display: block;
+            font-weight: 400;
+            font-size: 0.8rem;
+            opacity: 0.85;
+            margin-top: 3px;
+        }
+
+        /* أسهم التنقّل */
+        .shots-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+            z-index: 2;
+        }
+
+        .shots-arrow:hover { background: rgba(0, 0, 0, 0.75); }
+        .shots-arrow.prev { right: 12px; }
+        .shots-arrow.next { left: 12px; }
+
+        /* النقاط */
+        .shots-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .shots-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            border: none;
+            background: var(--border-card);
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+
+        .shots-dot.active {
+            background: var(--accent-primary);
+            width: 26px;
+            border-radius: 99px;
+        }
+
+        /* شريط تقدّمٍ رفيعٌ يبيّن متى تتبدّل الشريحة */
+        .shots-progress {
+            height: 3px;
+            background: var(--border-card);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 14px;
+        }
+
+        .shots-bar {
+            height: 100%;
+            width: 0;
+            background: var(--accent-primary);
+            transition: width 0.1s linear;
+        }
+
+        @media (max-width: 600px) {
+            .shots-arrow { width: 32px; height: 32px; font-size: 0.85rem; }
+            .shot-label { font-size: 0.82rem; padding: 20px 14px 10px; }
+        }
+
         .install-notes {
             background: var(--code-bg);
             border-radius: 14px;
@@ -1276,6 +1406,7 @@
             <ul class="nav-links" id="nav-links">
                 <li><a href="#features">المزايا</a></li>
                 <li><a href="#whats-new">جديد 2.0</a></li>
+                <li><a href="#screenshots">اللقطات</a></li>
                 <li><a href="#downloads">التحميل</a></li>
                 <li><a href="#comparison">المقارنة</a></li>
                 <li><a href="#requirements">المتطلبات</a></li>
@@ -1408,6 +1539,64 @@
                     <div class="feature-icon"><i class="fas fa-mobile-screen-button"></i></div>
                     <h3>ومعه نسخة الهاتف</h3>
                     <p>GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google. <a href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener" style="color: var(--accent-primary);">تعرّف على نسخة الهاتف &larr;</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Screenshots -->
+    <section class="section" id="screenshots" style="background: var(--bg-secondary); transition: background 0.4s ease;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">لقطات الشاشة</span>
+                <h2 class="section-title">هكذا يبدو التطبيق</h2>
+                <p class="section-desc">واجهة عربية كاملة الاتجاه، بوضعٍ داكنٍ وفاتح ولونٍ مميّزٍ تختاره</p>
+            </div>
+            <div class="shots">
+                <div class="shots-frame" id="shots-frame">
+                    <div class="shots-track">
+                    <figure class="shot active" data-index="0">
+                        <img src="screenshots/dashboard.webp" alt="لوحة التحكم — GT-SALAT" loading="eager" width="1440" height="900">
+                        <figcaption class="shot-label">لوحة التحكم<small>الصلاة القادمة بعدّادٍ حيّ · آية اليوم · حكمة اليوم · مواقيت اليوم</small></figcaption>
+                    </figure>
+                    <figure class="shot" data-index="1">
+                        <img src="screenshots/timetable.webp" alt="مواقيت الصلاة — GT-SALAT" loading="lazy" width="1440" height="900">
+                        <figcaption class="shot-label">مواقيت الصلاة<small>عرضٌ أسبوعيّ ونصف شهريّ وشهريّ، بتقويمٍ هجريّ أو ميلادي</small></figcaption>
+                    </figure>
+                    <figure class="shot" data-index="2">
+                        <img src="screenshots/more.webp" alt="قسم المزيد — GT-SALAT" loading="lazy" width="1440" height="900">
+                        <figcaption class="shot-label">قسم المزيد<small>ثلاثة عشر قسماً: القرآن والتفسير وحصن المسلم والأذكار والأحاديث والإذاعات</small></figcaption>
+                    </figure>
+                    <figure class="shot" data-index="3">
+                        <img src="screenshots/dhikr.webp" alt="الأذكار — GT-SALAT" loading="lazy" width="1440" height="900">
+                        <figcaption class="shot-label">الأذكار<small>قاعدة الأذكار كاملةً ببحثٍ فوريّ وعدّادٍ لكلّ ذكر</small></figcaption>
+                    </figure>
+                    <figure class="shot" data-index="4">
+                        <img src="screenshots/settings.webp" alt="الإعدادات الأساسية — GT-SALAT" loading="lazy" width="1440" height="900">
+                        <figcaption class="shot-label">الإعدادات الأساسية<small>الموقع · الإشعارات · تكامل الطرفية · النظام</small></figcaption>
+                    </figure>
+                    <figure class="shot" data-index="5">
+                        <img src="screenshots/advanced.webp" alt="الإعدادات الإضافية — GT-SALAT" loading="lazy" width="1440" height="900">
+                        <figcaption class="shot-label">الإعدادات الإضافية<small>مذهب العصر · نمط تنبيهٍ لكلّ صلاة · التقويم · المظهر · النسخ الاحتياطي</small></figcaption>
+                    </figure>
+                    <figure class="shot" data-index="6">
+                        <img src="screenshots/status.webp" alt="حالة النظام — GT-SALAT" loading="lazy" width="1440" height="900">
+                        <figcaption class="shot-label">حالة النظام<small>سجلّ الإشعارات وصحّة المكوّنات والجداول المخزَّنة</small></figcaption>
+                    </figure>
+                    </div>
+                    <button class="shots-arrow prev" id="shots-prev" type="button" aria-label="السابقة">&#10095;</button>
+                    <button class="shots-arrow next" id="shots-next" type="button" aria-label="التالية">&#10094;</button>
+                </div>
+                <div class="shots-progress"><div class="shots-bar" id="shots-bar"></div></div>
+                <div class="shots-dots" id="shots-dots">
+                <button class="shots-dot active" data-go="0" type="button" aria-label="لوحة التحكم"></button>
+                <button class="shots-dot" data-go="1" type="button" aria-label="مواقيت الصلاة"></button>
+                <button class="shots-dot" data-go="2" type="button" aria-label="قسم المزيد"></button>
+                <button class="shots-dot" data-go="3" type="button" aria-label="الأذكار"></button>
+                <button class="shots-dot" data-go="4" type="button" aria-label="الإعدادات الأساسية"></button>
+                <button class="shots-dot" data-go="5" type="button" aria-label="الإعدادات الإضافية"></button>
+                <button class="shots-dot" data-go="6" type="button" aria-label="حالة النظام"></button>
                 </div>
             </div>
         </div>
@@ -1878,6 +2067,57 @@
             try { document.execCommand('copy'); done(); } catch (err) { /* تُترَك للنسخ اليدوي */ }
             document.body.removeChild(ta);
         }
+
+        // ========== SCREENSHOTS CAROUSEL ==========
+        // عرضٌ تلقائيٌّ يتوقّف عند التحويم أو التفاعل، ويحترم تفضيل تقليل الحركة.
+        (function () {
+            var frame = document.getElementById('shots-frame');
+            if (!frame) return;
+            var slides = Array.prototype.slice.call(frame.querySelectorAll('.shot'));
+            var dots = Array.prototype.slice.call(document.querySelectorAll('.shots-dot'));
+            var bar = document.getElementById('shots-bar');
+            var DURATION = 5000;
+            var current = 0, elapsed = 0, last = 0, paused = false, raf = null;
+            var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function show(i) {
+                current = (i + slides.length) % slides.length;
+                slides.forEach(function (s, k) { s.classList.toggle('active', k === current); });
+                dots.forEach(function (d, k) { d.classList.toggle('active', k === current); });
+                elapsed = 0;
+                if (bar) bar.style.width = '0%';
+            }
+
+            function tick(now) {
+                if (!last) last = now;
+                var dt = now - last;
+                last = now;
+                if (!paused) {
+                    elapsed += dt;
+                    if (bar) bar.style.width = Math.min(100, (elapsed / DURATION) * 100) + '%';
+                    if (elapsed >= DURATION) show(current + 1);
+                }
+                raf = requestAnimationFrame(tick);
+            }
+
+            document.getElementById('shots-next').addEventListener('click', function () { show(current + 1); });
+            document.getElementById('shots-prev').addEventListener('click', function () { show(current - 1); });
+            dots.forEach(function (d) {
+                d.addEventListener('click', function () { show(parseInt(d.getAttribute('data-go'), 10)); });
+            });
+
+            frame.addEventListener('mouseenter', function () { paused = true; });
+            frame.addEventListener('mouseleave', function () { paused = false; });
+            // لا نُشغّل المؤقّت والقسم خارج الشاشة — لا فائدة من تبديلٍ لا يراه أحد.
+            if ('IntersectionObserver' in window) {
+                new IntersectionObserver(function (entries) {
+                    entries.forEach(function (e) { paused = !e.isIntersecting; });
+                }, { threshold: 0.25 }).observe(frame);
+            }
+
+            if (!reduced) raf = requestAnimationFrame(tick);
+            else if (bar) bar.parentElement.style.display = 'none';
+        })();
 
     })();
 </script>

@@ -122,6 +122,13 @@
 
 ---
 
+![لوحة تحكم GT-SALAT 2.0](https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/screenshots/dashboard.png)
+
+<sub>لوحة التحكم — الصلاة القادمة بعدّادٍ حيّ، وآية اليوم، وحكمة اليوم، ومواقيت اليوم.
+[لقطاتٌ أخرى على موقع المشروع ←](https://salehgnutux.github.io/GT-SALAT/#screenshots)</sub>
+
+---
+
 ## 📱 نسخة الهاتف
 
 GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google:
