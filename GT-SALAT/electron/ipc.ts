@@ -38,6 +38,17 @@ import {
 import { setAutoStart, isAutoStartEnabled } from './autostart.js';
 import { checkForUpdate, lastUpdateInfo, RELEASES_URL } from './updates.js';
 import { backupSizes, exportBackup, importBackup, inspectBackup, type BackupOptions } from './backup.js';
+import {
+  cancelDownload,
+  currentTask,
+  downloadedBySurah,
+  downloadedSurahAudio,
+  localUrl,
+  removeFor,
+  startDownload,
+  statFor,
+} from './downloads.js';
+import type { DownloadKind } from './types.js';
 import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
 import { refreshTray } from './tray.js';
 
@@ -86,6 +97,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   ipcMain.handle('content:tafsir-surah', (_e, n: number) => content.getTafsirSurah(n));
   ipcMain.handle('content:quran-meta', () => content.getQuranMeta());
   ipcMain.handle('content:quran-search', (_e, q: string) => content.searchAyat(q));
+  ipcMain.handle('content:tafsir-search', (_e, q: string) => content.searchTafsir(q));
   ipcMain.handle('content:ayah', (_e, surah: number, ayah: number) => content.getAyah(surah, ayah));
   ipcMain.handle('content:daily-ayah', (_e, seed: number) => content.getDailyAyah(seed));
   ipcMain.handle('content:events', () => content.getEvents());
@@ -204,6 +216,23 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
     });
     return result.canceled ? null : result.filePaths[0] ?? null;
   });
+
+  // ── Downloads (القرآن للعمل دون إنترنت) ─────────────────
+  ipcMain.handle('dl:stat', (_e, kind: DownloadKind, key: string, expected: number, surah?: number) =>
+    statFor(kind, key, expected, surah));
+  ipcMain.handle('dl:local-url', (_e, rel: string) => localUrl(rel));
+  // جماعيّ: قائمة سور القارئ تحتاج 114 فحصاً — جولةُ IPC واحدة بدل 114.
+  ipcMain.handle('dl:local-urls', (_e, rels: string[]) => rels.map((r) => localUrl(r)));
+  ipcMain.handle('dl:downloaded', (_e, kind: DownloadKind, key: string) => downloadedBySurah(kind, key));
+  ipcMain.handle('dl:downloaded-all', () => downloadedSurahAudio());
+  ipcMain.handle('dl:current', () => currentTask());
+  ipcMain.handle('dl:cancel', () => { cancelDownload(); return true; });
+  ipcMain.handle('dl:remove', (_e, kind: DownloadKind, key: string, surah?: number) => removeFor(kind, key, surah));
+  ipcMain.handle('dl:start', (_e, kind: DownloadKind, key: string, opts: Record<string, unknown>) =>
+    startDownload(kind, key, opts as any, (t) => {
+      getMainWindow()?.webContents.send('dl:progress', t);
+    }),
+  );
 
   // ── Backup (متوافق مع نسخة الهاتف) ──────────────────────
   ipcMain.handle('backup:sizes', () => backupSizes());

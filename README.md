@@ -11,7 +11,7 @@
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Platform: GNU/Linux](https://img.shields.io/badge/Platform-GNU%2FLinux-green.svg)]()
 [![Built with: Electron + React](https://img.shields.io/badge/Stack-Electron%20%2B%20React-61dafb.svg)]()
-[![Release: 2.0.0](https://img.shields.io/badge/Release-2.0.0-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.0.0)
+[![Release: 2.1.0](https://img.shields.io/badge/Release-2.1.0-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.1.0)
 [![Android: GT-SALAT-PHONE](https://img.shields.io/badge/%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%87%D8%A7%D8%AA%D9%81-Android-3ddc84.svg)](https://salehgnutux.github.io/GT-SALAT-PHONE/)
 
 ---
@@ -39,6 +39,15 @@
 GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google:
 
 **[salehgnutux.github.io/GT-SALAT-PHONE](https://salehgnutux.github.io/GT-SALAT-PHONE/)** — [المستودع](https://github.com/SalehGNUTUX/GT-SALAT-PHONE)
+
+أحدث إصدار: **[v1.7](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/tag/v1.7)** (6 غشت 2026)
+
+| النكهة | الوصف | التحميل |
+|--------|-------|---------|
+| **FOSS** | حرّةٌ بالكامل، بلا خدمات Google | [GT-SALAT-v1.7-foss.apk](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v1.7/GT-SALAT-v1.7-foss.apk) · 27.6 MB |
+| **كاملة** | بخدمات الموقع من Google | [GT-SALAT-v1.7-full.apk](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v1.7/GT-SALAT-v1.7-full.apk) · 28.1 MB |
+
+> النسختان تتبادلان **حزم النسخ الاحتياطي** و**ملفّات المحتوى** و**التنزيلات** بنفس التخطيط.
 
 ---
 
@@ -135,15 +144,15 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 
 ## التحميل والتثبيت
 
-### 📥 روابط التحميل المباشر (الإصدار 2.0.0)
+### 📥 روابط التحميل المباشر (الإصدار 2.1.0)
 
 | الصيغة | التوزيعات المدعومة | الرابط | الحجم | المجموع الاختباري (SHA256) |
 |--------|-------------------|--------|-------|---------------------------|
-| **AppImage** | جميع التوزيعات | [GT-SALAT-2.0.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT-2.0.0-x86_64.AppImage) | 105 MB | `27536bfa63e87ad8f6763a1d4085e3da71ae4d140431bd5bf1476d0471960cd0` |
-| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_2.0.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT_2.0.0_amd64.deb) | 73 MB | `3a93c66334b22d5088984e56ec216db0aa38dcd814f9c4878194de366798f42b` |
-| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-2.0.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/gt-salat-2.0.0-2.x86_64.rpm) | 103 MB | `ae968cddf5be9612d9fc1c279462049030f22501de0a25a1f1373b37abd43b82` |
+| **AppImage** | جميع التوزيعات | [GT-SALAT-2.1.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-x86_64.AppImage) | 105 MB | `5ff152a77744af45612a9f747872c5c794a376732a891554765eaa548bc94127` |
+| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_2.1.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_amd64.deb) | 73 MB | `a8125c935b18c80ec66782aa399eb0d88a51113cda08948b08d9857a5b2f0e61` |
+| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-2.1.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/gt-salat-2.1.0-2.x86_64.rpm) | 103 MB | `c7b8f9fb4fa443c06754d2fe50888e297cd0b72424c9ca783857dd0f1e130f02` |
 
-> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.0.0)
+> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.1.0)
 
 ### Debian / Ubuntu / Linux Mint
 
@@ -169,9 +178,9 @@ chmod +x GT-SALAT_*.AppImage
 
 ```bash
 # بعد التحميل، تحقق من سلامة الملف
-sha256sum GT-SALAT-2.0.0-x86_64.AppImage
-sha256sum GT-SALAT_2.0.0_amd64.deb
-sha256sum gt-salat-2.0.0-2.x86_64.rpm
+sha256sum GT-SALAT-2.1.0-x86_64.AppImage
+sha256sum GT-SALAT_2.1.0_amd64.deb
+sha256sum gt-salat-2.1.0-2.x86_64.rpm
 ```
 
 ---

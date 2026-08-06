@@ -174,6 +174,26 @@ export function searchAyat(query: string, limit = 200): AyahHit[] {
   return hits;
 }
 
+/**
+ * بحثٌ في **نصّ التفسير** لا في الآيات — تبحث عن معنًى فتجد الآيات التي فُسِّرت به.
+ * هذا ما ينفرد به قسم التفسير عن قسم القرآن، ولا يُغني عنه بحث الآيات.
+ */
+export function searchTafsir(query: string, limit = 200): AyahHit[] {
+  const q = normalizeArabic(query);
+  if (q.length < 2) return [];
+  const hits: AyahHit[] = [];
+  for (const surah of tafsirSurahs()) {
+    for (const a of surah.ayahs ?? []) {
+      if (a.tafsir && normalizeArabic(a.tafsir).includes(q)) {
+        // نعيد التفسير في `text` كي يعرضه الباحث مباشرةً، ومعه الآية في `ayahText`.
+        hits.push({ surah: surah.n, surahName: surah.name, ayah: a.n, text: a.tafsir, ayahText: a.text });
+        if (hits.length >= limit) return hits;
+      }
+    }
+  }
+  return hits;
+}
+
 /** نصّ آيةٍ بعينها (لبطاقة الإشارات المرجعية). */
 export function getAyah(surah: number, ayah: number): AyahHit | null {
   const s = tafsirSurahs().find((x) => x.n === surah);

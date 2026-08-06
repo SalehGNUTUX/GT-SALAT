@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, ChipGroup, CopyButton, EmptyState, SearchInput, Toggle } from '../../components/common';
-import type { AyahHit, QuranMeta, SurahMeta, TafsirSurah, TafsirSurahInfo } from '@electron/types';
+import type { AyahHit, DownloadTask, QuranMeta, Reciter, SurahMeta, SurahReciter, TafsirSurah, TafsirSurahInfo } from '@electron/types';
+import { ayahAudioUrl, ayahAudioRel, basmalaUrl, needsBasmala, surahAudioUrl, surahAudioRel } from '@electron/quran';
+
+import { usePlayer, type PlayerTrack } from '../../hooks/usePlayer';
 import type { AppSettings } from '../../hooks/useSettings';
+import { isCustomReciter, newReciterId, useReciters } from '../../hooks/useReciters';
+import { ReciterDialog, toDraft, type ReciterDraft } from '../../components/ReciterDialog';
 
 /**
  * القرآن الكريم نصّاً + التفسير الميسّر — قارئٌ واحدٌ بوضعين.
@@ -20,35 +25,60 @@ interface Props {
 
 type View = { kind: 'index' } | { kind: 'surah'; n: number; goto?: number } | { kind: 'bookmarks' };
 
+/**
+ * ما يُتلى قبل الآيات في تلاوة السورة الكاملة ولا يُعدّ منها — يدخل توزيع المدّة بطوله
+ * (انظر `track` في `SurahReader`). نصّهما هنا للطول لا للعرض.
+ */
+const ISTIAADHA_TEXT = 'أعوذ بالله من الشيطان الرجيم';
+const BASMALA_TEXT = 'بسم الله الرحمن الرحيم';
+
 export function QuranPage({ settings, update, withTafsir = false }: Props) {
+  const player = usePlayer();
   const [meta, setMeta] = useState<QuranMeta | null>(null);
   const [index, setIndex] = useState<TafsirSurahInfo[]>([]);
-  const [view, setView] = useState<View>({ kind: 'index' });
+  /**
+   * إن كان القسم يُفتَح والتلاوة جارية (بالنقر على شريط المشغّل مثلاً) فافتح **سورتها**
+   * لا الفهرس — «العودة إلى القسم» تعني العودة إلى مصدر ما تسمعه.
+   */
+  const [view, setView] = useState<View>(() => {
+    const m = player.track?.mark;
+    return m && m.surah > 0 ? { kind: 'surah', n: m.surah, goto: m.ayah || undefined } : { kind: 'index' };
+  });
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<AyahHit[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [showTafsir, setShowTafsir] = useState(withTafsir);
+  /** نطاق البحث في الفهرس: أسماء السور (تصفية) أم النصّ كلّه (بحثٌ شامل). */
+  const [scope, setScope] = useState<'surahs' | 'text'>('surahs');
+  /** صوت الآيات المُنزَّل عند القارئ المختار: `{ رقم السورة: عدد الآيات المُنزَّلة }`. */
+  const [dlAyah, setDlAyah] = useState<Record<number, number>>({});
+  const [onlyDownloaded, setOnlyDownloaded] = useState(false);
 
   useEffect(() => {
     window.gtSalat.content.quranMeta().then(setMeta);
     window.gtSalat.content.tafsirIndex().then(setIndex);
   }, []);
 
-  // البحث الشامل عبر 6236 آية يجري في العملية الرئيسية.
+  // البحث الشامل يجري في العملية الرئيسية. في وضع التفسير يبحث في **نصّ التفسير**
+  // لا في الآيات — فتجد الآيات التي فُسِّرت بمعنًى تبحث عنه، وهذا ما ينفرد به هذا القسم.
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
+    if (scope !== 'text' || q.length < 2) {
       setHits(null);
       setSearching(false);
       return;
     }
     setSearching(true);
     const t = setTimeout(async () => {
-      setHits(await window.gtSalat.content.quranSearch(q));
+      setHits(
+        withTafsir
+          ? await window.gtSalat.content.tafsirSearch(q)
+          : await window.gtSalat.content.quranSearch(q),
+      );
       setSearching(false);
     }, 280);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, withTafsir, scope]);
 
   const surahMeta = useMemo(() => {
     const map = new Map<number, SurahMeta>();
@@ -56,12 +86,25 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
     return map;
   }, [meta]);
 
+  // القارئ المختار للتلاوة آية-بآية — عليه يُبنى تمييز السور المُنزَّل صوتها.
+  const { ayah: ayahReciters } = useReciters(meta, settings);
+  const activeReciterId =
+    (ayahReciters.find((r) => r.id === settings.lastReciterId) ?? ayahReciters[0])?.id ?? '';
+
+  // تُحدَّث عند العودة إلى الفهرس أيضاً، فيظهر ما نُزِّل من داخل القارئ فوراً.
+  useEffect(() => {
+    if (!activeReciterId) return;
+    window.gtSalat.downloads.downloaded('ayah-audio', activeReciterId).then(setDlAyah);
+  }, [activeReciterId, view.kind]);
+
   if (view.kind === 'surah') {
     return (
       <SurahReader
         n={view.n}
         goto={view.goto}
         meta={surahMeta.get(view.n)}
+        quranMeta={meta}
+        withTafsir={withTafsir}
         showTafsir={showTafsir}
         setShowTafsir={setShowTafsir}
         settings={settings}
@@ -85,9 +128,14 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
   }
 
   const bookmarkCount = settings.quranBookmarks?.length ?? 0;
+  /** السورة «مُنزَّلة» متى نُزِّل صوت آياتها كلّها عند القارئ المختار. */
+  const isDownloaded = (s: TafsirSurahInfo) => (dlAyah[s.n] ?? 0) >= (s.count ?? 1);
+  const downloadedCount = index.filter(isDownloaded).length;
+
   const filteredIndex = index.filter((s) => {
+    if (onlyDownloaded && !isDownloaded(s)) return false;
     const q = query.trim();
-    if (!q || hits) return true;
+    if (!q || scope === 'text') return true;
     const m = surahMeta.get(s.n);
     return (
       s.name.includes(q) ||
@@ -102,18 +150,54 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
       <SearchInput
         value={query}
         onChange={setQuery}
-        placeholder="ابحث في نصّ القرآن كلّه، أو عن اسم سورة…"
+        placeholder={
+          scope === 'surahs'
+            ? 'ابحث عن سورة بالاسم أو الرقم…'
+            : withTafsir
+              ? 'ابحث في نصّ التفسير كلّه…'
+              : 'ابحث في نصّ القرآن كلّه…'
+        }
         extra={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', whiteSpace: 'nowrap' }}>
+            <ChipGroup<'surahs' | 'text'>
+              value={scope}
+              options={[
+                { value: 'surahs', label: 'السور' },
+                { value: 'text', label: withTafsir ? 'التفسير' : 'النصّ' },
+              ]}
+              onChange={setScope}
+            />
+            {/* المتابعتان منفصلتان: القراءة موضعُ عينِك، والاستماع موضعُ أذنك */}
             {settings.lastReadSurah > 0 && (
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={() => setView({ kind: 'surah', n: settings.lastReadSurah, goto: settings.lastReadAyah })}
+                title={`سورة ${surahMeta.get(settings.lastReadSurah)?.ar ?? settings.lastReadSurah} · الآية ${settings.lastReadAyah}`}
               >
-                ↩ متابعة القراءة
+                📖 متابعة القراءة
               </Button>
             )}
+            {settings.lastListenSurah > 0 && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setView({ kind: 'surah', n: settings.lastListenSurah, goto: settings.lastListenAyah })}
+                title={`سورة ${surahMeta.get(settings.lastListenSurah)?.ar ?? settings.lastListenSurah} · الآية ${settings.lastListenAyah}`}
+              >
+                🎧 متابعة الاستماع
+              </Button>
+            )}
+            {/* تمييز ما يعمل دون إنترنت — وقصر الفهرس عليه */}
+            <Button
+              size="sm"
+              variant={onlyDownloaded ? 'primary' : 'ghost'}
+              disabled={downloadedCount === 0 && !onlyDownloaded}
+              onClick={() => setOnlyDownloaded((v) => !v)}
+              title="السور التي نُزِّل صوت آياتها عند القارئ المختار — تُتلى دون إنترنت"
+            >
+              ⬇ المُنزَّل{downloadedCount > 0 ? ` (${downloadedCount})` : ''}{onlyDownloaded ? ' ✓' : ''}
+            </Button>
             <Button size="sm" onClick={() => setView({ kind: 'bookmarks' })}>
               🔖 الإشارات {bookmarkCount > 0 ? `(${bookmarkCount})` : ''}
             </Button>
@@ -121,7 +205,11 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
         }
       />
 
-      {searching && <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginBottom: 10 }}>… يجري البحث في 6236 آية</div>}
+      {searching && (
+        <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginBottom: 10 }}>
+          … يجري البحث في {withTafsir ? 'تفسير 6236 آية' : '6236 آية'}
+        </div>
+      )}
 
       {hits ? (
         hits.length === 0 ? (
@@ -141,7 +229,19 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
                   <div style={{ fontSize: 11.5, color: 'var(--gold-500)', marginBottom: 6 }}>
                     سورة {h.surahName} — الآية {h.ayah}
                   </div>
-                  <div className="dhikr-text" style={{ fontSize: 19, color: 'var(--fg-primary)', lineHeight: 2.1 }}>
+                  {h.ayahText && (
+                    <div className="dhikr-text" style={{ fontSize: 19, color: 'var(--fg-primary)', lineHeight: 2.1, marginBottom: 8 }}>
+                      {h.ayahText}
+                    </div>
+                  )}
+                  <div
+                    className={h.ayahText ? undefined : 'dhikr-text'}
+                    style={{
+                      fontSize: h.ayahText ? 13.5 : 19,
+                      color: h.ayahText ? 'var(--fg-secondary)' : 'var(--fg-primary)',
+                      lineHeight: h.ayahText ? 2 : 2.1,
+                    }}
+                  >
                     {h.text}
                   </div>
                 </Card>
@@ -176,7 +276,7 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
                 >
                   {s.n}
                 </span>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="dhikr-text" style={{ fontSize: 17, color: 'var(--fg-primary)' }}>
                     {m?.ar ?? s.name}
                   </div>
@@ -184,6 +284,21 @@ export function QuranPage({ settings, update, withTafsir = false }: Props) {
                     {s.type || m?.place} · {s.count} آية
                   </div>
                 </div>
+                {isDownloaded(s) && (
+                  <span
+                    title="صوت آياتها مُنزَّل — تُتلى دون إنترنت"
+                    style={{
+                      fontSize: 10,
+                      color: 'var(--color-success)',
+                      border: '1px solid var(--color-success)',
+                      borderRadius: 99,
+                      padding: '1px 6px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    ⬇
+                  </span>
+                )}
               </Card>
             );
           })}
@@ -199,6 +314,8 @@ function SurahReader({
   n,
   goto,
   meta,
+  quranMeta,
+  withTafsir,
   showTafsir,
   setShowTafsir,
   settings,
@@ -210,6 +327,9 @@ function SurahReader({
   n: number;
   goto?: number;
   meta?: SurahMeta;
+  quranMeta: QuranMeta | null;
+  /** وضع التفسير: التفسير مفتوحٌ دائماً ولا تلاوة (القسم للقراءة والفهم). */
+  withTafsir: boolean;
   showTafsir: boolean;
   setShowTafsir: (v: boolean) => void;
   settings: AppSettings;
@@ -221,6 +341,28 @@ function SurahReader({
   const [surah, setSurah] = useState<TafsirSurah | null>(null);
   const [auto, setAuto] = useState(false);
   const [current, setCurrent] = useState(goto ?? 1);
+  const [showReciters, setShowReciters] = useState(false);
+  /** بحثٌ بكلماتٍ مفتاحيّة داخل السورة الحالية (نصّاً وتفسيراً). */
+  const [inSurahQuery, setInSurahQuery] = useState('');
+  const [editingAyah, setEditingAyah] = useState<Reciter | null>(null);
+  const [editingSurah, setEditingSurah] = useState<SurahReciter | null>(null);
+  const [addingAyah, setAddingAyah] = useState(false);
+  /** الآية المقدَّرة أثناء تلاوة السورة كاملةً (لا تُوقّت في المصدر — انظر أدناه). */
+  const [wholeAyah, setWholeAyah] = useState(0);
+  const player = usePlayer();
+
+  const { ayah: ayahReciters, surah: surahReciters } = useReciters(quranMeta, settings);
+  const reciter: Reciter | undefined =
+    ayahReciters.find((r) => r.id === settings.lastReciterId) ?? ayahReciters[0];
+  const surahReciter: SurahReciter | undefined =
+    surahReciters.find((r) => r.id === settings.lastSurahReciterId) ?? surahReciters[0];
+
+  /**
+   * الآية التي يتلوها المشغّل الآن — تُظلَّل وتُمرَّر إلى وسط الشاشة.
+   * مصدرها التلاوة آية-بآية (`mark` دقيقٌ لأنّ لكلّ آيةٍ ملفّاً)، وإلّا فالتقدير الزمنيّ
+   * أثناء السورة الكاملة.
+   */
+  const reciting = player.track?.mark?.surah === n ? player.track.mark.ayah : wholeAyah;
 
   useEffect(() => {
     setSurah(null);
@@ -238,6 +380,19 @@ function SurahReader({
 
   const ayahs = surah?.ayahs ?? [];
   const last = ayahs.length;
+
+  /** تطبيعٌ عربيٌّ خفيف — «الرحمن» تطابق «ٱلرَّحْمَٰن». */
+  const norm = (t: string) =>
+    (t || '')
+      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640\uFEFF]/g, '')
+      .replace(/[أإآٱ]/g, 'ا').replace(/[ىئ]/g, 'ي').replace(/ؤ/g, 'و').replace(/ة/g, 'ه')
+      .trim().toLowerCase();
+
+  const shownAyahs = useMemo(() => {
+    const q = norm(inSurahQuery);
+    if (q.length < 2) return ayahs;
+    return ayahs.filter((a) => norm(a.text).includes(q) || norm(a.tafsir ?? '').includes(q));
+  }, [ayahs, inSurahQuery]);
 
   /**
    * مهلة الآية = زمنٌ يتناسب مع طولها (لا مهلةٌ ثابتة، فالآيات تتفاوت من كلمتين إلى سطور)،
@@ -268,6 +423,136 @@ function SurahReader({
     if (auto && surah) update({ lastReadSurah: n, lastReadAyah: current });
   }, [auto, current]);
 
+  /**
+   * تلاوةٌ آية-بآية: قائمةٌ من الآيات يتقدّم فيها المشغّل تلقائياً عند انتهاء كلّ مقطع.
+   * البسملة مقطعٌ أولٌ بلا علامة (`mark.ayah = 0`) فلا تُظلَّل آيةٌ لم تُتلَ بعد.
+   */
+  const reciteFrom = async (startAyah: number) => {
+    if (!reciter?.everyayah || !surah) return;
+    const folder = reciter.everyayah;
+    const rid = reciter.id;
+    // المُنزَّل أولاً ثم البثّ — فتعمل التلاوة دون إنترنت متى نُزِّلت.
+    const pick = async (rel: string, remote: string) =>
+      (await window.gtSalat.downloads.localUrl(rel)) ?? remote;
+    const tracks: PlayerTrack[] = [];
+    if (startAyah === 1 && needsBasmala(n)) {
+      tracks.push({
+        id: `basmala-${n}`,
+        title: `سورة ${meta?.ar ?? surah.name}`,
+        subtitle: `${reciter.ar} — البسملة`,
+        url: await pick(ayahAudioRel(rid, 1, 1), basmalaUrl(folder)),
+        section: 'quran/text',
+        icon: '📖',
+        mark: { surah: n, ayah: 0 },
+      });
+    }
+    for (const a of surah.ayahs ?? []) {
+      if (a.n < startAyah) continue;
+      tracks.push({
+        id: `${folder}-${n}-${a.n}`,
+        title: `سورة ${meta?.ar ?? surah.name}`,
+        subtitle: `${reciter.ar} — الآية ${a.n}`,
+        url: await pick(ayahAudioRel(rid, n, a.n), ayahAudioUrl(folder, n, a.n)),
+        section: 'quran/text',
+        icon: '📖',
+        mark: { surah: n, ayah: a.n },
+      });
+    }
+    setAuto(false);   // التلاوة تقود التظليل، فلا يزاحمها المؤقّت
+    player.playQueue(tracks);
+  };
+
+  /** السورة كاملةً في مقطعٍ واحد (mp3quran) — يتتبّع النصّ بالتقدير الزمنيّ (أدناه). */
+  const wholeId = surahReciter ? `${surahReciter.id}-${n}` : '';
+  const playingWhole = !!wholeId && player.track?.id === wholeId;
+
+  const reciteWhole = async () => {
+    if (!surahReciter) return;
+    const local = await window.gtSalat.downloads.localUrl(surahAudioRel(surahReciter.id, n));
+    setAuto(false);   // التتبّع يقود التظليل، فلا يزاحمه المؤقّت
+    player.toggle({
+      id: wholeId,
+      title: `سورة ${meta?.ar ?? surah?.name ?? ''}`,
+      subtitle: surahReciter.ar,
+      url: local ?? surahAudioUrl(surahReciter.server, n),
+      section: 'quran/text',
+      icon: '🎧',
+    });
+  };
+
+  /**
+   * **تتبّع النصّ مع السورة الكاملة.** المصدر ملفٌّ واحدٌ بلا توقيتٍ لكلّ آية (خلاف التلاوة
+   * آية-بآية حيث لكلّ آيةٍ ملفّ)، فالموضع يُقدَّر بنسبة زمن التشغيل إلى المدّة، موزّعاً على
+   * الآيات **بمقدار طول كلّ آية** لا بالتساوي — فالآيات تتفاوت من كلمتين إلى سطور.
+   *
+   * **مزلقٌ حقيقيّ:** التلاوة الكاملة تبدأ بما ليس في النصّ — **الاستعاذة** دائماً،
+   * و**البسملة** في غير الفاتحة (بسملتها آيةٌ مرقَّمة) والتوبة (لا بسملة فيها). لو وُزّعت
+   * المدّة على الآيات وحدها لسبق التظليلُ الصوتَ بمقدارهما طوال السورة: فيُظلَّل
+   * «الحمد لله ربّ العالمين» والقارئ ما زال في البسملة.
+   *
+   * والعلاج ليس ثابتاً بالثواني (يختلف بسرعة القارئ)، بل **إقحامهما في التوزيع نصّاً**:
+   * يأخذان حصّتهما بأطوالهما كأيّ آية، فيتقلّصان ويتّسعان مع سرعة التلاوة تلقائياً.
+   * وأثناءهما لا يُظلَّل شيء (`0`) — فلا تُظلَّل آيةٌ لم تُتلَ بعد.
+   *
+   * ويبقى تقديراً لا تحديداً (الوقفات تزيحه قليلاً)، فالتلاوة آية-بآية هي الدقيقة.
+   *
+   * الاشتراك في `timeupdate` **هنا** لا في المزوّد: لو رفعنا الزمن إلى حالة المزوّد
+   * لأُعيد رسم التطبيق كلّه أربع مرّاتٍ في الثانية.
+   */
+  const track = useMemo(() => {
+    // مقدّمةٌ متلوّةٌ غير معدودة، تدخل التوزيع بأطوالها.
+    const lead = [ISTIAADHA_TEXT.length];
+    if (needsBasmala(n)) lead.push(BASMALA_TEXT.length);
+    const lens = [...lead, ...ayahs.map((a) => Math.max(1, a.text.length))];
+    const total = lens.reduce((x, y) => x + y, 0) || 1;
+    let acc = 0;
+    const starts = lens.map((l) => {
+      const start = acc / total;
+      acc += l;
+      return start;
+    });
+    return { starts, leadCount: lead.length };
+  }, [ayahs, n]);
+
+  useEffect(() => {
+    if (!playingWhole || ayahs.length === 0) {
+      setWholeAyah(0);
+      return;
+    }
+    const el = player.audioRef.current;
+    if (!el) return;
+    const onTime = () => {
+      const d = el.duration;
+      if (!d || !isFinite(d)) return;
+      const p = el.currentTime / d;
+      // آخر مقطعٍ بدايته ≤ الموضع الحالي.
+      let i = 0;
+      while (i + 1 < track.starts.length && track.starts[i + 1] <= p) i++;
+      // ما زلنا في الاستعاذة/البسملة — لا تظليل.
+      setWholeAyah(i < track.leadCount ? 0 : ayahs[i - track.leadCount]?.n ?? 0);
+    };
+    el.addEventListener('timeupdate', onTime);
+    return () => el.removeEventListener('timeupdate', onTime);
+  }, [playingWhole, track, ayahs, player.audioRef]);
+
+  /**
+   * موضع الاستماع يُحفَظ أثناء التلاوة وحدها — **مستقلّاً عن موضع القراءة** كما في الهاتف:
+   * المرء يقرأ في سورةٍ ويستمع في أخرى، فدمجهما يُضيع أحدهما. وموضع القراءة لا يُحفَظ
+   * إلّا بالتحديد أو بالتمرير التلقائي (`markRead`).
+   */
+  useEffect(() => {
+    if (reciting > 0) update({ lastListenSurah: n, lastListenAyah: reciting });
+  }, [reciting, n]);
+
+  // تمرير الآية المتلوّة إلى وسط الشاشة كي يتابع القارئ بلا يديه.
+  // ويتبعها التحديد أيضاً، فإن أوقفتَ التلاوة بقي الموضع حيث انتهيت.
+  useEffect(() => {
+    if (reciting > 0) {
+      setCurrent(reciting);
+      document.getElementById(`ayah-${n}-${reciting}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [reciting, n]);
+
   const bookmarks = new Set(settings.quranBookmarks ?? []);
 
   const toggleBookmark = (ayah: number) => {
@@ -279,6 +564,12 @@ function SurahReader({
   };
 
   const markRead = (ayah: number) => update({ lastReadSurah: n, lastReadAyah: ayah });
+
+  /** النقر على آيةٍ يُحدِّدها: تُظلَّل، وتصير موضع المتابعة وبدايةَ التلاوة والتمرير. */
+  const selectAyah = (ayah: number) => {
+    setCurrent(ayah);
+    markRead(ayah);
+  };
 
   return (
     // ترويسةٌ ثابتةٌ + متنٌ يُمرَّر وحده: في السور الطويلة يبقى التحكّم في متناول اليد
@@ -294,21 +585,123 @@ function SurahReader({
           {surah?.type || meta?.place} · {surah?.ayahs?.length ?? 0} آية
         </div>
         <div style={{ flex: 1 }} />
+        {!withTafsir && reciter && (
+          <Button
+            size="sm"
+            variant={reciting > 0 ? 'primary' : 'secondary'}
+            onClick={() => (reciting > 0 ? player.stop() : reciteFrom(current || 1))}
+            title={`تلاوة آيةً آية بصوت ${reciter.ar} مع تظليل الآية الجارية`}
+          >
+            {reciting > 0 ? '⏹ إيقاف التلاوة' : '🔊 تلاوة آية-بآية'}
+          </Button>
+        )}
+        {!withTafsir && surahReciter && (
+          <Button
+            size="sm"
+            variant={playingWhole ? 'primary' : 'ghost'}
+            onClick={reciteWhole}
+            title={`السورة كاملةً بصوت ${surahReciter.ar} — يتتبّع النصّ بالتقدير`}
+          >
+            {playingWhole ? '⏹ إيقاف السورة' : '🎧 السورة كاملة'}
+          </Button>
+        )}
+        {!withTafsir && reciter && (
+          <AyahAudioDownload reciter={reciter} surah={n} ayahCount={last} surahName={meta?.ar ?? surah?.name ?? ''} />
+        )}
+        {/* اسم القارئ على الزرّ نفسه — زرٌّ بترسٍ وحده لا يُفهَم منه أنّ خلفه اختيار القرّاء */}
+        {!withTafsir && (ayahReciters.length > 0 || surahReciters.length > 0) && (
+          <Button
+            size="sm"
+            variant={showReciters ? 'primary' : 'ghost'}
+            onClick={() => setShowReciters((v) => !v)}
+            title="اختيار قارئ التلاوة آية-بآية وقارئ السورة الكاملة"
+          >
+            ⚙ القارئ{reciter ? `: ${reciter.ar}` : ''}
+          </Button>
+        )}
         <Button
           size="sm"
           variant={auto ? 'primary' : 'secondary'}
           onClick={() => setAuto((v) => !v)}
-          title="ينتقل بين الآيات تلقائياً بمهلةٍ تناسب طول كل آية"
+          title="ينتقل بين الآيات تلقائياً بمهلةٍ تناسب طول كل آية (بلا صوت)"
         >
           {auto ? '⏸ إيقاف التمرير' : '▶ تمرير تلقائي'}
         </Button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>التفسير</span>
-          <Toggle on={showTafsir} onChange={setShowTafsir} />
+        {/* في قسم التفسير يبقى مفتوحاً دائماً — هو موضوع القسم لا خياراً فيه */}
+        {!withTafsir && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>التفسير</span>
+            <Toggle on={showTafsir} onChange={setShowTafsir} />
+          </div>
+        )}
+        {/* السابقة/التالية زوجٌ واحدٌ لا يُفرَّق: كانا يلتفّان إلى سطرين فيبتعد أحدهما عن الآخر */}
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <Button size="sm" disabled={n <= 1} onClick={() => onNavigate(n - 1)}>⏮ السابقة</Button>
+          <Button size="sm" disabled={n >= total} onClick={() => onNavigate(n + 1)}>التالية ⏭</Button>
         </div>
-        <Button size="sm" disabled={n <= 1} onClick={() => onNavigate(n - 1)}>السابقة</Button>
-        <Button size="sm" disabled={n >= total} onClick={() => onNavigate(n + 1)}>التالية</Button>
       </div>
+
+      {/* اختيار القرّاء — يُحفَظ في الإعدادات فيُتذكَّر في المرّات القادمة */}
+      {showReciters && (
+        <Card style={{ marginBottom: 16, padding: '14px 18px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ fontSize: 12.5, color: 'var(--fg-secondary)' }}>
+                  قارئ التلاوة آية-بآية (مع التظليل)
+                </div>
+                <div style={{ flex: 1 }} />
+                {reciter && (
+                  <Button size="sm" onClick={() => setEditingAyah(reciter)} title="تعديل مجلّد المصدر عند تعطّله">
+                    ✎ تعديل المصدر
+                  </Button>
+                )}
+                <Button size="sm" onClick={() => setAddingAyah(true)}>➕ إضافة قارئ</Button>
+              </div>
+              <ChipGroup<string>
+                value={reciter?.id ?? ''}
+                options={ayahReciters.map((r) => ({ value: r.id, label: r.style ? `${r.ar} · ${r.style}` : r.ar }))}
+                onChange={(v) => update({ lastReciterId: v })}
+              />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ fontSize: 12.5, color: 'var(--fg-secondary)' }}>قارئ السورة الكاملة</div>
+                <div style={{ flex: 1 }} />
+                {surahReciter && (
+                  <Button size="sm" onClick={() => setEditingSurah(surahReciter)} title="تعديل رابط الخادم عند تعطّله">
+                    ✎ تعديل المصدر
+                  </Button>
+                )}
+              </div>
+              <ChipGroup<string>
+                value={surahReciter?.id ?? ''}
+                options={surahReciters.map((r) => ({ value: r.id, label: r.ar }))}
+                onChange={(v) => update({ lastSurahReciterId: v })}
+              />
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--fg-muted)', lineHeight: 1.8 }}>
+              التلاوة تُبَثّ من الإنترنت (everyayah و mp3quran)، وتستمرّ عند التنقّل بين الأقسام
+              فيعيدك شريط المشغّل إلى هنا بنقرة. وإن تعطّل مصدرٌ فعدّله من «تعديل المصدر» —
+              تعديلك يبقى ولا يُمسّ المحتوى الأصلي.
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* بحثٌ بكلماتٍ مفتاحيّة داخل هذه السورة وحدها */}
+      <SearchInput
+        value={inSurahQuery}
+        onChange={setInSurahQuery}
+        placeholder={`ابحث بكلمةٍ داخل سورة ${meta?.ar ?? surah?.name ?? ''}…`}
+        extra={
+          inSurahQuery.trim().length >= 2 ? (
+            <div style={{ fontSize: 12, color: 'var(--fg-muted)', whiteSpace: 'nowrap' }}>
+              {shownAyahs.length} آية
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* ضوابط التمرير — تظهر عند تفعيله فقط كي لا تزدحم الترويسة */}
       {auto && (
@@ -347,25 +740,39 @@ function SurahReader({
         <EmptyState icon="📖" text="… يجري فتح السورة" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 900 }}>
-          {surah.ayahs?.map((a) => {
+          {shownAyahs.map((a) => {
             const marked = bookmarks.has(`${n}:${a.n}`);
-            const reading = auto && a.n === current;
-            const isCurrent = !auto && settings.lastReadSurah === n && settings.lastReadAyah === a.n;
+            const reciting_ = reciting === a.n;
+            const scrolling = auto && a.n === current;
+            // المحدَّدة بالنقر — تُظلَّل ولا تُشغَّل، وهي مبدأ التلاوة إن ضُغط زرّ التشغيل.
+            const selected = a.n === current;
+            const lit = reciting_ || scrolling || selected;
             return (
               <Card
                 key={a.n}
                 id={`ayah-${n}-${a.n}`}
+                onClick={() => selectAyah(a.n)}
                 style={{
                   padding: '16px 20px',
-                  borderColor: reading ? 'var(--teal-500)' : marked ? 'var(--gold-500)' : isCurrent ? 'var(--teal-500)' : undefined,
-                  background: reading ? 'var(--accent-tint)' : marked ? 'rgba(245,197,24,0.05)' : undefined,
-                  transition: 'background 0.3s, border-color 0.3s',
+                  borderColor: reciting_ || scrolling
+                    ? 'var(--teal-500)'
+                    : selected
+                      ? 'var(--teal-600)'
+                      : marked
+                        ? 'var(--gold-500)'
+                        : undefined,
+                  background: lit
+                    ? 'var(--accent-tint)'
+                    : marked
+                      ? 'rgba(245,197,24,0.05)'
+                      : undefined,
+                  transition: 'background 0.2s, border-color 0.2s',
                 }}
               >
                 <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                   <span
-                    onClick={() => { markRead(a.n); setCurrent(a.n); }}
-                    title="اجعلها موضع المتابعة (وبدايةَ التمرير التلقائي)"
+                    onClick={(e) => { e.stopPropagation(); selectAyah(a.n); }}
+                    title="تحديد الآية — تصير موضع المتابعة وبدايةَ التلاوة والتمرير"
                     className="mono"
                     style={{
                       fontSize: 11,
@@ -387,7 +794,7 @@ function SurahReader({
                     <div className="dhikr-text" style={{ fontSize: 22, color: 'var(--fg-primary)', lineHeight: 2.3 }}>
                       {a.text}
                     </div>
-                    {showTafsir && a.tafsir && (
+                    {(withTafsir || showTafsir) && a.tafsir && (
                       <div
                         style={{
                           marginTop: 12,
@@ -403,8 +810,30 @@ function SurahReader({
                     )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                    {/* التشغيل بزرٍّ مستقلّ — النقر على البطاقة يُحدِّد ولا يُشغّل */}
+                    {!withTafsir && reciter && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          reciting_ ? player.stop() : reciteFrom(a.n);
+                        }}
+                        title={reciting_ ? 'إيقاف التلاوة' : 'تلاوة من هذه الآية'}
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: '50%',
+                          border: `1px solid ${reciting_ ? 'var(--teal-500)' : 'var(--border-subtle)'}`,
+                          background: reciting_ ? 'var(--accent-tint-2)' : 'transparent',
+                          color: 'var(--teal-400)',
+                          fontSize: 11,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {reciting_ ? '⏹' : '▶'}
+                      </button>
+                    )}
                     <button
-                      onClick={() => toggleBookmark(a.n)}
+                      onClick={(e) => { e.stopPropagation(); toggleBookmark(a.n); }}
                       title={marked ? 'إزالة الإشارة' : 'إشارة مرجعية'}
                       style={{
                         background: 'transparent',
@@ -417,7 +846,7 @@ function SurahReader({
                       🔖
                     </button>
                     <CopyButton
-                      text={showTafsir && a.tafsir ? `${a.text}\n\n${a.tafsir}` : a.text}
+                      text={(withTafsir || showTafsir) && a.tafsir ? `${a.text}\n\n${a.tafsir}` : a.text}
                       source={`سورة ${meta?.ar ?? surah?.name ?? ''} — الآية ${a.n}`}
                     />
                   </div>
@@ -428,7 +857,224 @@ function SurahReader({
         </div>
       )}
       </div>
+
+      {/* تعديل مصادر التلاوة — تُحفَظ في الإعدادات ولا تمسّ `quran_meta.json` */}
+      {editingAyah && (
+        <ReciterDialog
+          title={`تعديل مصدر: ${editingAyah.ar}`}
+          kind="ayah"
+          initial={toDraft(editingAyah, 'ayah')}
+          onCancel={() => setEditingAyah(null)}
+          onSave={(v: ReciterDraft) => {
+            const next: Reciter = {
+              id: editingAyah.id,
+              ar: v.ar,
+              riwaya: v.riwaya,
+              style: v.style,
+              everyayah: v.source,
+            };
+            if (isCustomReciter(editingAyah.id)) {
+              update({
+                customReciters: (settings.customReciters ?? []).map((c) => (c.id === next.id ? next : c)),
+              });
+            } else {
+              update({ reciterEdits: { ...(settings.reciterEdits ?? {}), [next.id]: next } });
+            }
+            setEditingAyah(null);
+          }}
+          onReset={
+            (settings.reciterEdits ?? {})[editingAyah.id]
+              ? () => {
+                  const { [editingAyah.id]: _drop, ...rest } = settings.reciterEdits ?? {};
+                  update({ reciterEdits: rest });
+                  setEditingAyah(null);
+                }
+              : undefined
+          }
+          onDelete={
+            isCustomReciter(editingAyah.id)
+              ? () => {
+                  update({
+                    customReciters: (settings.customReciters ?? []).filter((c) => c.id !== editingAyah.id),
+                  });
+                  setEditingAyah(null);
+                }
+              : undefined
+          }
+        />
+      )}
+
+      {addingAyah && (
+        <ReciterDialog
+          title="إضافة قارئ للتلاوة آية-بآية"
+          kind="ayah"
+          initial={{ ar: '', riwaya: 'hafs', source: '', style: '' }}
+          onCancel={() => setAddingAyah(false)}
+          onSave={(v: ReciterDraft) => {
+            const id = newReciterId();
+            update({
+              customReciters: [
+                ...(settings.customReciters ?? []),
+                { id, ar: v.ar, riwaya: v.riwaya, style: v.style, everyayah: v.source },
+              ],
+              lastReciterId: id,
+            });
+            setAddingAyah(false);
+          }}
+        />
+      )}
+
+      {editingSurah && (
+        <ReciterDialog
+          title={`تعديل مصدر: ${editingSurah.ar}`}
+          kind="surah"
+          initial={toDraft(editingSurah, 'surah')}
+          onCancel={() => setEditingSurah(null)}
+          onSave={(v: ReciterDraft) => {
+            const next: SurahReciter = {
+              id: editingSurah.id,
+              ar: v.ar,
+              riwaya: v.riwaya,
+              server: v.source,
+            };
+            if (isCustomReciter(next.id)) {
+              update({
+                customSurahReciters: (settings.customSurahReciters ?? []).map((c) => (c.id === next.id ? next : c)),
+              });
+            } else {
+              update({ surahReciterEdits: { ...(settings.surahReciterEdits ?? {}), [next.id]: next } });
+            }
+            setEditingSurah(null);
+          }}
+          onReset={
+            (settings.surahReciterEdits ?? {})[editingSurah.id]
+              ? () => {
+                  const { [editingSurah.id]: _drop, ...rest } = settings.surahReciterEdits ?? {};
+                  update({ surahReciterEdits: rest });
+                  setEditingSurah(null);
+                }
+              : undefined
+          }
+          onDelete={
+            isCustomReciter(editingSurah.id)
+              ? () => {
+                  update({
+                    customSurahReciters: (settings.customSurahReciters ?? []).filter((c) => c.id !== editingSurah.id),
+                  });
+                  setEditingSurah(null);
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
+  );
+}
+
+// ───────────────────── تنزيل صوت آيات السورة الجارية ─────────────────────
+
+/** مهلة التراجع قبل الحذف الفعلي — نفس مبدأ بقيّة التنزيلات. */
+const AYAH_UNDO_MS = 7000;
+
+/**
+ * صوت الآيات يُنزَّل **سورةً سورة** لا 6236 ملفّاً دفعةً واحدة (كما في نسخة الهاتف):
+ * القارئ يقرأ سورةً بعينها، فالدفعة التي تنفعه دفعتُها. وموضع الزرّ هنا لا في «القرآن
+ * المسموع» لأنّ هذا الصوت لا يُستعمل إلّا مقروناً بالتظليل في هذا القارئ.
+ */
+function AyahAudioDownload({
+  reciter,
+  surah,
+  ayahCount,
+  surahName,
+}: {
+  reciter: Reciter;
+  surah: number;
+  ayahCount: number;
+  surahName: string;
+}) {
+  const [stat, setStat] = useState<{ files: number } | null>(null);
+  const [task, setTask] = useState<DownloadTask | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
+
+  const refresh = () =>
+    window.gtSalat.downloads.stat('ayah-audio', reciter.id, ayahCount, surah).then(setStat);
+
+  useEffect(() => {
+    refresh();
+    window.gtSalat.downloads.current().then(setTask);
+    const unsub = window.gtSalat.downloads.onProgress(setTask);
+    return () => { unsub(); };
+  }, [reciter.id, surah, ayahCount]);
+
+  const mine = task?.kind === 'ayah-audio' && task.key === reciter.id && task.surah === surah;
+  const running = !!mine && task!.running;
+  useEffect(() => { if (mine && !task!.running) refresh(); }, [task?.running, task?.done]);
+
+  useEffect(() => {
+    if (!pendingDelete) return;
+    const t = setTimeout(async () => {
+      await window.gtSalat.downloads.remove('ayah-audio', reciter.id, surah);
+      setPendingDelete(false);
+      refresh();
+    }, AYAH_UNDO_MS);
+    return () => clearTimeout(t);
+  }, [pendingDelete, reciter.id, surah]);
+
+  const files = pendingDelete ? 0 : stat?.files ?? 0;
+  const complete = ayahCount > 0 && files >= ayahCount;
+  const percent = running ? Math.round((task!.done / Math.max(1, task!.total)) * 100) : 0;
+
+  const start = () => {
+    // عدّ آيات السورة وحدها يكفي المحرّك لبناء الدفعة (`surah` يقصرها عليها).
+    const counts = Array.from({ length: surah }, (_, i) => (i === surah - 1 ? ayahCount : 0));
+    window.gtSalat.downloads.start('ayah-audio', reciter.id, {
+      folder: reciter.everyayah,
+      surahAyahCounts: counts,
+      surah,
+    });
+  };
+
+  if (running) {
+    return (
+      <Button size="sm" variant="danger" onClick={() => window.gtSalat.downloads.cancel()}>
+        {percent}٪ — إلغاء
+      </Button>
+    );
+  }
+  if (pendingDelete) {
+    return <Button size="sm" variant="secondary" onClick={() => setPendingDelete(false)}>↺ تراجع</Button>;
+  }
+  if (confirming) {
+    return (
+      <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>حذف صوت سورة {surahName}؟</span>
+        <Button size="sm" variant="danger" onClick={() => { setConfirming(false); setPendingDelete(true); }}>نعم</Button>
+        <Button size="sm" onClick={() => setConfirming(false)}>إلغاء</Button>
+      </span>
+    );
+  }
+  if (complete) {
+    return (
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => setConfirming(true)}
+        title={`صوت آيات سورة ${surahName} مُنزَّل — يعمل دون إنترنت`}
+      >
+        ✓ مُنزَّل · حذف
+      </Button>
+    );
+  }
+  return (
+    <Button
+      size="sm"
+      disabled={!!task?.running}
+      onClick={start}
+      title={`تنزيل صوت آيات سورة ${surahName} بصوت ${reciter.ar} للعمل دون إنترنت`}
+    >
+      ⬇ تنزيل صوت السورة
+    </Button>
   );
 }
 

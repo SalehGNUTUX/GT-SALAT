@@ -10,6 +10,7 @@ import { refreshHookScriptIfEnabled } from './shell-hook.js';
 import { azkarFilePath } from './dhikr.js';
 import { checkForUpdate } from './updates.js';
 import { notify, setNavHandler } from './notifier.js';
+import { registerQuranScheme, serveQuranScheme } from './downloads.js';
 
 const __dirname_ = path.dirname(fileURLToPath(import.meta.url));
 
@@ -19,6 +20,9 @@ if (!gotLock) {
   app.quit();
   process.exit(0);
 }
+
+// ★ يجب أن يسبق `whenReady` — تسجيل نظامٍ مميّزٍ للبروتوكول لا يُقبَل بعدها.
+registerQuranScheme();
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -87,14 +91,17 @@ function createMainWindow(): void {
 
   // CSP: صارمة في الإنتاج، مرنة في التطوير (Vite تحتاج unsafe-inline/unsafe-eval).
   //
-  // `media-src` يسمح بـ http/https لأن قسم الإذاعات يبثّ من خوادم خارجية عبر عنصر <audio>.
-  // هذا توسيعٌ مقصورٌ على الوسائط وحدها: السكربتات والاتصالات تبقى محصورةً في 'self'
-  // وقائمة الخدمات المعروفة، فلا يُفتَح باب تنفيذ شيفرةٍ خارجية.
-  const MEDIA = "media-src 'self' file: data: https: http:";
+  // توسيعان مقصوران على الوسائط وحدها — السكربتات و`connect-src` تبقى محصورةً في 'self'
+  // وقائمة الخدمات المعروفة، فلا يُفتَح باب تنفيذ شيفرةٍ خارجية:
+  //   `media-src` : الإذاعات وتلاوة القرآن (بثٌّ عبر <audio> من خوادم خارجية).
+  //   `img-src`   : صفحات المصحف المصوَّر (صورٌ من مستودعَي Quran-PNG وQuranHub).
+  // `gtsalat:` هو بروتوكولنا المخصّص الذي يخدم ما نزّله المستخدم من مجلّد التنزيلات.
+  const MEDIA = "media-src 'self' file: data: gtsalat: https: http:";
+  const IMG = "img-src 'self' data: gtsalat: https:";
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     const csp = isDev
-      ? `default-src 'self' 'unsafe-inline' 'unsafe-eval' ws:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; ${MEDIA}; connect-src 'self' ws: wss: https://api.aladhan.com https://ipapi.co https://ip-api.com`
-      : `default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; ${MEDIA}; connect-src 'self' https://api.aladhan.com https://ipapi.co https://ip-api.com`;
+      ? `default-src 'self' 'unsafe-inline' 'unsafe-eval' ws:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; ${IMG}; ${MEDIA}; connect-src 'self' ws: wss: https://api.aladhan.com https://ipapi.co https://ip-api.com`
+      : `default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; ${IMG}; ${MEDIA}; connect-src 'self' https://api.aladhan.com https://ipapi.co https://ip-api.com`;
     callback({
       responseHeaders: {
         ...details.responseHeaders,
@@ -145,6 +152,7 @@ app.whenReady().then(async () => {
     mainWindow?.webContents.send('nav:go', route);
   });
 
+  serveQuranScheme();
   registerIpc(() => mainWindow);
   createMainWindow();
   createTray(showMainWindow, toggleMainWindow);

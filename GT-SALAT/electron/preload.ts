@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type {
   AppSettings,
+  DownloadKind,
+  DownloadStat,
+  DownloadTask,
   BackupContents,
   BackupResult,
   UpdateInfo,
@@ -66,6 +69,7 @@ const api = {
     tafsirSurah: (n: number): Promise<TafsirSurah | null> => ipcRenderer.invoke('content:tafsir-surah', n),
     quranMeta: (): Promise<QuranMeta> => ipcRenderer.invoke('content:quran-meta'),
     quranSearch: (q: string): Promise<AyahHit[]> => ipcRenderer.invoke('content:quran-search', q),
+    tafsirSearch: (q: string): Promise<AyahHit[]> => ipcRenderer.invoke('content:tafsir-search', q),
     ayah: (surah: number, ayah: number): Promise<AyahHit | null> => ipcRenderer.invoke('content:ayah', surah, ayah),
     dailyAyah: (seed: number): Promise<DailyAyah | null> => ipcRenderer.invoke('content:daily-ayah', seed),
     events: (): Promise<HistoryEvent[]> => ipcRenderer.invoke('content:events'),
@@ -124,6 +128,31 @@ const api = {
   },
   dialog: {
     openAudio: () => ipcRenderer.invoke('dialog:open-audio'),
+  },
+  downloads: {
+    stat: (kind: DownloadKind, key: string, expected: number, surah?: number): Promise<DownloadStat> =>
+      ipcRenderer.invoke('dl:stat', kind, key, expected, surah),
+    localUrl: (rel: string): Promise<string | null> => ipcRenderer.invoke('dl:local-url', rel),
+    localUrls: (rels: string[]): Promise<(string | null)[]> => ipcRenderer.invoke('dl:local-urls', rels),
+    /** ما نُزِّل مفصَّلاً بالسورة عند قارئ: `{ رقم السورة: عدد الملفّات }`. */
+    downloaded: (kind: DownloadKind, key: string): Promise<Record<number, number>> =>
+      ipcRenderer.invoke('dl:downloaded', kind, key),
+    /** السور الكاملة المُنزَّلة عند كلّ القرّاء: `{ معرّف القارئ: [أرقام السور] }`. */
+    downloadedAll: (): Promise<Record<string, number[]>> => ipcRenderer.invoke('dl:downloaded-all'),
+    current: (): Promise<DownloadTask | null> => ipcRenderer.invoke('dl:current'),
+    cancel: (): Promise<boolean> => ipcRenderer.invoke('dl:cancel'),
+    remove: (kind: DownloadKind, key: string, surah?: number): Promise<boolean> =>
+      ipcRenderer.invoke('dl:remove', kind, key, surah),
+    start: (
+      kind: DownloadKind,
+      key: string,
+      opts: { surahAyahCounts?: number[]; server?: string; folder?: string; surah?: number },
+    ): Promise<DownloadTask> => ipcRenderer.invoke('dl:start', kind, key, opts),
+    onProgress: (cb: (t: DownloadTask) => void) => {
+      const listener = (_e: unknown, t: DownloadTask) => cb(t);
+      ipcRenderer.on('dl:progress', listener);
+      return () => ipcRenderer.removeListener('dl:progress', listener);
+    },
   },
   backup: {
     sizes: (): Promise<{ prayersCount: number }> => ipcRenderer.invoke('backup:sizes'),

@@ -100,7 +100,28 @@ export interface AppSettings {
   quranBookmarks: string[];              // مفاتيح "سورة:آية" مثل "2:255"
   lastReadSurah: number;                 // 0 = لا يوجد
   lastReadAyah: number;
+  /**
+   * موضع الاستماع — **مستقلٌّ عن القراءة** كما في نسخة الهاتف: المرء يقرأ في موضعٍ
+   * ويستمع في آخر، فدمجهما يُضيع أحدهما. يُحفَظ أثناء التلاوة لا أثناء القراءة.
+   */
+  lastListenSurah: number;               // 0 = لا يوجد
+  lastListenAyah: number;
   quranScrollSpeed: number;              // مهلة التمرير التلقائي: 100 = المعتاد، 200 = ضِعف المهلة
+  lastReciterId: string;                 // آخر قارئٍ مختار لتلاوة آية-بآية (everyayah)
+  lastSurahReciterId: string;            // آخر قارئٍ مختار للسور الكاملة (mp3quran)
+  lastMushafPage: number;                // آخر صفحة مصحفٍ مفتوحة (1..604)
+  mushafRiwaya: string;                  // hafs | warsh
+  mushafInvert: boolean;                 // قلب ألوان الصفحة في الوضع الداكن
+
+  /**
+   * مصادر التلاوة — تعديلاتٌ **طبقةٌ فوق** `quran_meta.json` لا تمسّه (كالإذاعات تماماً):
+   * فتُحدَّث القائمة الافتراضية مع التطبيق دون ضياع ما عدّله المستخدم، ويمكنه استعادة الأصل.
+   * مفتاح التعديل **معرّف القارئ الأصلي** فلا ينكسر بتغيير الاسم.
+   */
+  reciterEdits: Record<string, Reciter>;            // قرّاء آية-بآية (everyayah)
+  customReciters: Reciter[];
+  surahReciterEdits: Record<string, SurahReciter>;  // قرّاء السور الكاملة (mp3quran)
+  customSurahReciters: SurahReciter[];
 
   /** الإذاعات */
   favoriteRadios: string[];              // أسماء الإذاعات المفضّلة
@@ -299,19 +320,51 @@ export interface SajdaMeta {
   type: string;
 }
 
+/** قارئٌ آية-بآية (everyayah) — `everyayah` اسم مجلّده هناك. */
+export interface Reciter {
+  id: string;
+  ar: string;
+  style?: string;
+  riwaya: string;
+  everyayah?: string;
+  mp3quran?: string;
+}
+
+/** قارئُ سورةٍ كاملة (mp3quran) — `server` رابط خادمٍ كاملٍ خاصٌّ به. */
+export interface SurahReciter {
+  id: string;
+  ar: string;
+  riwaya: string;
+  server: string;
+}
+
+export interface Riwaya {
+  id: string;
+  ar: string;
+  full: string;
+  apiSlug?: string;
+  font?: string;
+}
+
 export interface QuranMeta {
   totalPages?: number;
   surahs?: SurahMeta[];
   juz?: JuzMeta[];
   sajda?: SajdaMeta[];
+  riwayat?: Riwaya[];
+  reciters?: Reciter[];
+  surahReciters?: SurahReciter[];
 }
 
-/** نتيجة بحثٍ داخل الآيات. */
+/** نتيجة بحثٍ داخل الآيات أو التفسير. */
 export interface AyahHit {
   surah: number;
   surahName: string;
   ayah: number;
+  /** المطابق: نصّ الآية في بحث القرآن، ونصّ التفسير في بحث التفسير. */
   text: string;
+  /** نصّ الآية حين يكون `text` تفسيراً — ليُعرَض فوقه. */
+  ayahText?: string;
 }
 
 /** ذكرٌ من أذكار الصباح/المساء بعدد تكراره. */
@@ -347,6 +400,28 @@ export interface BackupResult {
   settings: boolean;
   prayers: number;
   error?: string;
+}
+
+/** نوع التنزيل: صفحات مصحفٍ برواية، أو صوت سورٍ كاملة، أو صوت آياتٍ مفرّقة لقارئ. */
+export type DownloadKind = 'mushaf' | 'surah-audio' | 'ayah-audio';
+
+export interface DownloadTask {
+  kind: DownloadKind;
+  /** الرواية للمصحف، أو معرّف القارئ للصوت. */
+  key: string;
+  /** رقم السورة إن كانت الدفعة مقصورةً عليها (صوت آيات سورةٍ واحدة). */
+  surah?: number;
+  done: number;
+  total: number;
+  running: boolean;
+  error?: string;
+}
+
+export interface DownloadStat {
+  files: number;
+  bytes: number;
+  /** المجموع المتوقّع (604 صفحة أو 114 سورة أو 6236 آية) — لحساب الاكتمال. */
+  expected: number;
 }
 
 /** مصدرٌ حرٌّ اعتُمد في إثراء التطبيق. */

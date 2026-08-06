@@ -6,8 +6,7 @@ export const MAX_FAVORITE_SECTIONS = 3;
 
 /** أقسام «المزيد» — الترتيب حسب الأولوية، مطابقٌ لنسخة الهاتف. */
 export const MORE_FEATURES: { id: string; label: string; icon: string; desc: string }[] = [
-  { id: 'quran', label: 'القرآن الكريم', icon: '📖', desc: '114 سورة · بحثٌ شامل · إشارات مرجعية' },
-  { id: 'tafsir', label: 'التفسير الميسّر', icon: '📝', desc: 'تفسير 6236 آية' },
+  { id: 'tafsir', label: 'التفسير الميسّر', icon: '📝', desc: 'تفسير كل آية · بحثٌ في نصّ التفسير نفسه' },
   { id: 'hisn', label: 'حصن المسلم', icon: '🛡️', desc: '132 باباً · 267 ذكراً' },
   { id: 'adhkar-morning', label: 'أذكار الصباح', icon: '☀️', desc: '22 ذكراً بعدد تكرارها' },
   { id: 'adhkar-evening', label: 'أذكار المساء', icon: '🌙', desc: '21 ذكراً بعدد تكرارها' },

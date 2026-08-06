@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, EmptyState, SearchInput } from '../../components/common';
 import type { Radio } from '@electron/types';
 import type { AppSettings } from '../../hooks/useSettings';
-import { usePlayer } from '../../hooks/usePlayer';
+import { usePlayer, type PlayerTrack } from '../../hooks/usePlayer';
 
 /** وجهة المشغّل العالمي حين تُشغَّل إذاعة — النقر على الشريط يعيد إلى هنا. */
 export const RADIOS_SECTION = 'more/radios';
@@ -36,7 +36,7 @@ export function RadiosPage({
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<RadioItem | null>(null);
   const [adding, setAdding] = useState(false);
-  const { track, status, toggle, stop } = usePlayer();
+  const { track, status, playQueue, stop } = usePlayer();
 
   useEffect(() => { window.gtSalat.content.radios().then(setDefaults); }, []);
 
@@ -73,6 +73,30 @@ export function RadiosPage({
     // المفضّلة أولاً مع حفظ الترتيب داخل كل مجموعة.
     return [...list].sort((a, b) => Number(favorites.has(b.key)) - Number(favorites.has(a.key)));
   }, [items, query, favorites]);
+
+  /**
+   * تُشغَّل القائمة المعروضة كلّها لا المحطّة وحدها، فيتنقّل السابق/التالي في شريط
+   * المشغّل بين المحطّات كما ينتقل جهاز الراديو — ويتبع ترتيبَ ما تراه (بحثاً ومفضّلة).
+   */
+  const queue: PlayerTrack[] = useMemo(
+    () => shown.map((r) => ({
+      id: r.url,
+      title: r.name,
+      subtitle: r.desc,
+      url: r.url,
+      section: RADIOS_SECTION,
+      icon: '📻',
+    })),
+    [shown],
+  );
+
+  const playRadio = (r: RadioItem) => {
+    if (track?.id === r.url && status !== 'idle' && status !== 'error') {
+      stop();
+      return;
+    }
+    playQueue(queue, queue.findIndex((t) => t.id === r.url));
+  };
 
   const toggleFav = (key: string) => {
     const next = new Set(favorites);
@@ -138,9 +162,7 @@ export function RadiosPage({
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <button
-                    onClick={() =>
-                      toggle({ id: r.url, title: r.name, subtitle: r.desc, url: r.url, section: RADIOS_SECTION, icon: '📻' })
-                    }
+                    onClick={() => playRadio(r)}
                     title={active && status === 'playing' ? 'إيقاف' : 'تشغيل'}
                     style={{
                       width: 36,

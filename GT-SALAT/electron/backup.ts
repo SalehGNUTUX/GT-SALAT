@@ -135,7 +135,11 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['setup_completed'] = B(s.setupCompleted);
   p['last_read_surah'] = I(s.lastReadSurah);
   p['last_read_ayah'] = I(s.lastReadAyah);
+  p['last_listen_surah'] = I(s.lastListenSurah);
+  p['last_listen_ayah'] = I(s.lastListenAyah);
   p['quran_bookmarks'] = SET(s.quranBookmarks ?? []);
+  p['last_reciter_id'] = S(s.lastReciterId);
+  p['last_mushaf_page'] = I(s.lastMushafPage);
 
   // ── ما يخصّ سطح المكتب وحده (يتجاهله الهاتف ويحفظه) ──
   p['gtd_methodName'] = S(s.methodName);
@@ -160,6 +164,9 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['gtd_tasbihCount'] = I(s.tasbihCount);
   p['gtd_tasbihTotal'] = I(s.tasbihTotal);
   p['gtd_quranScrollSpeed'] = I(s.quranScrollSpeed);
+  p['gtd_lastSurahReciterId'] = S(s.lastSurahReciterId);
+  p['gtd_mushafRiwaya'] = S(s.mushafRiwaya);
+  p['gtd_mushafInvert'] = B(s.mushafInvert);
   p['gtd_favoriteRadios'] = SET(s.favoriteRadios ?? []);
   p['gtd_favoriteSections'] = SET(s.favoriteSections ?? []);
   p['gtd_customRadios'] = S(JSON.stringify(s.customRadios ?? []));
@@ -225,7 +232,11 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('setupCompleted', readBool(p, 'setup_completed'));
   setIf('lastReadSurah', readNum(p, 'last_read_surah'));
   setIf('lastReadAyah', readNum(p, 'last_read_ayah'));
+  setIf('lastListenSurah', readNum(p, 'last_listen_surah'));
+  setIf('lastListenAyah', readNum(p, 'last_listen_ayah'));
   setIf('quranBookmarks', readSet(p, 'quran_bookmarks'));
+  setIf('lastReciterId', readStr(p, 'last_reciter_id'));
+  setIf('lastMushafPage', readNum(p, 'last_mushaf_page'));
   const seed = readNum(p, 'seed_color');
   if (seed !== undefined) out.accentColor = argbToHex(seed);
 
@@ -252,6 +263,9 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('tasbihCount', readNum(p, 'gtd_tasbihCount'));
   setIf('tasbihTotal', readNum(p, 'gtd_tasbihTotal'));
   setIf('quranScrollSpeed', readNum(p, 'gtd_quranScrollSpeed'));
+  setIf('lastSurahReciterId', readStr(p, 'gtd_lastSurahReciterId'));
+  setIf('mushafRiwaya', readStr(p, 'gtd_mushafRiwaya'));
+  setIf('mushafInvert', readBool(p, 'gtd_mushafInvert'));
   setIf('favoriteRadios', readSet(p, 'gtd_favoriteRadios'));
   setIf('favoriteSections', readSet(p, 'gtd_favoriteSections'));
   const customRadios = readStr(p, 'gtd_customRadios');

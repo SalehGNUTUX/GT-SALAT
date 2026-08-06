@@ -1,6 +1,5 @@
 
-claude --resume a64473a4-0525-4945-bc49-50979c0e20be
-
+claude --resume 8ec7ff09-0b87-4ec3-a9c2-ea0f8f0898d9
 
 
 ● كل شيء يعمل. ملخص ما تم تنفيذه:

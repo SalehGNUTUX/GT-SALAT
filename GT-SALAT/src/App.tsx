@@ -16,6 +16,7 @@ import { AdhkarSessionPage } from './pages/more/AdhkarSession';
 import { TasbihPage } from './pages/more/Tasbih';
 import { AsmaPage, DuasPage, EventsPage, HadithPage, HikamPage } from './pages/more/TextContent';
 import { QuranPage } from './pages/more/Quran';
+import { QuranHub, QURAN_TABS, quranTabOf } from './pages/more/QuranHub';
 import { RadiosPage } from './pages/more/Radios';
 import { ImsakiahPage } from './pages/more/Imsakiah';
 import { useClock } from './hooks/useClock';
@@ -28,6 +29,7 @@ import { MiniPlayer } from './components/MiniPlayer';
 const PAGE_LABELS: Record<PageId, string> = {
   dashboard: 'لوحة التحكم',
   timetable: 'مواقيت الصلاة',
+  quran: 'القرآن الكريم',
   dhikr: 'الأذكار',
   more: 'المزيد',
   settings: 'الإعدادات الأساسية',
@@ -36,9 +38,11 @@ const PAGE_LABELS: Record<PageId, string> = {
 };
 
 /** الأقسام الفرعية: تُفتَح من داخل صفحةٍ رئيسية وتُغلَق بزرّ الرجوع في الشريط العلوي. */
-const SUB_LABELS: Record<string, string> = Object.fromEntries(
-  MORE_FEATURES.map((f) => [f.id, f.label]),
-);
+const SUB_LABELS: Record<string, string> = {
+  ...Object.fromEntries(MORE_FEATURES.map((f) => [f.id, f.label])),
+  // تبويبات القرآن ليست بطاقاتٍ في «المزيد» — القسم صار أساسياً في الشريط الجانبي.
+  ...Object.fromEntries(QURAN_TABS.map((t) => [t.id, t.label])),
+};
 
 export function App() {
   return (
@@ -75,11 +79,25 @@ function AppShell() {
     setSub(null);
   };
 
-  /** يفتح وجهةً بصيغة «page» أو «page/sub» — من الإشعارات أو من شريط المشغّل. */
+  /** فتح قسمٍ من لوحة التحكم — «القرآن» صار قسماً أساسياً لا بطاقةً في «المزيد». */
+  const openSection = (id: string) => {
+    if (id === 'quran') nav('quran');
+    else { setPage('more'); setSub(id); }
+  };
+
+  /**
+   * يفتح وجهةً بصيغة «page» أو «page/sub» — من الإشعارات أو من شريط المشغّل.
+   *
+   * `navTick` يُصعَّد في كلّ نداء ويُمرَّر مفتاحاً (`key`) لقسم القرآن، فيُعاد تركيبه
+   * **حتى لو كنتَ فيه أصلاً**: عندئذٍ يفتح سورة المقطع الجاري أو قارئه لا رأس القسم.
+   * بدونه لا يقع تغييرٌ في الحالة فلا يستجيب النقر على الشريط وأنت داخل القسم نفسه.
+   */
+  const [navTick, setNavTick] = useState(0);
   const goTo = useCallback((route: string) => {
     const [p, s2] = route.split('/');
     setPage(p as PageId);
     setSub(s2 ?? null);
+    setNavTick((t) => t + 1);
   }, []);
 
   // النقر على إشعارٍ يحمل وجهة (أذكار المساء مثلاً) يفتح قسمه مباشرةً.
@@ -111,6 +129,7 @@ function AppShell() {
 
   const notifyActive = settings.enableSalatNotify || settings.enableZikrNotify;
   // المثبَّتة تُعرَض بترتيب الشبكة لا بترتيب الإضافة، فيثبت موضعها في الشريط.
+  // أقسام القرآن لم تعد بطاقاتٍ في «المزيد»، فتثبيتُها القديم يسقط من تلقائه (القسم أساسيّ الآن).
   const favoriteSections = MORE_FEATURES.filter((f) => (settings.favoriteSections ?? []).includes(f.id));
   const label = sub ? SUB_LABELS[sub] ?? PAGE_LABELS[page] : PAGE_LABELS[page];
 
@@ -126,11 +145,14 @@ function AppShell() {
         notifyActive={notifyActive}
         favorites={favoriteSections}
         onOpenFavorite={(id) => { setPage('more'); setSub(id); }}
+        theme={settings.theme}
+        onToggleTheme={() => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
       />
       {/* المحتوى الرئيسي — يسار */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <UpdateBanner settings={settings} update={updateSettings} />
         <PhonePromoBanner settings={settings} update={updateSettings} />
+        {/* زرّ الرجوع للأقسام الفرعية في «المزيد» فقط — تبويبات القرآن يُتنقَّل بينها بشريطها */}
         <TopBar
           pageLabel={label}
           time={time}
@@ -138,12 +160,12 @@ function AppShell() {
           hijriFromApi={today?.hijri}
           settings={settings}
           next={next}
-          onBack={sub ? () => setSub(null) : undefined}
+          onBack={page === 'more' && sub ? () => setSub(null) : undefined}
           onOpenDashboard={() => nav('dashboard')}
         />
         <div style={{ flex: 1, overflow: 'hidden' }}>
           {page === 'dashboard' && (
-            <DashboardPage settings={settings} today={today} next={next} onOpenMore={(id) => { setPage('more'); setSub(id); }} />
+            <DashboardPage settings={settings} today={today} next={next} onOpenMore={openSection} />
           )}
           {page === 'timetable' && <TimetablePage settings={settings} />}
           {page === 'dhikr' && <DhikrPage />}
@@ -160,8 +182,19 @@ function AppShell() {
           {page === 'more' && sub === 'events' && <EventsPage />}
           {page === 'more' && sub === 'radios' && <RadiosPage settings={settings} update={updateSettings} />}
           {page === 'more' && sub === 'imsakiah' && <ImsakiahPage settings={settings} />}
-          {page === 'more' && sub === 'quran' && <QuranPage settings={settings} update={updateSettings} />}
           {page === 'more' && sub === 'tafsir' && <QuranPage settings={settings} update={updateSettings} withTafsir />}
+
+          {/* القرآن الكريم: قسمٌ أساسيّ بثلاثة تبويباتٍ على المسار، فيصحّ التنقّل إليها
+              من الإشعارات ومن شريط المشغّل («quran/audio» مثلاً) */}
+          {page === 'quran' && (
+            <QuranHub
+              key={navTick}
+              tab={quranTabOf(sub)}
+              onTab={setSub}
+              settings={settings}
+              update={updateSettings}
+            />
+          )}
 
           {page === 'settings' && (
             <SettingsPage settings={settings} update={updateSettings} onOpenAdvanced={() => nav('advanced')} />

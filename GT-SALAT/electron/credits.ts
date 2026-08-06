@@ -16,6 +16,8 @@ export const CREDIT_SOURCES: CreditSource[] = [
   { name: 'GT_QURANRADIO', note: 'قائمة إذاعات القرآن الكريم', url: 'https://github.com/SalehGNUTUX/GT_QURANRADIO' },
   { name: 'GT-QURANREADER', note: 'فهرس القرآن والأجزاء والسجدات', url: 'https://github.com/SalehGNUTUX/GT-QURANREADER' },
   { name: 'alquran.cloud', note: 'النصّ العثماني والتفسير الميسّر', url: 'https://alquran.cloud' },
+  { name: 'everyayah.com', note: 'تلاوة القرآن آية-بآية (13 قارئاً)', url: 'https://everyayah.com' },
+  { name: 'mp3quran.net', note: 'تلاوات السور الكاملة', url: 'https://mp3quran.net' },
   { name: 'AlAdhan API', note: 'المواقيت والتاريخ الهجري', url: 'https://aladhan.com' },
   { name: 'Adhan (Batoul Apps)', note: 'حساب المواقيت والقبلة محلّياً بلا إنترنت', url: 'https://github.com/batoulapps/adhan-js' },
   { name: 'ipapi.co · ip-api.com', note: 'اكتشاف الموقع من عنوان الإنترنت', url: 'https://ipapi.co' },

@@ -64,7 +64,11 @@ export function DhikrPage() {
         {filtered.map((d) => {
           const cnt = counts[d.id] ?? 0;
           return (
-            <Card key={d.id} style={{ position: 'relative' }}>
+            <Card
+              key={d.id}
+              onClick={() => incr(d.id)}
+              style={{ position: 'relative', userSelect: 'none' }}
+            >
               <div
                 style={{
                   position: 'absolute',
@@ -85,10 +89,11 @@ export function DhikrPage() {
                   <CopyButton text={d.text} source="من أذكار GT-SALAT" />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button
-                    onClick={() => incr(d.id)}
+                  {/* شارةٌ لا زرّ: النقر على البطاقة كلّها يَعُدّ، فزرٌّ داخلها يُحصي مرّتين */}
+                  <span
+                    title="انقر في أي موضعٍ من البطاقة لتُحصي"
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: 10,
                       background: 'var(--accent-tint)',
@@ -102,9 +107,9 @@ export function DhikrPage() {
                   >
                     <span>+</span>
                     <span className="mono">{cnt}</span>
-                  </button>
+                  </span>
                   {cnt > 0 && (
-                    <Button size="sm" onClick={() => reset(d.id)}>
+                    <Button size="sm" onClick={(e) => { e.stopPropagation(); reset(d.id); }}>
                       صفر
                     </Button>
                   )}

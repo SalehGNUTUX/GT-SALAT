@@ -136,20 +136,20 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 
 ---
 
-## التحميل (الإصدار 2.0.0)
+## التحميل (الإصدار 2.1.0)
 
 | الصيغة | التوزيعات | الملف | الحجم |
 |--------|-----------|-------|-------|
-| **AppImage** | جميع التوزيعات | [GT-SALAT-2.0.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT-2.0.0-x86_64.AppImage) | 105 MB |
-| **DEB** | Debian · Ubuntu · Mint | [GT-SALAT_2.0.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/GT-SALAT_2.0.0_amd64.deb) | 73 MB |
-| **RPM** | Fedora · RHEL · Rocky | [gt-salat-2.0.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.0.0/gt-salat-2.0.0-2.x86_64.rpm) | 103 MB |
+| **AppImage** | جميع التوزيعات | [GT-SALAT-2.1.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-x86_64.AppImage) | 105 MB |
+| **DEB** | Debian · Ubuntu · Mint | [GT-SALAT_2.1.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_amd64.deb) | 73 MB |
+| **RPM** | Fedora · RHEL · Rocky | [gt-salat-2.1.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/gt-salat-2.1.0-2.x86_64.rpm) | 103 MB |
 
 للتحقّق من سلامة التنزيل (sha256):
 
 ```
-27536bfa63e87ad8f6763a1d4085e3da71ae4d140431bd5bf1476d0471960cd0  GT-SALAT-2.0.0-x86_64.AppImage
-3a93c66334b22d5088984e56ec216db0aa38dcd814f9c4878194de366798f42b  GT-SALAT_2.0.0_amd64.deb
-ae968cddf5be9612d9fc1c279462049030f22501de0a25a1f1373b37abd43b82  gt-salat-2.0.0-2.x86_64.rpm
+5ff152a77744af45612a9f747872c5c794a376732a891554765eaa548bc94127  GT-SALAT-2.1.0-x86_64.AppImage
+a8125c935b18c80ec66782aa399eb0d88a51113cda08948b08d9857a5b2f0e61  GT-SALAT_2.1.0_amd64.deb
+c7b8f9fb4fa443c06754d2fe50888e297cd0b72424c9ca783857dd0f1e130f02  gt-salat-2.1.0-2.x86_64.rpm
 ```
 
 ---

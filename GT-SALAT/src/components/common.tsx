@@ -76,7 +76,8 @@ export function Button({
   title,
 }: {
   children: ReactNode;
-  onClick?: () => void;
+  /** يستقبل الحدث كي يُوقف تصاعده حين يكون الزرّ داخل بطاقةٍ قابلةٍ للنقر. */
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
