@@ -152,6 +152,18 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 | **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_2.1.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_amd64.deb) | 73 MB | `a8125c935b18c80ec66782aa399eb0d88a51113cda08948b08d9857a5b2f0e61` |
 | **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-2.1.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/gt-salat-2.1.0-2.x86_64.rpm) | 103 MB | `c7b8f9fb4fa443c06754d2fe50888e297cd0b72424c9ca783857dd0f1e130f02` |
 
+#### 🍓 ARM (راسبيري باي · حواسيب ARM · خوادم aarch64)
+
+| المعمارية | الصيغة | الملف | الحجم | sha256 |
+|-----------|--------|-------|-------|--------|
+| **aarch64 / arm64** | AppImage | [GT-SALAT-2.1.0-arm64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-arm64.AppImage) | 106 MB | `4e0d351732cfac1b09ac12b6403919aab7601d4baa8800127ec5da462cb5f613` |
+| **aarch64 / arm64** | DEB | [GT-SALAT_2.1.0_arm64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_arm64.deb) | 138 MB | `dfd1ec8f6a9c2f88cfd1e8cbb6e0da0bcaa76258a5fd749d08d29ba9d5613837` |
+| **armv7l / armhf** (32-بت) | AppImage | [GT-SALAT-2.1.0-armv7l.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-armv7l.AppImage) | 94 MB | `99cc396ec247a1f32705f1d70efd3bc04757f3ea6f42351ef0ff2eb273fa6331` |
+| **armv7l / armhf** (32-بت) | DEB | [GT-SALAT_2.1.0_armv7l.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_armv7l.deb) | 135 MB | `da4747799d1e31231616410a7d1fff616421386236418d0312691219295ab87c` |
+
+> اعرف معماريتك بـ`uname -m`. **ولا تتوفّر حزمة x86 32-بت (i386)**: مشروع Electron أوقف بناءها
+> للينكس منذ الإصدار 4 (2018)، فلا سبيل إليها إلا بمحرّكٍ قديمٍ بلا تحديثاتٍ أمنية.
+
 > 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.1.0)
 
 ### Debian / Ubuntu / Linux Mint

@@ -138,11 +138,28 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 
 ## التحميل (الإصدار 2.1.0)
 
+### 🖥️ الحواسيب (x86_64)
+
 | الصيغة | التوزيعات | الملف | الحجم |
 |--------|-----------|-------|-------|
 | **AppImage** | جميع التوزيعات | [GT-SALAT-2.1.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-x86_64.AppImage) | 105 MB |
 | **DEB** | Debian · Ubuntu · Mint | [GT-SALAT_2.1.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_amd64.deb) | 73 MB |
 | **RPM** | Fedora · RHEL · Rocky | [gt-salat-2.1.0-2.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/gt-salat-2.1.0-2.x86_64.rpm) | 103 MB |
+
+### 🍓 ARM (راسبيري باي · حواسيب ARM · خوادم aarch64)
+
+| المعمارية | الصيغة | الملف | الحجم |
+|-----------|--------|-------|-------|
+| **aarch64 / arm64** | AppImage | [GT-SALAT-2.1.0-arm64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-arm64.AppImage) | 106 MB |
+| **aarch64 / arm64** | DEB | [GT-SALAT_2.1.0_arm64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_arm64.deb) | 138 MB |
+| **armv7l / armhf** (32-بت) | AppImage | [GT-SALAT-2.1.0-armv7l.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT-2.1.0-armv7l.AppImage) | 94 MB |
+| **armv7l / armhf** (32-بت) | DEB | [GT-SALAT_2.1.0_armv7l.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.1.0/GT-SALAT_2.1.0_armv7l.deb) | 135 MB |
+
+> لمعرفة معمارية جهازك: `uname -m` — فإن كانت `aarch64` فحزم arm64، وإن كانت `armv7l` فحزم armv7l.
+>
+> **لا تتوفّر حزمة x86 32-بت (i386)**: مشروع Electron أوقف بناءها للينكس منذ الإصدار 4 (2018)،
+> فلا سبيل إليها إلا بمحرّكٍ قديمٍ لا يتلقّى تحديثاتٍ أمنية. وحزم RPM لـARM غير مبنيّةٍ بعد
+> (تُبنى عبر `alien` من DEB على الحاسوب)، وبديلها AppImage — يعمل على كلّ التوزيعات بلا تثبيت.
 
 للتحقّق من سلامة التنزيل (sha256):
 
@@ -150,6 +167,10 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 5ff152a77744af45612a9f747872c5c794a376732a891554765eaa548bc94127  GT-SALAT-2.1.0-x86_64.AppImage
 a8125c935b18c80ec66782aa399eb0d88a51113cda08948b08d9857a5b2f0e61  GT-SALAT_2.1.0_amd64.deb
 c7b8f9fb4fa443c06754d2fe50888e297cd0b72424c9ca783857dd0f1e130f02  gt-salat-2.1.0-2.x86_64.rpm
+4e0d351732cfac1b09ac12b6403919aab7601d4baa8800127ec5da462cb5f613  GT-SALAT-2.1.0-arm64.AppImage
+dfd1ec8f6a9c2f88cfd1e8cbb6e0da0bcaa76258a5fd749d08d29ba9d5613837  GT-SALAT_2.1.0_arm64.deb
+99cc396ec247a1f32705f1d70efd3bc04757f3ea6f42351ef0ff2eb273fa6331  GT-SALAT-2.1.0-armv7l.AppImage
+da4747799d1e31231616410a7d1fff616421386236418d0312691219295ab87c  GT-SALAT_2.1.0_armv7l.deb
 ```
 
 ---
