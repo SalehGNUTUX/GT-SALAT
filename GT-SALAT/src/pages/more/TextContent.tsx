@@ -1,18 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, ChipGroup, CopyButton, EmptyState, SearchInput } from '../../components/common';
+import { normalizeArabic } from '@electron/quran';
 import type { AsmaName, DuaCategory, HadithCollection, HikamCategory, HistoryEvent } from '@electron/types';
 
-/** تطبيعٌ عربيٌّ خفيف للبحث في الواجهة (نفس منطق العملية الرئيسية). */
-function normalize(s: string): string {
-  return (s || '')
-    .replace(/[ً-ٰٟۖ-ۭـ﻿]/g, '')
-    .replace(/[أإآٱ]/g, 'ا')
-    .replace(/[ىئ]/g, 'ي')
-    .replace(/ؤ/g, 'و')
-    .replace(/ة/g, 'ه')
-    .trim()
-    .toLowerCase();
-}
+/** التطبيع من `@electron/quran` — مصدرٌ واحدٌ للطرفين ولنسخة الهاتف. */
+const normalize = normalizeArabic;
 
 function matches(query: string, ...fields: (string | undefined)[]): boolean {
   const q = normalize(query);

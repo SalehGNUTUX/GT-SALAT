@@ -7,6 +7,8 @@
  * تنبيه: `tafsir.json` نحو 4 ميغابايت (6236 آية) — لا يُرسَل كاملاً عبر IPC أبداً؛
  * تُرسَل سورةٌ واحدةٌ أو فهرسٌ خفيفٌ فقط.
  */
+import { normalizeArabic } from './quran.js';
+import type { LearnFile, RuqyahFile } from './types.js';
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -141,22 +143,6 @@ export function getQuranMeta(): QuranMeta {
   return load<QuranMeta>('quran_meta.json') ?? {};
 }
 
-/**
- * تطبيعٌ عربيٌّ للبحث: إزالة التشكيل والتطويل، وتوحيد الألف والياء والتاء المربوطة والهمزات —
- * فيطابق «الرحمن» ما رُسم «ٱلرَّحْمَٰن»، و«انا» ما رُسم «إنَّا».
- */
-const DIACRITICS = /[\u064B-\u065F\u0670\u06D6-\u06ED\u0640\uFEFF]/g;
-
-export function normalizeArabic(s: string): string {
-  return (s || '')
-    .replace(DIACRITICS, '')
-    .replace(/[أإآٱ]/g, 'ا')
-    .replace(/[ىئ]/g, 'ي')
-    .replace(/ؤ/g, 'و')
-    .replace(/ة/g, 'ه')
-    .trim()
-    .toLowerCase();
-}
 
 /** بحثٌ شاملٌ عبر 6236 آية. `limit` يحدّ النتائج كي لا يثقل العرض. */
 export function searchAyat(query: string, limit = 200): AyahHit[] {
@@ -245,4 +231,18 @@ export function getSessionAdhkar(type: 'morning' | 'evening'): SessionDhikr[] {
   const file = load<{ morning: SessionDhikr[]; evening: SessionDhikr[] }>('adhkar_me.json');
   if (!file) return [];
   return type === 'evening' ? file.evening : file.morning;
+}
+
+// ── تعلّم الطهارة والصلاة · الرقية الشرعية ──────────────────
+/**
+ * الملفّان كبيران نسبيّاً (45KB + 19KB) لكنّهما دون حدّ ما يُمرَّر عبر IPC (خلافاً للتفسير)،
+ * فيُرسَلان كاملَين مرّةً ويُخزَّنان في الواجهة. نصوصُ آيات الرقية **لا تُرسَل معها**:
+ * المقطع يحمل السورة ومدى الآيات، والواجهة تجلبها من `getTafsirSurah` — فلا يتكرّر النصّ.
+ */
+export function getLearnFile(): LearnFile {
+  return load<LearnFile>('purity_salah.json') ?? { sections: [] };
+}
+
+export function getRuqyahFile(): RuqyahFile {
+  return load<RuqyahFile>('ruqyah.json') ?? { sections: [] };
 }

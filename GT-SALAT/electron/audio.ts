@@ -8,6 +8,21 @@ let currentPlayer: ChildProcess | null = null;
 let currentKind: string | null = null;
 let cachedPlayers: Array<[string, string[]]> | null = null;
 
+/**
+ * مستمعٌ يُخطَر بكلّ تغيّرٍ في الصوت الجاري — `main.ts` يربطه ببثٍّ إلى الواجهة، فيظهر
+ * **زرّ إيقاف الصوت** في لوحة التحكّم أثناء الأذان أو التنبيه أو الأذكار (كما في نسخة الهاتف).
+ * بدونه لا تعرف الواجهة أنّ شيئاً يُشغَّل — فالصوت يخرج من مشغّل النظام لا من عنصر `<audio>`.
+ */
+let stateListener: ((kind: string | null) => void) | null = null;
+
+export function setAudioStateListener(cb: (kind: string | null) => void): void {
+  stateListener = cb;
+}
+
+function emitState(): void {
+  try { stateListener?.(playingKind()); } catch {}
+}
+
 function audioDir(): string {
   if (app.isPackaged) return path.join(process.resourcesPath, 'audio');
   return path.join(app.getAppPath(), 'resources', 'audio');
@@ -84,11 +99,13 @@ function spawnPlayer(file: string, kind: string, onFinished?: () => void): boole
         if (currentPlayer === proc) {
           currentPlayer = null;
           currentKind = null;
+          emitState();
           onFinished?.();
         }
       });
       currentPlayer = proc;
       currentKind = kind;
+      emitState();
       return true;
     } catch {
       continue;
@@ -107,11 +124,13 @@ export function playFile(filePath: string, onFinished?: () => void): boolean {
 }
 
 export function stop(): void {
+  const was = currentPlayer !== null;
   if (currentPlayer && !currentPlayer.killed) {
     try { currentPlayer.kill('SIGTERM'); } catch {}
   }
   currentPlayer = null;
   currentKind = null;
+  if (was) emitState();
 }
 
 export function isPlaying(): boolean {

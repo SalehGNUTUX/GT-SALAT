@@ -22,6 +22,9 @@ import type {
   QuranMeta,
   Radio,
   SessionDhikr,
+  CalculationMethod,
+  LearnFile,
+  RuqyahFile,
   TafsirSurah,
   TafsirSurahInfo,
 } from './types.js';
@@ -45,7 +48,7 @@ const api = {
     next: () => ipcRenderer.invoke('prayer:next'),
     autoDetect: () => ipcRenderer.invoke('prayer:auto-detect'),
     prefetch: () => ipcRenderer.invoke('prayer:prefetch'),
-    methods: () => ipcRenderer.invoke('prayer:methods'),
+    methods: (): Promise<CalculationMethod[]> => ipcRenderer.invoke('prayer:methods'),
     suggestMethod: (country: string): Promise<number> => ipcRenderer.invoke('prayer:suggest-method', country),
     cachedMonths: (): Promise<number> => ipcRenderer.invoke('prayer:cached-months'),
     pruneCache: (): Promise<number> => ipcRenderer.invoke('prayer:prune-cache'),
@@ -79,6 +82,19 @@ const api = {
     places: (query?: string): Promise<Place[]> => ipcRenderer.invoke('content:places', query),
     sessionAdhkar: (type: 'morning' | 'evening'): Promise<SessionDhikr[]> =>
       ipcRenderer.invoke('content:session-adhkar', type),
+    /** ملفّ «تعلّم الطهارة والصلاة» كاملاً (مالكيّ، بمصادره) — يُقرأ مرّةً ويُخزَّن في الواجهة. */
+    /**
+     * نصّ سورةٍ **برواية** غير حفص (ورش/قالون/الدوري) — يُجلَب مرّةً في العملية الرئيسية
+     * ويُخزَّن، فيعمل بعدها دون إنترنت. مصفوفةٌ فارغة = تعذّر، فتُعرَض رواية حفص المُضمَّنة.
+     */
+    riwayaSurah: (surah: number, slug: string): Promise<{ n: number; text: string }[]> =>
+      ipcRenderer.invoke('quran:riwaya-surah', surah, slug),
+    riwayaCached: (surah: number, slug: string): Promise<boolean> =>
+      ipcRenderer.invoke('quran:riwaya-cached', surah, slug),
+    riwayaCount: (slug: string): Promise<number> => ipcRenderer.invoke('quran:riwaya-count', slug),
+    learn: (): Promise<LearnFile> => ipcRenderer.invoke('content:learn'),
+    /** ملفّ «الرقية الشرعية» — مقاطعُ قرآنٍ بمداها وأدعيةٌ بمصادرها (نصّ الآيات من التفسير). */
+    ruqyah: (): Promise<RuqyahFile> => ipcRenderer.invoke('content:ruqyah'),
     credits: (): Promise<{
       sources: CreditSource[];
       developer: string;
@@ -99,6 +115,16 @@ const api = {
       customPath?: string,
     ): Promise<string | null> => ipcRenderer.invoke('audio:preview', kind, customPath),
     players: (): Promise<string[]> => ipcRenderer.invoke('audio:players'),
+    /**
+     * بثٌّ بكلّ تغيّرٍ في الصوت الجاري (أذان/تنبيه/دعاء/ذكر) أو null عند انتهائه.
+     * الصوت يخرج من مشغّل النظام لا من عنصر `<audio>`، فلا سبيل للواجهة إلى معرفته إلّا به —
+     * وعليه يظهر **زرّ إيقاف الصوت** في لوحة التحكّم ويختفي من تلقائه.
+     */
+    onState: (cb: (kind: string | null) => void): (() => void) => {
+      const listener = (_e: unknown, kind: string | null) => cb(kind);
+      ipcRenderer.on('audio:state', listener);
+      return () => { ipcRenderer.removeListener('audio:state', listener); };
+    },
   },
   notify: {
     test: () => ipcRenderer.invoke('notify:test'),

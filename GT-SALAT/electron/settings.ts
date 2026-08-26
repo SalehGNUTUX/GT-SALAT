@@ -11,6 +11,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   country: '',
   methodId: 3,
   methodName: 'Muslim World League',
+
+  locationHistory: [],
+
+  autoUpdateLocation: false,
   preNotifyMinutes: 15,
   zikrIntervalMinutes: 30,
   adhanType: 'full',
@@ -41,6 +45,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   perPrayerAlerts: false,
   prayerAlerts: ['adhan', 'adhan', 'adhan', 'adhan', 'adhan'],
   enablePreNotifySound: true,
+
+  fullscreenAdhan: false,
+
+  keepAdhanWindow: false,
   enableDailyAyah: true,
   enableDailyHikmah: true,
   enableTodayEvent: true,
@@ -50,6 +58,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   morningAdhkarHour: 6,
   enableEveningAdhkarReminder: false,
   eveningAdhkarHour: 17,
+
+  enableSunnahReminders: true,
+
+  sunnahReminderHour: 6,
   clock24h: true,
   timetableCalendar: 'hijri',
   hijriOffset: 0,
@@ -58,20 +70,37 @@ export const DEFAULT_SETTINGS: AppSettings = {
   advancedOpenSection: 'حساب المواقيت',
   checkUpdates: true,
   dismissedUpdateVersion: '',
+
+  lastWhatsNewVersion: '',
   phonePromoUntil: 0,
   phonePromoNever: false,
   tasbihTarget: 33,
   tasbihCount: 0,
   tasbihTotal: 0,
+
+  tasbihDhikrIndex: 0,
+
+  tasbihMixed: false,
+
+  tasbihMixedType: 0,
+
+
+  tasbihVoiceSensitivity: 50,
   quranBookmarks: [],
   lastReadSurah: 0,
   lastReadAyah: 1,
   lastListenSurah: 0,
   lastListenAyah: 1,
+
+  lastAudioSurah: 0,
+
+  lastAudioPos: 0,
   quranScrollSpeed: 100,
   lastReciterId: 'alafasy',
   lastSurahReciterId: 'afs',
   lastMushafPage: 1,
+  lastRiwaya: 'hafs',
+
   mushafRiwaya: 'hafs',
   mushafInvert: true,
   favoriteRadios: [],

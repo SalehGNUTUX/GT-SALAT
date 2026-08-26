@@ -1,3 +1,4 @@
+import { AudioSeekBar } from './AudioSeekBar';
 import { usePlayer } from '../hooks/usePlayer';
 
 /**
@@ -89,6 +90,12 @@ export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
           {statusText}{track.subtitle && status !== 'error' ? ` · ${track.subtitle}` : ''}
           {inQueue && status !== 'error' ? ` · ${index + 1}/${queueLength}` : ''}
         </div>
+      </div>
+
+      {/* يظهر للملفّات وحدها (الأذكار والرقية والسور الكاملة) ويختفي في البثّ الحيّ —
+          `AudioSeekBar` يقرّر ذلك بنفسه من مدّة العنصر. */}
+      <div style={{ width: 300, flexShrink: 0 }}>
+        <AudioSeekBar compact />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: 178, marginInlineEnd: 6 }}>

@@ -144,6 +144,51 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             ))}
           </select>
         </div>
+        {/* سجلّ آخر خمسة مواقع — العودة إليها بنقرةٍ إن تعذّر الكشف (لا إنترنت). */}
+        {(settings.locationHistory ?? []).length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <label style={{ fontSize: 12, color: 'var(--fg-muted)', display: 'block', marginBottom: 6 }}>
+              مواقع سابقة
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {(settings.locationHistory ?? []).map((pl) => {
+                const here = settings.lat != null && settings.lon != null
+                  && pl.lat.toFixed(2) === settings.lat.toFixed(2)
+                  && pl.lon.toFixed(2) === settings.lon.toFixed(2);
+                return (
+                  <Button
+                    key={`${pl.lat}_${pl.lon}`}
+                    size="sm"
+                    variant={here ? 'primary' : 'secondary'}
+                    onClick={async () => {
+                      const methodId = await window.gtSalat.prayer.suggestMethod(pl.country);
+                      const m = methods.find((x) => x.id === methodId);
+                      await update({
+                        lat: pl.lat,
+                        lon: pl.lon,
+                        city: pl.city,
+                        country: pl.country,
+                        ...(methodId ? { methodId, methodName: m?.nameAr ?? '' } : {}),
+                      });
+                      await window.gtSalat.prayer.prefetch();
+                    }}
+                  >
+                    📍 {pl.city || `${pl.lat.toFixed(2)}, ${pl.lon.toFixed(2)}`}
+                    {pl.country ? ` — ${pl.country}` : ''}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <SettingRow
+          label="تحديث الموقع تلقائياً"
+          sub="يُعاد الكشف عند الإقلاع وكل ست ساعات — لمن يكثر تنقّله. يحتاج إنترنت."
+        >
+          <Toggle on={settings.autoUpdateLocation} onChange={(v) => update({ autoUpdateLocation: v })} />
+        </SettingRow>
+
         <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
           <Button variant="secondary" onClick={detect} disabled={detecting}>
             {detecting ? '🔎 جاري الاكتشاف…' : '🌍 اكتشف الموقع تلقائياً'}

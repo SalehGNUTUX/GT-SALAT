@@ -27,6 +27,9 @@ export function MushafPage({
   const [stat, setStat] = useState<{ files: number } | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(false);
+  // ملء الشاشة: عارضٌ يكبر فيه الحرف ويُقرأ المصحف كما في نسخة الهاتف (v1.12).
+  // الصفحة **مشتركةٌ مع الوضع العاديّ** (`page`)، فالإغلاق يعود إلى آخر صفحةٍ عُرضت لا إلى الأولى.
+  const [full, setFull] = useState(false);
 
   const riwaya = settings.mushafRiwaya || 'hafs';
   const dark = settings.theme === 'dark';
@@ -167,6 +170,10 @@ export function MushafPage({
             );
           })()}
 
+          <Button size="sm" variant="secondary" onClick={() => setFull(true)} title="عرضٌ بملء الشاشة مع التكبير">
+            ⛶ ملء الشاشة
+          </Button>
+
           {dark && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>قلب الألوان</span>
@@ -225,6 +232,16 @@ export function MushafPage({
           تنقّل بالسهمين ← → · الصور من {riwaya === 'warsh' ? 'مجمّع الملك فهد (QuranHub)' : 'مصحف المدينة (Quran-PNG)'}
         </div>
       </div>
+
+      {full && (
+        <MushafFullscreen
+          page={page}
+          riwaya={riwaya}
+          invert={invert}
+          onPage={(p) => setPage(clamp(p))}
+          onClose={() => setFull(false)}
+        />
+      )}
     </div>
   );
 }
@@ -234,7 +251,27 @@ function clamp(p: number): number {
 }
 
 /** صورة الصفحة مع سلسلة مصادرَ بديلةٍ تُجرَّب بالترتيب عند تعذّر الأساسي. */
-function PageImage({ page, riwaya, invert }: { page: number; riwaya: string; invert: boolean }) {
+function PageImage({
+  page,
+  riwaya,
+  invert,
+  zoom = 1,
+  pan,
+  fit = false,
+}: {
+  page: number;
+  riwaya: string;
+  invert: boolean;
+  /** التكبير في وضع ملء الشاشة (1 = ملءُ الشاشة احتواءً، لا الحجم الأصليّ للصورة). */
+  zoom?: number;
+  pan?: { x: number; y: number };
+  /**
+   * وضع ملء الشاشة: تُقيَّد الصورة **بالارتفاع كما بالعرض**. بدونه تُقيَّد بالعرض وحده
+   * (`maxWidth` بلا `maxHeight`) وصفحة المصحف أطول من الشاشة نسبةً، فتخرج من أعلى وأسفل
+   * عند 100٪ ولا يراها المستخدم إلّا بالسحب — وهو ما لا يُتوقَّع من «حجمٍ أصليّ».
+   */
+  fit?: boolean;
+}) {
   const [local, setLocal] = useState<string | null>(null);
   const remote = useMemo(
     () => [pageImageUrl(page, riwaya), ...pageImageFallbacks(page, riwaya)],
@@ -260,12 +297,16 @@ function PageImage({ page, riwaya, invert }: { page: number; riwaya: string; inv
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: 320,
-        background: invert ? 'var(--bg-base)' : '#fff',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border-subtle)',
         overflow: 'hidden',
-        padding: 8,
+        ...(fit
+          ? { width: '100%', height: '100%', minHeight: 0, background: 'transparent', padding: 0 }
+          : {
+              minHeight: 320,
+              background: invert ? 'var(--bg-base)' : '#fff',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-subtle)',
+              padding: 8,
+            }),
       }}
     >
       {failed ? (
@@ -282,18 +323,104 @@ function PageImage({ page, riwaya, invert }: { page: number; riwaya: string; inv
             alt={`صفحة ${page}`}
             onLoad={() => setLoaded(true)}
             onError={() => setIdx((i) => i + 1)}
+            draggable={false}
             style={{
               maxWidth: '100%',
-              height: 'auto',
+              // في ملء الشاشة يُقيَّد الارتفاع أيضاً فتُحتوى الصفحة كاملةً عند 100٪.
+              ...(fit ? { maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain' as const } : { height: 'auto' }),
               display: 'block',
               // القلب يجعل الورق أسود والحبر أبيض — أريح للعين في الوضع الداكن.
               filter: invert ? 'invert(1) hue-rotate(180deg)' : 'none',
               opacity: loaded ? 1 : 0,
+              transform: zoom !== 1 || pan ? `translate(${pan?.x ?? 0}px, ${pan?.y ?? 0}px) scale(${zoom})` : undefined,
               transition: 'opacity 0.2s',
             }}
           />
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * عارضُ المصحف بملء الشاشة: تكبيرٌ بالعجلة أو بنقرةٍ مزدوجة، وتحريكٌ بالسحب، وتصفّحٌ
+ * بالسهمين **يبقى عاملاً مهما بلغ التكبير** — وهو الخلل الذي أُصلح في نسخة الهاتف (v1.11).
+ */
+function MushafFullscreen({
+  page,
+  riwaya,
+  invert,
+  onPage,
+  onClose,
+}: {
+  page: number;
+  riwaya: string;
+  invert: boolean;
+  onPage: (p: number) => void;
+  onClose: () => void;
+}) {
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+
+  // تبديل الصفحة يعيد التكبير — وإلّا فُتحت التالية على تكبير سابقتها فبدت مقطوعة.
+  useEffect(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }, [page]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      // في المصحف يتقدّم الترتيب مع اتّجاه القراءة: السهم الأيسر للصفحة التالية.
+      if (e.key === 'ArrowLeft') onPage(page + 1);
+      if (e.key === 'ArrowRight') onPage(page - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [page, onPage, onClose]);
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: invert ? '#000' : '#111', zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button size="sm" variant="secondary" onClick={() => onPage(page + 1)}>‹ التالية</Button>
+          <Button size="sm" variant="secondary" onClick={() => onPage(page - 1)}>السابقة ›</Button>
+        </div>
+        <span className="mono" style={{ fontSize: 12, color: '#fff' }}>
+          صفحة {page} / {TOTAL_PAGES} — {Math.round(zoom * 100)}٪
+        </span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button size="sm" variant="secondary" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} title="إعادة الصفحة إلى ملء الشاشة">↺ ملءُ الشاشة</Button>
+          <Button size="sm" variant="danger" onClick={onClose}>✕ إغلاق</Button>
+        </div>
+      </div>
+
+      <div
+        onWheel={(e) =>
+          setZoom((z) => {
+            const next = Math.min(6, Math.max(1, z - Math.sign(e.deltaY) * 0.2));
+            // العودة إلى الاحتواء تُصفّر الإزاحة، وإلّا بقيت الصفحة مُزاحةً وهي محتواةٌ أصلاً.
+            if (next === 1) setPan({ x: 0, y: 0 });
+            return next;
+          })
+        }
+        onDoubleClick={() => setZoom((z) => { if (z > 1) { setPan({ x: 0, y: 0 }); return 1; } return 2.5; })}
+        onMouseDown={(e) => setDrag({ x: e.clientX - pan.x, y: e.clientY - pan.y })}
+        onMouseMove={(e) => drag && setPan({ x: e.clientX - drag.x, y: e.clientY - drag.y })}
+        onMouseUp={() => setDrag(null)}
+        onMouseLeave={() => setDrag(null)}
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: zoom > 1 ? (drag ? 'grabbing' : 'grab') : 'zoom-in',
+        }}
+      >
+        <PageImage page={page} riwaya={riwaya} invert={invert} zoom={zoom} pan={pan} fit />
+      </div>
     </div>
   );
 }

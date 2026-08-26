@@ -6,7 +6,7 @@ import type { HisnCategory, HisnCategoryInfo } from '@electron/types';
  * حصن المسلم المصنّف: فهرس الأبواب ← أذكار الباب.
  * البحث يمرّ عبر العملية الرئيسية (267 ذكراً) فلا يُحمَّل الملفّ كاملاً في الواجهة.
  */
-export function HisnPage() {
+export function HisnPage({ initialCategory }: { initialCategory?: number } = {}) {
   const [index, setIndex] = useState<HisnCategoryInfo[]>([]);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<HisnCategory[] | null>(null);
@@ -15,6 +15,13 @@ export function HisnPage() {
   useEffect(() => {
     window.gtSalat.content.hisnIndex().then(setIndex);
   }, []);
+
+  // بابٌ يُفتَح مباشرةً — «أذكار النوم» بطاقةٌ في «المزيد» وهي البابُ 2 من حصن المسلم،
+  // فلا يُكرَّر المحتوى في ملفٍّ ثانٍ ولا يُطلَب من المستخدم البحثُ عنه في 132 باباً.
+  useEffect(() => {
+    if (!initialCategory) return;
+    window.gtSalat.content.hisnCategory(initialCategory).then((c) => c && setOpen(c));
+  }, [initialCategory]);
 
   useEffect(() => {
     const q = query.trim();

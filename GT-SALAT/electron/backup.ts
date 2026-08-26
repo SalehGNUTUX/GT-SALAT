@@ -105,6 +105,8 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['city'] = S(s.city);
   p['country'] = S(s.country);
   p['method_id'] = I(s.methodId);
+  p['location_history'] = S(JSON.stringify(s.locationHistory ?? []));
+  p['auto_update_loc'] = B(s.autoUpdateLocation);
   p['madhab'] = S(s.madhab === 'hanafi' ? 'HANAFI' : 'SHAFI');
   p['pre_notify_min'] = I(s.preNotifyMinutes);
   p['adhan_type'] = S(s.useCustomAdhan ? 'CUSTOM' : s.adhanType === 'short' ? 'SHORT' : 'FULL');
@@ -115,6 +117,8 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['per_prayer_alerts'] = B(s.perPrayerAlerts);
   p['prayer_alerts_csv'] = S((s.prayerAlerts ?? []).map((a) => ALERT_TO_PHONE[a] ?? 'FULL').join(','));
   p['en_pre_notify_sound'] = B(s.enablePreNotifySound);
+  p['fullscreen_adhan'] = B(s.fullscreenAdhan);
+  p['keep_adhan_screen'] = B(s.keepAdhanWindow);
   p['en_post_dhikr'] = B(s.enablePostPrayerDhikr);
   p['post_dhikr_min'] = I(s.postPrayerDhikrDelayMinutes);
   p['en_daily_ayah'] = B(s.enableDailyAyah);
@@ -123,6 +127,8 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['en_evening_adhkar'] = B(s.enableEveningAdhkarReminder);
   p['morning_adhkar_hour'] = I(s.morningAdhkarHour);
   p['evening_adhkar_hour'] = I(s.eveningAdhkarHour);
+  p['en_sunnah'] = B(s.enableSunnahReminders);
+  p['gtd_sunnahReminderHour'] = I(s.sunnahReminderHour);
   p['use_api'] = B(s.useApiTimetables);
   p['dnd'] = B(s.doNotDisturb);
   p['theme_mode'] = S(s.theme === 'light' ? 'LIGHT' : 'DARK');
@@ -132,14 +138,18 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['clock_24h'] = B(s.clock24h);
   p['hijri_offset'] = I(s.hijriOffset);
   p['check_updates'] = B(s.checkUpdates);
+  p['last_whatsnew_code'] = S(s.lastWhatsNewVersion);
   p['setup_completed'] = B(s.setupCompleted);
   p['last_read_surah'] = I(s.lastReadSurah);
   p['last_read_ayah'] = I(s.lastReadAyah);
   p['last_listen_surah'] = I(s.lastListenSurah);
   p['last_listen_ayah'] = I(s.lastListenAyah);
+  p['last_audio_surah'] = I(s.lastAudioSurah);
+  p['last_audio_pos'] = I(Math.round((s.lastAudioPos ?? 0) * 1000));
   p['quran_bookmarks'] = SET(s.quranBookmarks ?? []);
   p['last_reciter_id'] = S(s.lastReciterId);
   p['last_mushaf_page'] = I(s.lastMushafPage);
+  p['last_riwaya'] = S(s.lastRiwaya);
 
   // ── ما يخصّ سطح المكتب وحده (يتجاهله الهاتف ويحفظه) ──
   p['gtd_methodName'] = S(s.methodName);
@@ -163,12 +173,16 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['gtd_tasbihTarget'] = I(s.tasbihTarget);
   p['gtd_tasbihCount'] = I(s.tasbihCount);
   p['gtd_tasbihTotal'] = I(s.tasbihTotal);
-  p['gtd_quranScrollSpeed'] = I(s.quranScrollSpeed);
-  p['gtd_lastSurahReciterId'] = S(s.lastSurahReciterId);
+  p['gtd_tasbihDhikrIndex'] = I(s.tasbihDhikrIndex);
+  p['gtd_tasbihMixed'] = B(s.tasbihMixed);
+  p['gtd_tasbihMixedType'] = I(s.tasbihMixedType);
+  p['gtd_tasbihVoiceSensitivity'] = I(s.tasbihVoiceSensitivity);
+  p['quran_scroll_speed'] = I(s.quranScrollSpeed);
+  p['last_audio_reciter'] = S(s.lastSurahReciterId);
   p['gtd_mushafRiwaya'] = S(s.mushafRiwaya);
   p['gtd_mushafInvert'] = B(s.mushafInvert);
   p['gtd_favoriteRadios'] = SET(s.favoriteRadios ?? []);
-  p['gtd_favoriteSections'] = SET(s.favoriteSections ?? []);
+  p['favorite_features'] = SET(s.favoriteSections ?? []);
   p['gtd_customRadios'] = S(JSON.stringify(s.customRadios ?? []));
   p['gtd_radioEdits'] = S(JSON.stringify(s.radioEdits ?? {}));
 
@@ -189,6 +203,15 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('city', readStr(p, 'city'));
   setIf('country', readStr(p, 'country'));
   setIf('methodId', readNum(p, 'method_id'));
+  // السجلّ يُخزَّن نصّاً JSON بنفس صيغة الهاتف (`List<Place>`) فتتبادله النسختان كما هو.
+  const hist = readStr(p, 'location_history');
+  if (hist) {
+    try {
+      const arr = JSON.parse(hist);
+      if (Array.isArray(arr)) setIf('locationHistory', arr.filter((x) => x && typeof x.lat === 'number'));
+    } catch {}
+  }
+  setIf('autoUpdateLocation', readBool(p, 'auto_update_loc'));
   const madhab = readStr(p, 'madhab');
   if (madhab) out.madhab = (madhab.toUpperCase() === 'HANAFI' ? 'hanafi' : 'shafi') as AsrMadhab;
   setIf('preNotifyMinutes', readNum(p, 'pre_notify_min'));
@@ -209,6 +232,8 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
     out.prayerAlerts = list.slice(0, 5);
   }
   setIf('enablePreNotifySound', readBool(p, 'en_pre_notify_sound'));
+  setIf('fullscreenAdhan', readBool(p, 'fullscreen_adhan'));
+  setIf('keepAdhanWindow', readBool(p, 'keep_adhan_screen'));
   setIf('enablePostPrayerDhikr', readBool(p, 'en_post_dhikr'));
   setIf('postPrayerDhikrDelayMinutes', readNum(p, 'post_dhikr_min'));
   setIf('enableDailyAyah', readBool(p, 'en_daily_ayah'));
@@ -217,6 +242,8 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('enableEveningAdhkarReminder', readBool(p, 'en_evening_adhkar'));
   setIf('morningAdhkarHour', readNum(p, 'morning_adhkar_hour'));
   setIf('eveningAdhkarHour', readNum(p, 'evening_adhkar_hour'));
+  setIf('enableSunnahReminders', readBool(p, 'en_sunnah'));
+  setIf('sunnahReminderHour', readNum(p, 'gtd_sunnahReminderHour'));
   setIf('useApiTimetables', readBool(p, 'use_api'));
   setIf('doNotDisturb', readBool(p, 'dnd'));
   const theme = readStr(p, 'theme_mode');
@@ -229,14 +256,20 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('clock24h', readBool(p, 'clock_24h'));
   setIf('hijriOffset', readNum(p, 'hijri_offset'));
   setIf('checkUpdates', readBool(p, 'check_updates'));
+  setIf('lastWhatsNewVersion', readStr(p, 'last_whatsnew_code'));
   setIf('setupCompleted', readBool(p, 'setup_completed'));
   setIf('lastReadSurah', readNum(p, 'last_read_surah'));
   setIf('lastReadAyah', readNum(p, 'last_read_ayah'));
   setIf('lastListenSurah', readNum(p, 'last_listen_surah'));
   setIf('lastListenAyah', readNum(p, 'last_listen_ayah'));
+  setIf('lastAudioSurah', readNum(p, 'last_audio_surah'));
+  // الهاتف يكتب الموضع بالمِلّي ثانية ونحن بالثواني — التحويل هنا كي لا يقفز الموضع ألف ضعف.
+  const posMs = readNum(p, 'last_audio_pos');
+  if (posMs != null) setIf('lastAudioPos', Math.round(posMs / 1000));
   setIf('quranBookmarks', readSet(p, 'quran_bookmarks'));
   setIf('lastReciterId', readStr(p, 'last_reciter_id'));
   setIf('lastMushafPage', readNum(p, 'last_mushaf_page'));
+  setIf('lastRiwaya', readStr(p, 'last_riwaya'));
   const seed = readNum(p, 'seed_color');
   if (seed !== undefined) out.accentColor = argbToHex(seed);
 
@@ -262,12 +295,16 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('tasbihTarget', readNum(p, 'gtd_tasbihTarget'));
   setIf('tasbihCount', readNum(p, 'gtd_tasbihCount'));
   setIf('tasbihTotal', readNum(p, 'gtd_tasbihTotal'));
-  setIf('quranScrollSpeed', readNum(p, 'gtd_quranScrollSpeed'));
-  setIf('lastSurahReciterId', readStr(p, 'gtd_lastSurahReciterId'));
+  setIf('tasbihDhikrIndex', readNum(p, 'gtd_tasbihDhikrIndex'));
+  setIf('tasbihMixed', readBool(p, 'gtd_tasbihMixed'));
+  setIf('tasbihMixedType', readNum(p, 'gtd_tasbihMixedType'));
+  setIf('tasbihVoiceSensitivity', readNum(p, 'gtd_tasbihVoiceSensitivity'));
+  setIf('quranScrollSpeed', readNum(p, 'quran_scroll_speed') ?? readNum(p, 'gtd_quranScrollSpeed'));
+  setIf('lastSurahReciterId', readStr(p, 'last_audio_reciter') ?? readStr(p, 'gtd_lastSurahReciterId'));
   setIf('mushafRiwaya', readStr(p, 'gtd_mushafRiwaya'));
   setIf('mushafInvert', readBool(p, 'gtd_mushafInvert'));
   setIf('favoriteRadios', readSet(p, 'gtd_favoriteRadios'));
-  setIf('favoriteSections', readSet(p, 'gtd_favoriteSections'));
+  setIf('favoriteSections', readSet(p, 'favorite_features') ?? readSet(p, 'gtd_favoriteSections'));
   const customRadios = readStr(p, 'gtd_customRadios');
   if (customRadios) {
     try { out.customRadios = JSON.parse(customRadios); } catch { /* حزمةٌ تالفةٌ جزئياً — نتجاهل الحقل */ }

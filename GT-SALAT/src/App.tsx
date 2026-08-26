@@ -7,6 +7,10 @@ import { DashboardPage } from './pages/Dashboard';
 import { TimetablePage } from './pages/Timetable';
 import { DhikrPage } from './pages/Dhikr';
 import { MorePage, MORE_FEATURES } from './pages/More';
+import { LearnPage } from './pages/more/Learn';
+import { RuqyahPage } from './pages/more/Ruqyah';
+import { AdhkarAudioPage } from './pages/more/AdhkarAudio';
+import { WhatsNewDialog, WHATS_NEW } from './components/WhatsNewDialog';
 import { SettingsPage } from './pages/Settings';
 import { AdvancedSettingsPage } from './pages/AdvancedSettings';
 import { StatusPage } from './pages/Status';
@@ -106,6 +110,15 @@ function AppShell() {
     return () => { unsub(); };
   }, [goTo]);
 
+  // قسمٌ كان بطاقةً في «المزيد» ثمّ صار أساسيّاً في الشريط (القرآن في 2.1) يبقى مخزَّناً في
+  // المثبَّتة، فيشغل خانةً من الثلاث لا تُعرَض — فيظنّ المستخدم أنّ حقّه خانتان. يُنظَّف مرّةً.
+  useEffect(() => {
+    const favs = settings?.favoriteSections;
+    if (!favs) return;
+    const known = favs.filter((id) => MORE_FEATURES.some((f) => f.id === id));
+    if (known.length !== favs.length) void updateSettings({ favoriteSections: known });
+  }, [settings?.favoriteSections, updateSettings]);
+
   if (!settings) {
     return (
       <div
@@ -127,14 +140,21 @@ function AppShell() {
     return <WelcomePage onDone={() => updateSettings({ setupCompleted: true })} />;
   }
 
+  // «ما الجديد» تُعرَض مرّةً بعد كلّ تحديثٍ فعليّ، ويُخزَّن القرار في الإعدادات لا في
+  // localStorage — فينتقل مع النسخ الاحتياطي ولا يُفقَد بمسح بيانات المتصفّح.
+  const showWhatsNew = settings.lastWhatsNewVersion !== WHATS_NEW.version;
+
   const notifyActive = settings.enableSalatNotify || settings.enableZikrNotify;
   // المثبَّتة تُعرَض بترتيب الشبكة لا بترتيب الإضافة، فيثبت موضعها في الشريط.
-  // أقسام القرآن لم تعد بطاقاتٍ في «المزيد»، فتثبيتُها القديم يسقط من تلقائه (القسم أساسيّ الآن).
   const favoriteSections = MORE_FEATURES.filter((f) => (settings.favoriteSections ?? []).includes(f.id));
   const label = sub ? SUB_LABELS[sub] ?? PAGE_LABELS[page] : PAGE_LABELS[page];
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', flexDirection: 'row' }}>
+      {showWhatsNew && (
+        <WhatsNewDialog onClose={() => updateSettings({ lastWhatsNewVersion: WHATS_NEW.version })} />
+      )}
+
       {/* الشريط الجانبي — يمين (أول DOM في RTL = يمين) */}
       <Sidebar
         page={page}
@@ -172,8 +192,12 @@ function AppShell() {
 
           {page === 'more' && !sub && <MorePage onOpen={setSub} settings={settings} update={updateSettings} />}
           {page === 'more' && sub === 'hisn' && <HisnPage />}
+          {page === 'more' && sub === 'adhkar-sleep' && <HisnPage initialCategory={2} />}
           {page === 'more' && sub === 'adhkar-morning' && <AdhkarSessionPage type="morning" />}
           {page === 'more' && sub === 'adhkar-evening' && <AdhkarSessionPage type="evening" />}
+          {page === 'more' && sub === 'learn' && <LearnPage />}
+          {page === 'more' && sub === 'ruqyah' && <RuqyahPage />}
+          {page === 'more' && sub === 'adhkar-audio' && <AdhkarAudioPage />}
           {page === 'more' && sub === 'tasbih' && <TasbihPage settings={settings} update={updateSettings} />}
           {page === 'more' && sub === 'duas' && <DuasPage />}
           {page === 'more' && sub === 'hikam' && <HikamPage />}

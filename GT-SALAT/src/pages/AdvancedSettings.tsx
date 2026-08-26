@@ -1,3 +1,4 @@
+import { WHATS_NEW } from '../components/WhatsNewDialog';
 import { useEffect, useState } from 'react';
 import {
   Button,
@@ -175,6 +176,21 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         </SettingRow>
 
         <SettingRow
+          label="نافذة أذانٍ بملء الشاشة"
+          sub="نافذةٌ فوق كل النوافذ عند دخول الوقت — إشعارُ النظام وحده قد يمرّ دون أن يُرى"
+        >
+          <Toggle on={settings.fullscreenAdhan} onChange={(v) => update({ fullscreenAdhan: v })} />
+        </SettingRow>
+        {settings.fullscreenAdhan && (
+          <SettingRow
+            label="إبقاء النافذة بعد انتهاء الصوت"
+            sub="تبقى حتى تغلقها بنفسك (وإلّا أُغلقت تلقائياً عند انتهاء الأذان)"
+          >
+            <Toggle on={settings.keepAdhanWindow} onChange={(v) => update({ keepAdhanWindow: v })} />
+          </SettingRow>
+        )}
+
+        <SettingRow
           label="نمط تنبيهٍ مخصّصٍ لكل صلاة"
           sub={
             settings.systemSalatNotify
@@ -257,6 +273,22 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         >
           <Toggle on={settings.enableWhiteDaysReminder} onChange={(v) => update({ enableWhiteDaysReminder: v })} />
         </SettingRow>
+
+        <SettingRow
+          label="تذكير السُّنن الموسمية"
+          sub={
+            settings.enableSunnahReminders
+              ? `عاشوراء · عرفة · عشر ذي الحجّة · ستّ شوّال · الاثنين والخميس · الجمعة — عند ${formatHour(settings.sunnahReminderHour, settings.clock24h)}`
+              : 'عاشوراء · عرفة · عشر ذي الحجّة · ستّ شوّال · الاثنين والخميس · الجمعة'
+          }
+        >
+          <Toggle on={settings.enableSunnahReminders} onChange={(v) => update({ enableSunnahReminders: v })} />
+        </SettingRow>
+        {settings.enableSunnahReminders && (
+          <SettingRow label="ساعة تذكير السُّنن" sub="رسالةٌ واحدةٌ في اليوم بأولويّة المناسبة الهجرية">
+            <Slider value={settings.sunnahReminderHour} min={0} max={23} suffix=":00" onCommit={(v) => update({ sunnahReminderHour: v })} />
+          </SettingRow>
+        )}
       </Collapsible>
 
       {/* ── التقويم والتواريخ ───────────────────────────── */}
@@ -507,6 +539,9 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
       <Collapsible title="حول GT-SALAT" icon="ℹ️" expanded={open === 'حول GT-SALAT'} onToggle={() => toggle('حول GT-SALAT')}>
         <SettingRow label="النسخة">
           <span className="mono" style={{ fontSize: 13, color: 'var(--fg-secondary)' }}>GT-SALAT {version}</span>
+        </SettingRow>
+        <SettingRow label="ما الجديد" sub={`مستجدّات النسخة ${WHATS_NEW.version} — تُعرَض مرّةً بعد كلّ تحديث`}>
+          <Button size="sm" onClick={() => update({ lastWhatsNewVersion: '' })}>✨ اعرضها الآن</Button>
         </SettingRow>
         <SettingRow label="التنبيه عند توفّر نسخةٍ جديدة" sub="فحصٌ خفيفٌ لصفحة إصدارات GitHub عند بدء التشغيل">
           <Toggle on={settings.checkUpdates} onChange={(v) => update({ checkUpdates: v })} />

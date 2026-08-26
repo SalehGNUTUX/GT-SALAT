@@ -81,7 +81,53 @@ export function QuranAudioPage({
    * «متابعة الاستماع» موضعٌ واحدٌ يشترك فيه القسمان — من استمع هنا وجد موضعه في
    * «القرآن النصّيّ». والسورة الكاملة بلا آيةٍ محدَّدة فتُحفَظ من أوّلها.
    */
-  const markListen = (n: number) => update({ lastListenSurah: n, lastListenAyah: 1 });
+  const markListen = (n: number) => update({ lastListenSurah: n, lastListenAyah: 1, lastAudioSurah: n, lastAudioPos: 0 });
+
+  // حفظُ موضع الاستماع بالثانية كلّ خمس ثوانٍ أثناء التلاوة الجارية من هذا القسم.
+  // الاشتراك في `timeupdate` **داخل الصفحة** لا في المزوّد، فلا يُعاد رسم التطبيق كلّه مراراً.
+  useEffect(() => {
+    const el = player.audioRef.current;
+    if (!el) return;
+    let last = 0;
+    const onTime = () => {
+      const t = player.track;
+      if (!t || t.section !== QURAN_AUDIO_SECTION) return;
+      const surah = Number(t.id.replace(/^.*-/, ''));
+      if (!surah || el.currentTime - last < 5) return;
+      last = el.currentTime;
+      void update({ lastAudioSurah: surah, lastAudioPos: Math.floor(el.currentTime) });
+    };
+    el.addEventListener('timeupdate', onTime);
+    return () => el.removeEventListener('timeupdate', onTime);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [player.track]);
+
+  /**
+   * استئنافُ آخر سورةٍ استُمِع إليها من موضعها بالضبط. المزوّد لا يقبل موضعَ بدءٍ، فيُضبَط
+   * `currentTime` **بعد** أن يعرف العنصر مدّة الملفّ (`loadedmetadata`) — قبلها يُتجاهَل الضبط.
+   */
+  const resumeListening = (surah: number, seconds: number) => {
+    const r = reciters.find((x) => x.id === settings.lastSurahReciterId) ?? reciters[0];
+    if (!r) return;
+    const name = surahMeta.get(surah)?.ar ?? `سورة ${surah}`;
+    player.toggle({
+      id: `${r.id}-${surah}`,
+      title: name,
+      subtitle: r.ar,
+      url: surahAudioUrl(r.server, surah),
+      section: QURAN_AUDIO_SECTION,
+      icon: '🎧',
+    });
+    if (seconds > 0) {
+      const el = player.audioRef.current;
+      if (!el) return;
+      const seek = () => {
+        el.currentTime = seconds;
+        el.removeEventListener('loadedmetadata', seek);
+      };
+      el.addEventListener('loadedmetadata', seek);
+    }
+  };
 
   const saveEdit = (r: SurahReciter, v: ReciterDraft) => {
     const next: SurahReciter = { id: r.id, ar: v.ar, riwaya: v.riwaya, server: v.source };
@@ -132,8 +178,41 @@ export function QuranAudioPage({
     (r) => (!q || r.ar.includes(q)) && (riwaya === 'all' || (r.riwaya ?? 'hafs') === riwaya),
   );
 
+  const resumeSurah = settings.lastAudioSurah ?? 0;
+  const resumePos = settings.lastAudioPos ?? 0;
+
   return (
     <div style={{ padding: 24, overflowY: 'auto', height: '100%' }}>
+      {/* متابعة الاستماع: **حوارُ خيارين** كما في الهاتف — إتمامٌ من الموضع، أو بدءٌ من أوّل
+          السورة. الاستئنافُ قسراً يُزعج من أراد الإعادة، والبدءُ قسراً يُضيع ما سمعه. */}
+      {resumeSurah > 0 && player.track?.section !== QURAN_AUDIO_SECTION && (
+        <Card style={{ marginBottom: 14, borderColor: 'var(--gold-600)', background: 'var(--accent-tint)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>
+                ↩ متابعة الاستماع — {surahMeta.get(resumeSurah)?.ar ?? `سورة ${resumeSurah}`}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--fg-muted)' }}>
+                {resumePos > 0 ? `توقّفتَ عند ${formatDuration(resumePos)}` : 'من أوّل السورة'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {resumePos > 0 && (
+                <Button size="sm" variant="primary" onClick={() => resumeListening(resumeSurah, resumePos)}>
+                  ▶ إتمام الاستماع
+                </Button>
+              )}
+              <Button size="sm" variant="secondary" onClick={() => resumeListening(resumeSurah, 0)}>
+                ↺ من جديد
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => update({ lastAudioSurah: 0, lastAudioPos: 0 })}>
+                ✕
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <SearchInput
         value={query}
         onChange={setQuery}
@@ -619,4 +698,11 @@ export function formatBytes(b: number): string {
   if (b < 1024 * 1024) return `${Math.round(b / 1024)} ك.ب`;
   if (b < 1024 * 1024 * 1024) return `${(b / 1048576).toFixed(1)} م.ب`;
   return `${(b / 1073741824).toFixed(2)} غ.ب`;
+}
+
+/** «12:34» — موضعُ الاستماع بصيغةٍ تُقرأ، لا رقمَ ثوانٍ خام. */
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const sec = Math.floor(seconds % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
 }

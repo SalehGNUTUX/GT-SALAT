@@ -14,6 +14,16 @@ const PRAYER_COLORS: Record<string, string> = {
   isha: 'var(--color-isha)',
 };
 
+/** اسمُ الصوت الجاري في زرّ الإيقاف — الأذان والتنبيه والدعاء والذكر لا تُسمّى كلّها «أذاناً». */
+const AUDIO_KIND_LABELS: Record<string, string> = {
+  full: 'الأذان',
+  short: 'الأذان',
+  custom: 'الأذان',
+  approaching: 'التنبيه',
+  dua_after_adhan: 'دعاء الأذان',
+  post_prayer_dhikr: 'الأذكار',
+};
+
 const PRAYER_ICONS: Record<string, string> = {
   fajr: '🌙',
   sunrise: '🌅',
@@ -46,11 +56,13 @@ function isEvening(): boolean {
 export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
   const city = settings.city;
   const [dhikr, setDhikr] = useState<{ id: number; text: string } | null>(null);
-  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [audioKind, setAudioKind] = useState<string | null>(null);
   const [ayah, setAyah] = useState<DailyAyah | null>(null);
   const [hikmah, setHikmah] = useState<Hikmah | null>(null);
   const [events, setEvents] = useState<HistoryEvent[]>([]);
   const [seed, setSeed] = useState(daySeed());
+  // رسالةٌ ذكيّةٌ عند إعادة الكشف (جارٍ… / ✓ حُدّث / تعذّر) — كما في نسخة الهاتف.
+  const [locMsg, setLocMsg] = useState('');
 
   useEffect(() => {
     window.gtSalat.dhikr.random().then(setDhikr);
@@ -72,14 +84,38 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
     window.gtSalat.content.eventsToday(h.month, h.day).then(setEvents);
   }, [settings.enableTodayEvent, settings.hijriOffset]);
 
+  // الصوت يخرج من مشغّل النظام لا من عنصر `<audio>`، فالحالة تصل بالبثّ لا بالاستطلاع:
+  // تظهر فوراً وتحمل **نوع** الصوت، فيُسمّيه الزرّ (كما في نسخة الهاتف) بدل «الأذان» دائماً.
   useEffect(() => {
-    const t = setInterval(() => {
-      window.gtSalat.audio.playing().then(setAudioPlaying);
-    }, 2000);
-    return () => clearInterval(t);
+    window.gtSalat.audio.playingKind().then(setAudioKind);
+    return window.gtSalat.audio.onState(setAudioKind);
   }, []);
 
   const newDhikr = () => window.gtSalat.dhikr.random().then(setDhikr);
+
+  /** إعادةُ كشف الموقع من لوحة التحكّم — لمن ينتقل فيجد المواقيت على مدينةٍ أخرى. */
+  const refreshLocation = async () => {
+    setLocMsg('… يحدّد');
+    const loc = await window.gtSalat.prayer.autoDetect();
+    if (!loc) {
+      setLocMsg('تعذّر التحديد — لا إنترنت. اختر مدينتك من الإعدادات.');
+      setTimeout(() => setLocMsg(''), 6000);
+      return;
+    }
+    const methods = await window.gtSalat.prayer.methods();
+    const m = methods.find((x) => x.id === loc.suggestedMethodId);
+    await window.gtSalat.settings.set({
+      lat: loc.lat,
+      lon: loc.lon,
+      city: loc.city,
+      country: loc.country,
+      methodId: loc.suggestedMethodId,
+      methodName: m?.nameAr ?? '',
+    });
+    await window.gtSalat.prayer.prefetch();
+    setLocMsg(`✓ حُدّث إلى ${loc.city}`);
+    setTimeout(() => setLocMsg(''), 5000);
+  };
 
   const nowMs = Date.now();
   const isPast = (p: PrayerTime) => p.timestamp < nowMs;
@@ -122,9 +158,9 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--fg-muted)' }}>متبقية</span>
                 </div>
-                {audioPlaying && (
+                {audioKind && (
                   <Button size="sm" variant="danger" onClick={() => window.gtSalat.audio.stop()}>
-                    ⏹ إيقاف الأذان
+                    ⏹ إيقاف {AUDIO_KIND_LABELS[audioKind] ?? 'الصوت'}
                   </Button>
                 )}
               </div>
@@ -244,7 +280,21 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
 
       {/* Today timetable */}
       <Card>
-        <SectionTitle>مواقيت اليوم{city ? ` — ${city}` : ''}</SectionTitle>
+        <SectionTitle
+          action={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {locMsg && <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{locMsg}</span>}
+              <Button size="sm" variant="secondary" onClick={refreshLocation} title="إعادة تحديد الموقع">
+                🔄 تحديث الموقع
+              </Button>
+            </div>
+          }
+        >
+          {/* الاسم الطويل يُختصَر بنقاطٍ فلا يزحم الترويسة (كما أُصلح في الهاتف v1.17.1). */}
+          <span style={{ display: 'inline-block', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}>
+            مواقيت اليوم{city ? ` — ${city}` : ''}
+          </span>
+        </SectionTitle>
         {today ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
             {today.prayers.map((p) => {

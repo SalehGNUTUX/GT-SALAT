@@ -1,11 +1,12 @@
+import { setAudioStateListener } from './audio.js';
 import { app, BrowserWindow, nativeImage, Menu } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerIpc } from './ipc.js';
 import { createTray, destroyTray } from './tray.js';
 import { startScheduler, stopScheduler } from './scheduler.js';
-import { getSettings, importLegacySettings } from './settings.js';
-import { prefetchUpcomingMonths } from './prayer.js';
+import { getSettings, setSettings, importLegacySettings } from './settings.js';
+import { autoDetectLocation, prefetchUpcomingMonths, suggestMethodByCountry } from './prayer.js';
 import { refreshHookScriptIfEnabled } from './shell-hook.js';
 import { azkarFilePath } from './dhikr.js';
 import { checkForUpdate } from './updates.js';
@@ -95,7 +96,8 @@ function createMainWindow(): void {
   // وقائمة الخدمات المعروفة، فلا يُفتَح باب تنفيذ شيفرةٍ خارجية:
   //   `media-src` : الإذاعات وتلاوة القرآن (بثٌّ عبر <audio> من خوادم خارجية).
   //   `img-src`   : صفحات المصحف المصوَّر (صورٌ من مستودعَي Quran-PNG وQuranHub).
-  // `gtsalat:` هو بروتوكولنا المخصّص الذي يخدم ما نزّله المستخدم من مجلّد التنزيلات.
+  // `gtsalat:` بروتوكولنا المخصّص بمضيفَين: `local` لما نزّله المستخدم (المصحف وصوت القرآن)
+  // و`res` للموارد المحزَّمة (صور الدروس المصوَّرة وأصوات الأذكار والرقية المُضمَّنة).
   const MEDIA = "media-src 'self' file: data: gtsalat: https: http:";
   const IMG = "img-src 'self' data: gtsalat: https:";
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
@@ -152,6 +154,11 @@ app.whenReady().then(async () => {
     mainWindow?.webContents.send('nav:go', route);
   });
 
+  // حالة الصوت الجاري تُبَثّ للواجهة كي يظهر زرّ الإيقاف ويختفي من تلقائه.
+  setAudioStateListener((kind) => {
+    mainWindow?.webContents.send('audio:state', kind);
+  });
+
   serveQuranScheme();
   registerIpc(() => mainWindow);
   createMainWindow();
@@ -164,6 +171,12 @@ app.whenReady().then(async () => {
 
   // prefetch الأشهر القادمة في الخلفية
   prefetchUpcomingMonths().catch(() => {});
+
+  // تحديثُ الموقع تلقائياً لمن يكثر تنقّله: عند الإقلاع ثمّ كلّ ستّ ساعات.
+  if (s2.autoUpdateLocation) {
+    void refreshLocationIfMoved();
+    setInterval(() => { void refreshLocationIfMoved(); }, 6 * 60 * 60 * 1000);
+  }
 
   // فحص توفّر نسخةٍ جديدة بعد استقرار الإقلاع (لا نزاحم تحميل الواجهة).
   if (s2.checkUpdates) {
@@ -196,3 +209,32 @@ app.on('window-all-closed', (e: any) => {
   }
   if (process.platform !== 'darwin') app.quit();
 });
+
+/**
+ * يُعيد كشف الموقع ويحفظه **إن تغيّر فعلاً** — المقارنة بمنزلتين عشريّتين (نفس دقّة مفتاح
+ * الموقع في الكاش) فلا تُبطَل مواقيت الشهر المخزَّنة لفارقِ أمتارٍ يعيده مزوّد الإنترنت.
+ * صامتٌ عند الفشل: لا إنترنت يعني إبقاء الموقع الحاليّ لا إفراغه.
+ */
+async function refreshLocationIfMoved(): Promise<void> {
+  const cur = getSettings();
+  if (!cur.autoUpdateLocation) return;
+  const loc = await autoDetectLocation().catch(() => null);
+  if (!loc) return;
+
+  const same =
+    cur.lat != null && cur.lon != null &&
+    cur.lat.toFixed(2) === loc.lat.toFixed(2) &&
+    cur.lon.toFixed(2) === loc.lon.toFixed(2);
+  if (same) return;
+
+  const methodId = suggestMethodByCountry(loc.country);
+  setSettings({ lat: loc.lat, lon: loc.lon, city: loc.city, country: loc.country, methodId });
+  mainWindow?.webContents.send('settings:changed', getSettings());
+  notify({
+    type: 'system',
+    title: '📍 تغيّر موقعك',
+    body: `حُدِّثت المواقيت إلى ${loc.city}${loc.country ? ` — ${loc.country}` : ''}.`,
+    route: 'dashboard',
+  });
+  prefetchUpcomingMonths().catch(() => {});
+}

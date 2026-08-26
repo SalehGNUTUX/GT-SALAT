@@ -2,7 +2,8 @@ import { getNextPrayer, getTodayTimetable } from './prayer.js';
 import { getSettings } from './settings.js';
 import { getRandomDhikr } from './dhikr.js';
 import { notify } from './notifier.js';
-import { isWhiteDay } from './hijri.js';
+import { sunnahReminderFor, isWhiteDay } from './hijri.js';
+import { showAdhanWindow, closeAdhanWindowIfNotKept } from './adhan-window.js';
 import * as audio from './audio.js';
 import { ALERT_PRAYERS, type AlertMode, type AppSettings, type PrayerTime, type NextPrayerInfo } from './types.js';
 import fs from 'node:fs';
@@ -132,21 +133,28 @@ function announcePrayer(p: PrayerTime): void {
     route: 'dashboard',
   });
 
+  // النافذة تُفتَح مع الأذان والرنّة لا مع الصامت — من أطفأ الصوت لا يريد نافذةً تعترضه.
+  if (mode !== 'silent') {
+    showAdhanWindow(`حان الآن وقت صلاة ${p.name}`, p.time ?? '', '🕌');
+  }
+
   if (mode === 'tone') {
     // رنّة تنبيهٍ قصيرة بدل الأذان الكامل.
-    audio.play('approaching');
+    audio.play('approaching', closeAdhanWindowIfNotKept);
   } else if (mode === 'adhan') {
     const afterAdhan = () => {
       const cur = getSettings();
       if (!cur.doNotDisturb && cur.enableDuaAfterAdhan) {
-        audio.play('dua_after_adhan');
+        audio.play('dua_after_adhan', closeAdhanWindowIfNotKept);
+      } else {
+        closeAdhanWindowIfNotKept();
       }
     };
     const useCustom = s.useCustomAdhan && !!s.customAdhanPath;
     if (useCustom) {
-      s.enableDuaAfterAdhan ? audio.playFile(s.customAdhanPath, afterAdhan) : audio.playFile(s.customAdhanPath);
+      audio.playFile(s.customAdhanPath, afterAdhan);
     } else {
-      s.enableDuaAfterAdhan ? audio.play(s.adhanType, afterAdhan) : audio.play(s.adhanType);
+      audio.play(s.adhanType, afterAdhan);
     }
   }
   // mode === 'silent' → الإشعار وحده بلا صوت.
@@ -157,7 +165,8 @@ function announcePrayer(p: PrayerTime): void {
       const cur = getSettings();
       if (!cur.doNotDisturb && cur.enablePostPrayerDhikr) {
         notify({ type: 'zikr', title: '📿 أذكار وأدعية بعد الصلاة', body: p.name, route: 'dhikr' });
-        audio.play('post_prayer_dhikr');
+        showAdhanWindow('أذكار وأدعية بعد الصلاة', p.name, '📿');
+        audio.play('post_prayer_dhikr', closeAdhanWindowIfNotKept);
       }
     }, delayMs);
   }
@@ -193,6 +202,12 @@ function checkDailyReminders(s: AppSettings): void {
   }
   if (s.enableEveningAdhkarReminder) {
     fireReminderOnce('evening-adhkar', s.eveningAdhkarHour ?? 17, now, '🌙 أذكار المساء', 'انقر لفتح جلسة أذكار المساء', 'more/adhkar-evening');
+  }
+  if (s.enableSunnahReminders) {
+    const sunnah = sunnahReminderFor(now, s.hijriOffset ?? 0);
+    if (sunnah) {
+      fireReminderOnce(`sunnah-${sunnah.title}`, s.sunnahReminderHour ?? 6, now, `🌿 ${sunnah.title}`, sunnah.body, 'timetable');
+    }
   }
   if (s.enableWhiteDaysReminder && isWhiteDay(now, s.hijriOffset ?? 0)) {
     fireReminderOnce('white-days', s.morningAdhkarHour ?? 6, now, '🤍 الأيام البيض', 'اليوم من الأيام البيض (13/14/15) — يُستحبّ صيامها', 'timetable');

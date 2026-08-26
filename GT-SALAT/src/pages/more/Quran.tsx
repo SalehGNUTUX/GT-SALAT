@@ -1,3 +1,4 @@
+import { normalizeArabic } from '@electron/quran';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, ChipGroup, CopyButton, EmptyState, SearchInput, Toggle } from '../../components/common';
 import type { AyahHit, DownloadTask, QuranMeta, Reciter, SurahMeta, SurahReciter, TafsirSurah, TafsirSurahInfo } from '@electron/types';
@@ -371,6 +372,35 @@ function SurahReader({
     window.gtSalat.content.tafsirSurah(n).then(setSurah);
   }, [n]);
 
+  /**
+   * نصّ الرواية المختارة. حفصٌ مُضمَّنٌ في `tafsir.json` فلا شبكة ولا انتظار؛ وغيره يُجلَب
+   * مرّةً ويُخزَّن. **وإن تعذّر يبقى نصّ حفص معروضاً** (`riwayaText` فارغة) لا صفحةٌ بيضاء.
+   */
+  const riwayaSlug = useMemo(() => {
+    const id = settings.lastRiwaya || 'hafs';
+    return (quranMeta?.riwayat ?? []).find((r) => r.id === id)?.apiSlug ?? 'quran-uthmani';
+  }, [settings.lastRiwaya, quranMeta]);
+
+  const [riwayaText, setRiwayaText] = useState<Record<number, string>>({});
+  const [riwayaLoading, setRiwayaLoading] = useState(false);
+
+  useEffect(() => {
+    if (riwayaSlug === 'quran-uthmani') {
+      setRiwayaText({});
+      return;
+    }
+    let alive = true;
+    setRiwayaLoading(true);
+    window.gtSalat.content.riwayaSurah(n, riwayaSlug).then((list) => {
+      if (!alive) return;
+      const map: Record<number, string> = {};
+      for (const a of list) map[a.n] = a.text;
+      setRiwayaText(map);
+      setRiwayaLoading(false);
+    });
+    return () => { alive = false; };
+  }, [n, riwayaSlug]);
+
   // القفز إلى آيةٍ بعينها بعد التحميل (من البحث أو من الإشارات).
   useEffect(() => {
     if (!surah || !goto) return;
@@ -378,15 +408,20 @@ function SurahReader({
     document.getElementById(`ayah-${n}-${goto}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [surah, goto, n]);
 
-  const ayahs = surah?.ayahs ?? [];
+  const baseAyahs = surah?.ayahs ?? [];
+  // نصّ الرواية يحلّ محلّ نصّ حفص **في العرض والبحث معاً**، والتفسير يبقى كما هو
+  // (التفسير الميسّر مكتوبٌ على حفص، فلا يُنسَب إلى روايةٍ أخرى).
+  const ayahs = useMemo(
+    () =>
+      Object.keys(riwayaText).length === 0
+        ? baseAyahs
+        : baseAyahs.map((a) => (riwayaText[a.n] ? { ...a, text: riwayaText[a.n] } : a)),
+    [baseAyahs, riwayaText],
+  );
   const last = ayahs.length;
 
-  /** تطبيعٌ عربيٌّ خفيف — «الرحمن» تطابق «ٱلرَّحْمَٰن». */
-  const norm = (t: string) =>
-    (t || '')
-      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640\uFEFF]/g, '')
-      .replace(/[أإآٱ]/g, 'ا').replace(/[ىئ]/g, 'ي').replace(/ؤ/g, 'و').replace(/ة/g, 'ه')
-      .trim().toLowerCase();
+  /** التطبيع من `@electron/quran` — مصدرٌ واحدٌ للطرفين ولنسخة الهاتف. */
+  const norm = normalizeArabic;
 
   const shownAyahs = useMemo(() => {
     const q = norm(inSurahQuery);
@@ -645,6 +680,34 @@ function SurahReader({
       {showReciters && (
         <Card style={{ marginBottom: 16, padding: '14px 18px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {(quranMeta?.riwayat ?? []).length > 0 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--fg-secondary)' }}>
+                    رواية النصّ
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--fg-muted)' }}>
+                    {riwayaSlug === 'quran-uthmani'
+                      ? 'مُضمَّنةٌ في التطبيق — تعمل دون إنترنت'
+                      : riwayaLoading
+                        ? '… يُجلَب النصّ'
+                        : Object.keys(riwayaText).length > 0
+                          ? '✓ مخزَّنةٌ لهذه السورة — تعمل دون إنترنت'
+                          : '⚠ تعذّر الجلب — يُعرَض نصّ حفص'}
+                  </div>
+                </div>
+                <ChipGroup<string>
+                  value={settings.lastRiwaya || 'hafs'}
+                  options={(quranMeta?.riwayat ?? []).map((r) => ({ value: r.id, label: r.ar }))}
+                  onChange={(v) => {
+                    // اختيارُ روايةٍ يُبدّل القارئ إلى قارئٍ بها — وإلّا قرأ بحفصٍ ونصُّه ورش.
+                    const match = ayahReciters.find((r) => (r.riwaya ?? 'hafs') === v);
+                    update({ lastRiwaya: v, ...(match ? { lastReciterId: match.id } : {}) });
+                  }}
+                />
+              </div>
+            )}
+
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <div style={{ fontSize: 12.5, color: 'var(--fg-secondary)' }}>

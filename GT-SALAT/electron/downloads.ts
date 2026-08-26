@@ -1,6 +1,7 @@
 import { app, net, protocol } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import { Readable } from 'node:stream';
 import {
   pageImageUrl,
   ayahAudioUrl,
@@ -41,17 +42,92 @@ export function registerQuranScheme(): void {
   ]);
 }
 
-/** يُستدعى بعد الجاهزية: يخدم `gtsalat://local/<relative>` من مجلّد التنزيلات فقط. */
+/** مجلّد الموارد المُحزَّمة (صور الدروس والأصوات المُضمَّنة) — يختلف بين التطوير والإنتاج. */
+export function resourcesDir(): string {
+  return app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), 'resources');
+}
+
+/** نوعُ المحتوى بالامتداد — بدونه يخمّن كروميوم، فيرفض صوتاً أو صورة أحياناً. */
+const MIME: Record<string, string> = {
+  '.webp': 'image/webp',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ogg': 'audio/ogg',
+  '.opus': 'audio/ogg',
+  '.mp3': 'audio/mpeg',
+  '.m4a': 'audio/mp4',
+  '.wav': 'audio/wav',
+  '.json': 'application/json',
+  '.txt': 'text/plain; charset=utf-8',
+};
+
+function mimeFor(file: string): string {
+  return MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream';
+}
+
+/** جسمُ استجابةٍ من ملفٍّ (أو جزءٍ منه) بلا تحميله كاملاً في الذاكرة. */
+function fileBody(file: string, start?: number, end?: number): ReadableStream {
+  const stream = fs.createReadStream(file, start === undefined ? undefined : { start, end });
+  return Readable.toWeb(stream) as unknown as ReadableStream;
+}
+
+/**
+ * يُستدعى بعد الجاهزية. **مضيفان لا واحد:**
+ * - `gtsalat://local/<rel>` → مجلّد التنزيلات في `userData` (المصحف وصوت القرآن).
+ * - `gtsalat://res/<rel>`   → مجلّد الموارد المحزَّمة (صور الدروس المصوَّرة والأصوات).
+ *
+ * الموارد المحزَّمة لا يمكن أن تمرّ عبر Vite (خارج `src/`) ولا عبر `file://` (يمنعه كروميوم
+ * من صفحةٍ على http في التطوير) — فالبروتوكول هو الطريق الوحيد العامل في الوضعين.
+ * وكلّ مضيفٍ يحرس جذره فلا يخرج مسارٌ خبيثٌ منه.
+ *
+ * **ويخدم طلبات المدى (`Range`) بنفسه ولا يفوّضها إلى `net.fetch('file://…')`:**
+ * تلك تُعيد الملفّ كاملاً **بلا `Content-Length` ولا `Accept-Ranges`**، فيرى كروميوم بثّاً
+ * مجهول الطول — `audio.duration = Infinity` — فلا شريط مدّةٍ ولا انتقال بالسحب في تسجيلٍ
+ * من ثلاثٍ وستّين دقيقة. (قِيس فعلاً قبل الإصلاح: `duration = Infinity` وترويستان فقط.)
+ */
 export function serveQuranScheme(): void {
   protocol.handle(SCHEME, async (request) => {
     try {
       const url = new URL(request.url);
       const rel = decodeURIComponent(url.pathname).replace(/^\/+/, '');
-      // منع الهروب من مجلّد التنزيلات عبر مسارٍ خبيث.
-      const target = path.resolve(quranDir(), rel);
-      if (!target.startsWith(quranDir() + path.sep)) return new Response('forbidden', { status: 403 });
+      const root = url.hostname === 'res' ? resourcesDir() : quranDir();
+      const target = path.resolve(root, rel);
+      if (!target.startsWith(root + path.sep)) return new Response('forbidden', { status: 403 });
       if (!fs.existsSync(target)) return new Response('not found', { status: 404 });
-      return net.fetch('file://' + target);
+
+      const size = fs.statSync(target).size;
+      const type = mimeFor(target);
+      const range = request.headers.get('Range');
+      const m = range ? /bytes=(\d*)-(\d*)/.exec(range) : null;
+
+      if (m) {
+        // مدىً مفتوح الطرف مقبولٌ في الطرفين: «bytes=1000-» و«bytes=-500».
+        let start = m[1] ? parseInt(m[1], 10) : size - parseInt(m[2] || '0', 10);
+        let end = m[2] && m[1] ? parseInt(m[2], 10) : size - 1;
+        start = Math.max(0, Math.min(start, size - 1));
+        end = Math.max(start, Math.min(end, size - 1));
+        return new Response(fileBody(target, start, end), {
+          status: 206,
+          headers: {
+            'Content-Type': type,
+            'Content-Length': String(end - start + 1),
+            'Content-Range': `bytes ${start}-${end}/${size}`,
+            'Accept-Ranges': 'bytes',
+          },
+        });
+      }
+
+      return new Response(fileBody(target), {
+        status: 200,
+        headers: {
+          'Content-Type': type,
+          'Content-Length': String(size),
+          'Accept-Ranges': 'bytes',
+        },
+      });
     } catch {
       return new Response('error', { status: 500 });
     }
