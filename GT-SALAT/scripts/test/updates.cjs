@@ -14,9 +14,11 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const io_read = (f) => fs.readFileSync(f, 'utf8');
 
 const USER_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'gtsalat-upd-'));
-let FAKE_VERSION = '2.2.0';
+const PKG_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8')).version;
+let FAKE_VERSION = PKG_VERSION;
 let PACKAGED = true;
 
 const orig = Module._load;
@@ -102,7 +104,7 @@ const ASSETS_2_2_0 = [
   check('APPIMAGE يُكشَف appimage بامتداده', chImg.kind === 'appimage' && chImg.ext === '.AppImage', chImg.kind);
 
   // ── فحصٌ حيٌّ على المستودع الحقيقيّ
-  FAKE_VERSION = '2.2.0';
+  FAKE_VERSION = PKG_VERSION;
   let r = await up.checkForUpdate();
   check('الفحص يصل إلى GitHub', r.checked === true, r.checked ? '' : 'لم يصل');
   check('النسخة الحالية لا يُعرَض عليها أقدمُ منها', r.available === false, `${r.current} مقابل ${r.latest}`);
@@ -118,15 +120,14 @@ const ASSETS_2_2_0 = [
   check('ملاحظات الإصدار ورابطه موجودان', typeof r.notes === 'string' && /github\.com/.test(r.url));
   check('لا تُعرَض تجريبيّةٌ في القناة المستقرّة', r.prerelease === false);
 
-  // البصمة المجلوبة هي بصمة الحزمة فعلاً (قِيست من الإصدار المنشور)
-  const KNOWN = {
-    'GT-SALAT-2.2.0-x86_64.AppImage': '06d5a62853a075536fbffb2859413b1d0687f61132e96ab9cde437cb8046a07a',
-    'GT-SALAT-2.2.0-arm64.AppImage': 'd213d09cae4289673d7ca3166fa1149523c4ef91864a79cb979cb449ee6e1dbe',
-    'GT-SALAT-2.2.0-armv7l.AppImage': '91a92026018e30a6dc89149f0aaf3c4471ff05d6f9c7be9ec50ade44568aba75',
-  };
-  if (r.asset && KNOWN[r.asset.name]) {
-    check('البصمة المجلوبة تطابق المنشورة لهذه الحزمة', r.asset.sha256 === KNOWN[r.asset.name],
-          `${r.asset.sha256} مقابل ${KNOWN[r.asset.name]}`);
+  // البصمة المجلوبة هي التي يُعلنها README هذا المشروع لتلك الحزمة — تُقرأ من
+  // الملفّ المحلّيّ لا من قائمةٍ مكتوبةٍ هنا، فلا يسقط الفحص مع كلّ إصدارٍ جديد.
+  if (r.asset) {
+    const readme = io_read(path.join(__dirname, '..', '..', 'README.md'));
+    const line = readme.split('\n').find((l) => l.includes(r.asset.name) && /[0-9a-f]{64}/.test(l));
+    check('البصمة المجلوبة تطابق ما يُعلنه README لهذه الحزمة',
+          !!line && line.includes(r.asset.sha256),
+          line ? r.asset.sha256 : 'لا سطرَ لهذه الحزمة في README');
   }
 
   // ── تنزيلٌ حقيقيٌّ كامل الطريق (ملفٌّ صغير بدل مئة ميغابايت):
