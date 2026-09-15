@@ -1,6 +1,6 @@
 {
   "name": "gt-salat",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "GT-SALAT — واجهة رسومية حديثة لتذكير الصلاة والأذكار والقرآن والمحتوى الإسلامي",
   "main": "dist-electron/main.js",
   "author": {
@@ -24,7 +24,8 @@
     "pack": "tsc -b && vite build && electron-builder --dir",
     "preview": "vite preview",
     "start": "electron .",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "test:updates": "esbuild electron/updates.ts --bundle --platform=node --format=cjs --external:electron --outfile=/tmp/gt-salat-updates.cjs && node scripts/test/updates.cjs"
   },
   "dependencies": {
     "adhan": "^4.4.3",

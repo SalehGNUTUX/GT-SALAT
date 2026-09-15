@@ -115,6 +115,8 @@ export interface AppSettings {
   /** حالة الواجهة المحفوظة */
   advancedOpenSection: string;           // آخر قسم مفتوح في الصفحة المتقدمة ('' = الكل مطوي)
   checkUpdates: boolean;
+  /** يقبل النسخ التجريبيّة (prerelease) في الفحص والتحديث — مطفأٌ افتراضياً. */
+  allowPrereleaseUpdates: boolean;
   dismissedUpdateVersion: string;        // نسخةٌ أخفى المستخدم شريطها — لا يُعاد إزعاجه بها
   /** آخر نسخةٍ عُرضت مستجدّاتها — فلا تتكرّر رسالة «ما الجديد» إلّا بعد تحديثٍ فعليّ. */
   lastWhatsNewVersion: string;
@@ -418,6 +420,22 @@ export interface SessionDhikr {
   count: number;
 }
 
+/**
+ * كيف رُكِّبت هذه النسخة — وبه تُختار الحزمة وطريقة التثبيت:
+ * `appimage` صورةٌ تستبدل نفسها · `deb`/`rpm` تُسلَّم لمدير الحزم · `dev` شجرة تطوير
+ * · `unknown` محزَّمةٌ لا يدّعيها مدير حزم (تثبيتٌ يدويّ).
+ */
+export type UpdateChannel = 'appimage' | 'deb' | 'rpm' | 'dev' | 'unknown';
+
+/** حزمةُ الإصدار المطابقة لهذه النسخة معماريةً وصيغةً. */
+export interface UpdateAsset {
+  name: string;
+  size: number;
+  url: string;
+  /** البصمة المنشورة في README الإصدار — يُتحقَّق منها بعد التنزيل إن وُجدت. */
+  sha256?: string;
+}
+
 /** نتيجة فحص توفّر نسخةٍ جديدة. `checked=false` يعني تعذّر الاتصال لا أنّه لا جديد. */
 export interface UpdateInfo {
   current: string;
@@ -426,6 +444,45 @@ export interface UpdateInfo {
   url: string;
   notes: string;
   checked: boolean;
+  /** وسم الإصدار كما نُشر (`GT-SALAT-2.2.0`) — لا الرقم المنتزع منه. */
+  tag: string;
+  prerelease: boolean;
+  channel: UpdateChannel;
+  /** `null` حين لا حزمة تطابق هذه النسخة (شجرة تطوير، أو معماريةٌ لم تُنشَر لها حزمة). */
+  asset: UpdateAsset | null;
+}
+
+/** تقدّم تنزيل الحزمة — يُبَثّ إلى الواجهة لا يُستطلَع. */
+export interface UpdateProgress {
+  received: number;
+  total: number;
+  percent: number;
+  bytesPerSecond: number;
+}
+
+/** حصيلة التنزيل: الملفّ الجاهز، أو سببُ توقّفه. */
+export interface UpdateDownloadResult {
+  ok: boolean;
+  file?: string;
+  /** الملفّ كان منزَّلاً من قبلُ وسليماً فلم يُعَد تنزيله. */
+  reused?: boolean;
+  cancelled?: boolean;
+  error?: string;
+}
+
+/**
+ * حصيلة التثبيت. `manual` تعني أنّ الحزمة نُزِّلت وتحقّقت لكنّ التثبيت التلقائيّ
+ * تعذّر — فتُعرَض للمستخدم مع أمرٍ ينسخه بدل أن يُترك أمام فشلٍ مبهم.
+ */
+export interface UpdateInstallResult {
+  ok: boolean;
+  /** التثبيت تمّ ويحتاج إعادة تشغيلٍ ليعمل الجديد. */
+  restart?: boolean;
+  error?: string;
+  file?: string;
+  manual?: boolean;
+  /** الأمر الذي يُنفّذه المستخدم بنفسه في الطرفية عند التعذّر. */
+  cmd?: string;
 }
 
 /** ما تحتويه حزمة النسخ الاحتياطي عند فحصها قبل الاستيراد. */

@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react';
 import { Button } from './common';
-import type { UpdateInfo } from '@electron/types';
+import { UpdateFlow } from './UpdateFlow';
+import { useUpdater } from '../hooks/useUpdater';
 import type { AppSettings } from '../hooks/useSettings';
 
 /**
- * شريطٌ يظهر أعلى النافذة عند توفّر نسخةٍ جديدة، بزرٍّ يفتح صفحة التنزيل في المتصفّح.
+ * شريطٌ يظهر أعلى النافذة عند توفّر نسخةٍ جديدة — **ويُحدِّث من مكانه**: تنزيلٌ بتقدّمٍ
+ * ظاهر ثمّ تثبيتٌ بالطريق الذي رُكِّبت به هذه النسخة (صورة تستبدل نفسها، أو حزمةٌ
+ * تُسلَّم لمدير الحزم)، فلا انتقال إلى المستودع وجلبٌ يدويّ.
  *
- * لا تنزيل ولا تثبيت تلقائي — التطبيق يُثبَّت من حزم النظام (DEB/RPM/AppImage)،
- * فمحاولة استبدال نفسه ستتعارض مع مدير الحزم. نكتفي بالإعلام وفتح الصفحة.
- * الإخفاء يُسجّل النسخة في الإعدادات فلا يُعاد إزعاج المستخدم بها.
+ * وحين لا حزمة تطابق هذه النسخة (شجرة تطوير، أو معماريةٌ لم تُنشَر لها حزمة) يبقى
+ * الزرّ الوحيد صفحةَ الإصدار — لا زرَّ تحديثٍ لا يستطيع الوفاء بما يَعِد.
+ *
+ * والإخفاء يُسجّل النسخة في الإعدادات فلا يُعاد إزعاج المستخدم بها، ولا يُخفى الشريط
+ * أثناء تنزيلٍ أو تثبيتٍ جارٍ فيضيع من المستخدم أثرُ ما بدأه.
  */
 export function UpdateBanner({
   settings,
@@ -17,16 +21,12 @@ export function UpdateBanner({
   settings: AppSettings;
   update: (patch: Partial<AppSettings>) => Promise<void>;
 }) {
-  const [info, setInfo] = useState<UpdateInfo | null>(null);
+  const u = useUpdater();
+  const info = u.info;
+  const busy = u.phase === 'downloading' || u.phase === 'installing' || u.phase === 'ready' || u.phase === 'installed';
 
-  useEffect(() => {
-    // النتيجة المحفوظة من فحص الإقلاع (إن سبق الفحصُ فتحَ هذه الصفحة).
-    window.gtSalat.update.last().then((i) => i?.available && setInfo(i));
-    const unsub = window.gtSalat.update.onAvailable(setInfo);
-    return () => { unsub(); };
-  }, []);
-
-  if (!info?.available || settings.dismissedUpdateVersion === info.latest) return null;
+  if (!info?.available) return null;
+  if (settings.dismissedUpdateVersion === info.latest && !busy) return null;
 
   return (
     <div
@@ -44,21 +44,27 @@ export function UpdateBanner({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gold-500)' }}>
           توفّرت نسخة GT-SALAT {info.latest}
+          {info.prerelease && <span style={{ fontSize: 11, color: 'var(--fg-muted)' }}> (تجريبيّة)</span>}
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--fg-muted)', marginTop: 2 }}>
-          أنت على النسخة {info.current} — افتح صفحة الإصدار لتنزيل الحزمة المناسبة لتوزيعتك.
+          {u.canSelfUpdate
+            ? `أنت على النسخة ${info.current} — نزّلها وثبّتها من هنا دون مغادرة التطبيق.`
+            : `أنت على النسخة ${info.current} — افتح صفحة الإصدار لتنزيل الحزمة المناسبة لتوزيعتك.`}
         </div>
       </div>
-      <Button variant="primary" size="sm" onClick={() => window.gtSalat.update.openPage()}>
-        صفحة التنزيل ↗
-      </Button>
-      <Button
-        size="sm"
-        onClick={() => update({ dismissedUpdateVersion: info.latest })}
-        style={{ padding: '6px 10px' }}
-      >
-        ✕
-      </Button>
+
+      <UpdateFlow compact />
+
+      {!busy && (
+        <Button
+          size="sm"
+          onClick={() => update({ dismissedUpdateVersion: info.latest })}
+          style={{ padding: '6px 10px' }}
+          title="إخفاء حتى النسخة القادمة"
+        >
+          ✕
+        </Button>
+      )}
     </div>
   );
 }

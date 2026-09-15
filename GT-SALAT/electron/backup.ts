@@ -138,6 +138,7 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['clock_24h'] = B(s.clock24h);
   p['hijri_offset'] = I(s.hijriOffset);
   p['check_updates'] = B(s.checkUpdates);
+  p['gtd_allowPrereleaseUpdates'] = B(s.allowPrereleaseUpdates);
   p['last_whatsnew_code'] = S(s.lastWhatsNewVersion);
   p['setup_completed'] = B(s.setupCompleted);
   p['last_read_surah'] = I(s.lastReadSurah);
@@ -256,6 +257,7 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('clock24h', readBool(p, 'clock_24h'));
   setIf('hijriOffset', readNum(p, 'hijri_offset'));
   setIf('checkUpdates', readBool(p, 'check_updates'));
+  setIf('allowPrereleaseUpdates', readBool(p, 'gtd_allowPrereleaseUpdates'));
   setIf('lastWhatsNewVersion', readStr(p, 'last_whatsnew_code'));
   setIf('setupCompleted', readBool(p, 'setup_completed'));
   setIf('lastReadSurah', readNum(p, 'last_read_surah'));

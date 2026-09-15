@@ -10,6 +10,7 @@ import {
   Slider,
   Toggle,
 } from '../components/common';
+import { UpdateManager } from '../components/UpdateManager';
 import type { AppSettings } from '../hooks/useSettings';
 import type { AlertMode, AsrMadhab, BackupContents, CalendarKind, CreditSource, MonthScheme } from '@electron/types';
 import { formatGregorian, formatHijri, formatHour, gregorianMonthName } from '../utils/format';
@@ -45,8 +46,6 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
   const [playing, setPlaying] = useState<string | null>(null);
   const [credits, setCredits] = useState<{ sources: CreditSource[]; developer: string; github: string; repo: string; phoneRepo: string; projects: string } | null>(null);
   const [pruneMsg, setPruneMsg] = useState('');
-  const [updateMsg, setUpdateMsg] = useState('');
-  const [checking, setChecking] = useState(false);
   const [backupPrayers, setBackupPrayers] = useState(0);
   const [backupMsg, setBackupMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -543,32 +542,8 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         <SettingRow label="ما الجديد" sub={`مستجدّات النسخة ${WHATS_NEW.version} — تُعرَض مرّةً بعد كلّ تحديث`}>
           <Button size="sm" onClick={() => update({ lastWhatsNewVersion: '' })}>✨ اعرضها الآن</Button>
         </SettingRow>
-        <SettingRow label="التنبيه عند توفّر نسخةٍ جديدة" sub="فحصٌ خفيفٌ لصفحة إصدارات GitHub عند بدء التشغيل">
-          <Toggle on={settings.checkUpdates} onChange={(v) => update({ checkUpdates: v })} />
-        </SettingRow>
-        <SettingRow label="فحص التحديثات الآن" sub={updateMsg || undefined}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Button
-              size="sm"
-              disabled={checking}
-              onClick={async () => {
-                setChecking(true);
-                setUpdateMsg('');
-                const info = await window.gtSalat.update.check();
-                setChecking(false);
-                if (!info.checked) setUpdateMsg('⚠ تعذّر الاتصال — تحقّق من الإنترنت');
-                else if (info.available) {
-                  setUpdateMsg(`⬆️ توفّرت النسخة ${info.latest}`);
-                  // إظهار الشريط ثانيةً حتى لو سبق إخفاؤه، ما دام المستخدم طلب الفحص بنفسه.
-                  if (settings.dismissedUpdateVersion === info.latest) update({ dismissedUpdateVersion: '' });
-                } else setUpdateMsg('✓ أنت على أحدث نسخة');
-              }}
-            >
-              {checking ? '… يفحص' : '🔄 فحص'}
-            </Button>
-            <Button size="sm" onClick={() => window.gtSalat.update.openPage()}>صفحة الإصدارات ↗</Button>
-          </div>
-        </SettingRow>
+        {/* الفحص والتنزيل والتثبيت — من داخل التطبيق، بلا انتقالٍ إلى المستودع */}
+        <UpdateManager settings={settings} update={update} />
         {credits && (
           <>
             <LinkRow title="المطوّر" sub={credits.developer} url={credits.github} />

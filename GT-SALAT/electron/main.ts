@@ -181,7 +181,7 @@ app.whenReady().then(async () => {
   // فحص توفّر نسخةٍ جديدة بعد استقرار الإقلاع (لا نزاحم تحميل الواجهة).
   if (s2.checkUpdates) {
     setTimeout(async () => {
-      const info = await checkForUpdate();
+      const info = await checkForUpdate({ allowPrerelease: s2.allowPrereleaseUpdates });
       const cur = getSettings();
       // لا نُزعج المستخدم بنسخةٍ سبق أن أخفى شريطها.
       if (!info.available || cur.dismissedUpdateVersion === info.latest) return;
@@ -189,7 +189,11 @@ app.whenReady().then(async () => {
       notify({
         type: 'system',
         title: `⬆️ توفّرت نسخة GT-SALAT ${info.latest}`,
-        body: `أنت على النسخة ${info.current}. افتح التطبيق للانتقال إلى صفحة التنزيل.`,
+        // الوجهة «الإعدادات الإضافية» لا صفحةُ المستودع: التحديث يتمّ من داخل التطبيق.
+        body: info.asset
+          ? `أنت على النسخة ${info.current}. افتح التطبيق لتنزيلها وتثبيتها من مكانك.`
+          : `أنت على النسخة ${info.current}. افتح التطبيق للانتقال إلى صفحة التنزيل.`,
+        route: 'advanced',
       });
     }, 12_000);
   }

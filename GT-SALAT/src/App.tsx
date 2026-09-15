@@ -28,6 +28,7 @@ import { useSettings } from './hooks/useSettings';
 import { useNextPrayer, useTodayTimetable } from './hooks/usePrayer';
 import { applyAccent } from './utils/accent';
 import { PlayerProvider } from './hooks/usePlayer';
+import { UpdaterProvider } from './hooks/useUpdater';
 import { MiniPlayer } from './components/MiniPlayer';
 
 const PAGE_LABELS: Record<PageId, string> = {
@@ -51,7 +52,9 @@ const SUB_LABELS: Record<string, string> = {
 export function App() {
   return (
     <PlayerProvider>
-      <AppShell />
+      <UpdaterProvider>
+        <AppShell />
+      </UpdaterProvider>
     </PlayerProvider>
   );
 }

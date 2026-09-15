@@ -36,7 +36,19 @@ import {
   checkShellIntegration,
 } from './shell-hook.js';
 import { setAutoStart, isAutoStartEnabled } from './autostart.js';
-import { checkForUpdate, lastUpdateInfo, RELEASES_URL } from './updates.js';
+import {
+  checkForUpdate,
+  lastUpdateInfo,
+  detectChannel,
+  downloadUpdate,
+  cancelUpdateDownload,
+  installUpdate,
+  restartApp,
+  revealPackage,
+  packagesSize,
+  clearPackages,
+  RELEASES_URL,
+} from './updates.js';
 import { backupSizes, exportBackup, importBackup, inspectBackup, type BackupOptions } from './backup.js';
 import {
   cancelDownload,
@@ -48,7 +60,7 @@ import {
   startDownload,
   statFor,
 } from './downloads.js';
-import type { AppSettings, DownloadKind } from './types.js';
+import type { AppSettings, DownloadKind, UpdateAsset } from './types.js';
 import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
 import { refreshTray } from './tray.js';
 import { getRiwayaSurah, isRiwayaCached, riwayaCachedCount } from './riwaya.js';
@@ -276,9 +288,22 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   });
 
   // ── Updates ─────────────────────────────────────────────
-  ipcMain.handle('update:check', () => checkForUpdate());
+  // التحديث من داخل التطبيق: فحصٌ ← تنزيلٌ بتقدّمٍ مبثوث ← تثبيتٌ بطريق صيغة النسخة.
+  ipcMain.handle('update:check', () =>
+    checkForUpdate({ allowPrerelease: getSettings().allowPrereleaseUpdates }),
+  );
   ipcMain.handle('update:last', () => lastUpdateInfo());
   ipcMain.handle('update:open-page', () => shell.openExternal(lastUpdateInfo()?.url || RELEASES_URL));
+  ipcMain.handle('update:channel', async () => (await detectChannel()).kind);
+  ipcMain.handle('update:download', (_e, asset: UpdateAsset) =>
+    downloadUpdate(asset, (p) => getMainWindow()?.webContents.send('update:progress', p)),
+  );
+  ipcMain.handle('update:cancel', () => cancelUpdateDownload());
+  ipcMain.handle('update:install', (_e, file: string) => installUpdate(file));
+  ipcMain.handle('update:restart', () => restartApp());
+  ipcMain.handle('update:reveal', (_e, file: string) => revealPackage(file));
+  ipcMain.handle('update:packages-size', () => packagesSize());
+  ipcMain.handle('update:clear-packages', () => clearPackages());
 
   // ── App ─────────────────────────────────────────────────
   ipcMain.handle('app:version', () => app.getVersion());

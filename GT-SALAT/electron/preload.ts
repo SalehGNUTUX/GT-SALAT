@@ -7,6 +7,11 @@ import type {
   BackupContents,
   BackupResult,
   UpdateInfo,
+  UpdateAsset,
+  UpdateChannel,
+  UpdateDownloadResult,
+  UpdateInstallResult,
+  UpdateProgress,
   AsmaName,
   AyahHit,
   CreditSource,
@@ -203,6 +208,21 @@ const api = {
       const listener = (_e: unknown, info: UpdateInfo) => cb(info);
       ipcRenderer.on('update:available', listener);
       return () => ipcRenderer.removeListener('update:available', listener);
+    },
+    /** كيف رُكِّبت هذه النسخة — به تعرف الواجهة أتُثبّت بنفسها أم تكتفي بفتح الصفحة. */
+    channel: (): Promise<UpdateChannel> => ipcRenderer.invoke('update:channel'),
+    download: (asset: UpdateAsset): Promise<UpdateDownloadResult> =>
+      ipcRenderer.invoke('update:download', asset),
+    cancel: (): Promise<boolean> => ipcRenderer.invoke('update:cancel'),
+    install: (file: string): Promise<UpdateInstallResult> => ipcRenderer.invoke('update:install', file),
+    restart: () => ipcRenderer.invoke('update:restart'),
+    reveal: (file: string) => ipcRenderer.invoke('update:reveal', file),
+    packagesSize: (): Promise<{ bytes: number; files: number }> => ipcRenderer.invoke('update:packages-size'),
+    clearPackages: () => ipcRenderer.invoke('update:clear-packages'),
+    onProgress: (cb: (p: UpdateProgress) => void) => {
+      const listener = (_e: unknown, p: UpdateProgress) => cb(p);
+      ipcRenderer.on('update:progress', listener);
+      return () => ipcRenderer.removeListener('update:progress', listener);
     },
   },
   app: {

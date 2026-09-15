@@ -69,6 +69,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   accentColor: '',
   advancedOpenSection: 'حساب المواقيت',
   checkUpdates: true,
+  allowPrereleaseUpdates: false,
   dismissedUpdateVersion: '',
 
   lastWhatsNewVersion: '',
