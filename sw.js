@@ -3,14 +3,14 @@ const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon-72x72.png',
-  './icons/icon-96x96.png',
-  './icons/icon-128x128.png',
-  './icons/icon-144x144.png',
-  './icons/icon-152x152.png',
-  './icons/icon-192x192.png',
-  './icons/icon-384x384.png',
-  './icons/icon-512x512.png',
+  './icon/icon-72x72.png',
+  './icon/icon-96x96.png',
+  './icon/icon-128x128.png',
+  './icon/icon-144x144.png',
+  './icon/icon-152x152.png',
+  './icon/icon-192x192.png',
+  './icon/icon-384x384.png',
+  './icon/icon-512x512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 

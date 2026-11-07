@@ -1,2256 +1,535 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT-SALAT — الجيل الجديد من GT-salat-dikr</title>
-    <meta name="description" content="GT-SALAT — تطبيق سطح مكتب متكامل لمواقيت الصلاة والأذكار على غنو/لينكس. الواجهة الرسومية الحديثة مع 22 طريقة حسابية وإشعارات وأذان مخصص وتكامل مع الطرفية.">
-    <meta name="theme-color" content="#1a5e63">
-    <meta name="color-scheme" content="dark light">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="GT-SALAT — الجيل الجديد من GT-salat-dikr">
-    <meta property="og:description" content="تطبيق سطح مكتب متكامل لمواقيت الصلاة والأذكار على غنو/لينكس. Electron + React + TypeScript.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://salehgnutux.github.io/GT-SALAT/">
-    <meta property="og:image" content="https://salehgnutux.github.io/GT-SALAT/icons/icon-192x192.png">
-
-    <!-- Favicon (inline SVG mosque icon) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='4' width='5' height='52' rx='2' fill='%231a5e63'/%3E%3Ccircle cx='8.5' cy='4' r='3.5' fill='%234cd7d0'/%3E%3Crect x='14' y='30' width='36' height='26' rx='3' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='18' ry='15' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='10' ry='8' fill='%234cd7d0'/%3E%3Crect x='26' y='40' width='12' height='16' rx='6' fill='%230d3235'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='4' width='5' height='52' rx='2' fill='%231a5e63'/%3E%3Ccircle cx='8.5' cy='4' r='3.5' fill='%234cd7d0'/%3E%3Crect x='14' y='30' width='36' height='26' rx='3' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='18' ry='15' fill='%231a5e63'/%3E%3Cellipse cx='32' cy='30' rx='10' ry='8' fill='%234cd7d0'/%3E%3Crect x='26' y='40' width='12' height='16' rx='6' fill='%230d3235'/%3E%3C/svg%3E">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        /* ========== FONT FACES ========== */
-        @font-face {
-            font-family: 'Ubuntu Arabic';
-            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/Ubuntu_Arabic_Regular.otf') format('opentype');
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Ubuntu Arabic';
-            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/Ubuntu_Arabic_Regular.otf') format('opentype');
-            font-weight: 500;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Ubuntu Arabic';
-            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/Ubuntu_Arabic_Regular.otf') format('opentype');
-            font-weight: 700;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Amiri Quran';
-            src: url('https://raw.githubusercontent.com/SalehGNUTUX/GT-SALAT/main/fonts/amiri-quran.ttf') format('truetype');
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        /* ========== CSS VARIABLES ========== */
-        :root {
-            --bg-primary: #f6f8f7;
-            --bg-secondary: #eaf0ef;
-            --bg-card: #ffffff;
-            --bg-card-hover: #f9fbfb;
-            --bg-glass: rgba(255, 255, 255, 0.75);
-            --text-primary: #1a2e30;
-            --text-secondary: #3d5558;
-            --text-muted: #6b8084;
-            --accent-primary: #1a5e63;
-            --accent-secondary: #2a9d8f;
-            --accent-glow: #4cd7d0;
-            --border-subtle: rgba(26, 94, 99, 0.12);
-            --border-card: rgba(26, 94, 99, 0.08);
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
-            --shadow-glow: 0 0 60px rgba(76, 215, 208, 0.25);
-            --gradient-hero: linear-gradient(160deg, #e8f5f4 0%, #d4ece9 25%, #e0f2f1 50%, #f0f7f6 75%, #f6f8f7 100%);
-            --gradient-accent: linear-gradient(135deg, #1a5e63 0%, #2a9d8f 50%, #4cd7d0 100%);
-            --pattern-opacity: 0.03;
-            --overlay-opacity: 0.4;
-            --badge-bg: rgba(26, 94, 99, 0.08);
-            --badge-text: #1a5e63;
-            --divider: rgba(26, 94, 99, 0.1);
-            --code-bg: #f0f4f3;
-            --code-text: #1a5e63;
-            --table-stripe: rgba(26, 94, 99, 0.03);
-            --scrollbar-thumb: #c4d4d2;
-            --scrollbar-track: #eaf0ef;
-        }
-
-        /* Dark mode */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-primary: #0c1a1c;
-                --bg-secondary: #0f2022;
-                --bg-card: #132b2e;
-                --bg-card-hover: #173235;
-                --bg-glass: rgba(19, 43, 46, 0.8);
-                --text-primary: #e4f0ef;
-                --text-secondary: #c0d5d3;
-                --text-muted: #8aa8a4;
-                --accent-primary: #4cd7d0;
-                --accent-secondary: #2a9d8f;
-                --accent-glow: #4cd7d0;
-                --border-subtle: rgba(76, 215, 208, 0.15);
-                --border-card: rgba(76, 215, 208, 0.1);
-                --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-                --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-                --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.35);
-                --shadow-glow: 0 0 80px rgba(76, 215, 208, 0.35);
-                --gradient-hero: linear-gradient(160deg, #0c1a1c 0%, #0f2022 30%, #132b2e 60%, #0c1a1c 100%);
-                --gradient-accent: linear-gradient(135deg, #4cd7d0 0%, #2a9d8f 50%, #1a5e63 100%);
-                --pattern-opacity: 0.05;
-                --overlay-opacity: 0.55;
-                --badge-bg: rgba(76, 215, 208, 0.12);
-                --badge-text: #4cd7d0;
-                --divider: rgba(76, 215, 208, 0.12);
-                --code-bg: #0f2022;
-                --code-text: #4cd7d0;
-                --table-stripe: rgba(76, 215, 208, 0.04);
-                --scrollbar-thumb: #2a4a4d;
-                --scrollbar-track: #0f2022;
-            }
-        }
-
-        /* Manual dark mode override */
-        html.dark-mode {
-            --bg-primary: #0c1a1c;
-            --bg-secondary: #0f2022;
-            --bg-card: #132b2e;
-            --bg-card-hover: #173235;
-            --bg-glass: rgba(19, 43, 46, 0.8);
-            --text-primary: #e4f0ef;
-            --text-secondary: #c0d5d3;
-            --text-muted: #8aa8a4;
-            --accent-primary: #4cd7d0;
-            --accent-secondary: #2a9d8f;
-            --accent-glow: #4cd7d0;
-            --border-subtle: rgba(76, 215, 208, 0.15);
-            --border-card: rgba(76, 215, 208, 0.1);
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.35);
-            --shadow-glow: 0 0 80px rgba(76, 215, 208, 0.35);
-            --gradient-hero: linear-gradient(160deg, #0c1a1c 0%, #0f2022 30%, #132b2e 60%, #0c1a1c 100%);
-            --gradient-accent: linear-gradient(135deg, #4cd7d0 0%, #2a9d8f 50%, #1a5e63 100%);
-            --pattern-opacity: 0.05;
-            --overlay-opacity: 0.55;
-            --badge-bg: rgba(76, 215, 208, 0.12);
-            --badge-text: #4cd7d0;
-            --divider: rgba(76, 215, 208, 0.12);
-            --code-bg: #0f2022;
-            --code-text: #4cd7d0;
-            --table-stripe: rgba(76, 215, 208, 0.04);
-            --scrollbar-thumb: #2a4a4d;
-            --scrollbar-track: #0f2022;
-        }
-
-        /* Manual light mode override */
-        html.light-mode {
-            --bg-primary: #f6f8f7;
-            --bg-secondary: #eaf0ef;
-            --bg-card: #ffffff;
-            --bg-card-hover: #f9fbfb;
-            --bg-glass: rgba(255, 255, 255, 0.75);
-            --text-primary: #1a2e30;
-            --text-secondary: #3d5558;
-            --text-muted: #6b8084;
-            --accent-primary: #1a5e63;
-            --accent-secondary: #2a9d8f;
-            --accent-glow: #4cd7d0;
-            --border-subtle: rgba(26, 94, 99, 0.12);
-            --border-card: rgba(26, 94, 99, 0.08);
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
-            --shadow-glow: 0 0 60px rgba(76, 215, 208, 0.25);
-            --gradient-hero: linear-gradient(160deg, #e8f5f4 0%, #d4ece9 25%, #e0f2f1 50%, #f0f7f6 75%, #f6f8f7 100%);
-            --gradient-accent: linear-gradient(135deg, #1a5e63 0%, #2a9d8f 50%, #4cd7d0 100%);
-            --pattern-opacity: 0.03;
-            --overlay-opacity: 0.4;
-            --badge-bg: rgba(26, 94, 99, 0.08);
-            --badge-text: #1a5e63;
-            --divider: rgba(26, 94, 99, 0.1);
-            --code-bg: #f0f4f3;
-            --code-text: #1a5e63;
-            --table-stripe: rgba(26, 94, 99, 0.03);
-            --scrollbar-thumb: #c4d4d2;
-            --scrollbar-track: #eaf0ef;
-        }
-
-        /* ========== GLOBAL STYLES ========== */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            scrollbar-width: thin;
-            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--scrollbar-track);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--scrollbar-thumb);
-            border-radius: 4px;
-        }
-
-        body {
-            font-family: 'Ubuntu Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.75;
-            transition: background-color 0.4s ease, color 0.4s ease;
-            overflow-x: hidden;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* Geometric background pattern */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            opacity: var(--pattern-opacity);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M60 0 L75 25 L100 40 L75 55 L60 80 L45 55 L20 40 L45 25 Z' fill='none' stroke='%231a5e63' stroke-width='0.8'/%3E%3Ccircle cx='60' cy='40' r='3' fill='%231a5e63'/%3E%3Ccircle cx='60' cy='80' r='2' fill='%231a5e63'/%3E%3Ccircle cx='20' cy='40' r='2' fill='%231a5e63'/%3E%3Ccircle cx='100' cy='40' r='2' fill='%231a5e63'/%3E%3C/svg%3E");
-            background-size: 120px 120px;
-            transition: opacity 0.4s ease;
-        }
-
-        /* ========== NAVIGATION ========== */
-        .site-nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--bg-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 0 24px;
-            transition: all 0.4s ease;
-        }
-
-        .nav-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 64px;
-        }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: var(--text-primary);
-        }
-
-        .nav-brand i {
-            font-size: 1.8rem;
-            color: var(--accent-secondary);
-            transition: color 0.3s;
-        }
-
-        .nav-brand span {
-            font-size: 1.3rem;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-
-        .nav-brand span em {
-            font-style: normal;
-            color: var(--accent-glow);
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent-primary);
-            background: var(--badge-bg);
-        }
-
-        /* Theme toggle */
-        .theme-toggle {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: 2px solid var(--border-subtle);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .theme-toggle:hover {
-            border-color: var(--accent-glow);
-            box-shadow: var(--shadow-glow);
-            transform: rotate(15deg);
-        }
-
-        .theme-toggle:active {
-            transform: scale(0.9) rotate(30deg);
-        }
-
-        .theme-toggle .icon-sun,
-        .theme-toggle .icon-moon {
-            position: absolute;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* In dark mode: show sun, hide moon */
-        html:not(.dark-mode):not(.light-mode) .theme-toggle .icon-sun,
-        html.light-mode .theme-toggle .icon-sun {
-            opacity: 0;
-            transform: translateY(30px) rotate(-90deg);
-        }
-
-        html:not(.dark-mode):not(.light-mode) .theme-toggle .icon-moon,
-        html.light-mode .theme-toggle .icon-moon {
-            opacity: 1;
-            transform: translateY(0) rotate(0);
-        }
-
-        html.dark-mode .theme-toggle .icon-sun,
-        html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-sun {
-            opacity: 1;
-            transform: translateY(0) rotate(0);
-        }
-
-        html.dark-mode .theme-toggle .icon-moon {
-            opacity: 0;
-            transform: translateY(-30px) rotate(90deg);
-        }
-
-        /* System preference (no manual override) - show based on actual system */
-        @media (prefers-color-scheme: dark) {
-            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-sun {
-                opacity: 1;
-                transform: translateY(0) rotate(0);
-            }
-            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-moon {
-                opacity: 0;
-                transform: translateY(-30px) rotate(90deg);
-            }
-        }
-
-        @media (prefers-color-scheme: light) {
-            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-sun {
-                opacity: 0;
-                transform: translateY(30px) rotate(-90deg);
-            }
-            html:not(.light-mode):not(.dark-mode) .theme-toggle .icon-moon {
-                opacity: 1;
-                transform: translateY(0) rotate(0);
-            }
-        }
-
-        /* Mobile nav */
-        .nav-toggle-mobile {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        /* ========== CONTAINER ========== */
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ========== HERO SECTION ========== */
-        .hero {
-            position: relative;
-            padding: 80px 0 70px;
-            text-align: center;
-            background: var(--gradient-hero);
-            overflow: hidden;
-            transition: background 0.4s ease;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at center, rgba(76, 215, 208, 0.08) 0%, transparent 70%);
-            pointer-events: none;
-            animation: heroPulse 8s ease-in-out infinite;
-        }
-
-        @keyframes heroPulse {
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.6;
-            }
-            50% {
-                transform: scale(1.15);
-                opacity: 1;
-            }
-        }
-
-        .hero-icon {
-            position: relative;
-            display: inline-block;
-            font-size: 4.5rem;
-            color: var(--accent-secondary);
-            margin-bottom: 20px;
-            animation: floatIcon 5s ease-in-out infinite;
-            filter: drop-shadow(0 8px 24px rgba(76, 215, 208, 0.4));
-        }
-
-        @keyframes floatIcon {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            35% {
-                transform: translateY(-18px);
-            }
-            70% {
-                transform: translateY(-6px);
-            }
-        }
-
-        .hero-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(76, 215, 208, 0.35) 0%, transparent 70%);
-            pointer-events: none;
-            animation: glowPulse 4s ease-in-out infinite;
-        }
-
-        @keyframes glowPulse {
-            0%,
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0.7;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.4);
-                opacity: 1;
-            }
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 700;
-            margin-bottom: 12px;
-            letter-spacing: -1px;
-            position: relative;
-            line-height: 1.2;
-        }
-
-        .hero h1 .gt {
-            color: var(--text-primary);
-        }
-
-        .hero h1 .salat {
-            background: var(--gradient-accent);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-        }
-
-        .hero-tagline {
-            font-size: 1.35rem;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .hero-subtitle {
-            font-size: 1.05rem;
-            color: var(--text-muted);
-            margin-bottom: 32px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .hero-quran {
-            font-family: 'Amiri Quran', 'Traditional Arabic', serif;
-            font-size: 1.5rem;
-            color: var(--accent-secondary);
-            margin-bottom: 28px;
-            line-height: 2;
-            max-width: 650px;
-            margin-left: auto;
-            margin-right: auto;
-            opacity: 0.9;
-            letter-spacing: 0.5px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            flex-wrap: wrap;
-            position: relative;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: inherit;
-            white-space: nowrap;
-        }
-
-        .btn-primary {
-            background: var(--gradient-accent);
-            color: #ffffff;
-            box-shadow: 0 6px 24px rgba(26, 94, 99, 0.35);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 32px rgba(26, 94, 99, 0.5);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--accent-primary);
-            border: 2px solid var(--border-subtle);
-        }
-
-        .btn-outline:hover {
-            background: var(--badge-bg);
-            border-color: var(--accent-glow);
-            transform: translateY(-3px);
-        }
-
-        .btn-github {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 2px solid var(--border-card);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .btn-github:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-3px);
-            border-color: var(--accent-glow);
-        }
-
-        /* ========== SECTION STYLES ========== */
-        .section {
-            padding: 80px 0;
-            position: relative;
-            z-index: 1;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 56px;
-        }
-
-        .section-label {
-            display: inline-block;
-            padding: 6px 18px;
-            background: var(--badge-bg);
-            color: var(--badge-text);
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            letter-spacing: 0.3px;
-        }
-
-        .section-title {
-            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-        }
-
-        .section-desc {
-            color: var(--text-muted);
-            font-size: 1.05rem;
-            max-width: 550px;
-            margin: 0 auto;
-        }
-
-        /* ========== FEATURES GRID ========== */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 18px;
-            padding: 32px 28px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        .feature-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle at top right, rgba(76, 215, 208, 0.08), transparent 70%);
-            pointer-events: none;
-            transition: opacity 0.4s;
-            opacity: 0;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent-glow);
-            background: var(--bg-card-hover);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
-            background: var(--badge-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--accent-secondary);
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-
-        .feature-card:hover .feature-icon {
-            background: var(--accent-secondary);
-            color: #fff;
-            transform: scale(1.08);
-        }
-
-        .feature-card h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .feature-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.7;
-        }
-
-        /* ========== DOWNLOAD SECTION ========== */
-        .download-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-        }
-
-        .download-card {
-            background: var(--bg-card);
-            border: 2px solid var(--border-card);
-            border-radius: 18px;
-            padding: 32px 28px;
-            text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-sm);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .download-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent-glow);
-        }
-
-        .download-card.recommended {
-            border-color: var(--accent-glow);
-            box-shadow: var(--shadow-glow), var(--shadow-md);
-        }
-
-        .download-card.recommended::after {
-            content: 'موصى به';
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            background: var(--gradient-accent);
-            color: #fff;
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-
-        .download-icon {
-            font-size: 2.8rem;
-            color: var(--accent-secondary);
-            margin-bottom: 16px;
-        }
-
-        .download-card h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-            color: var(--text-primary);
-        }
-
-        .download-card .download-distros {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 18px;
-            min-height: 40px;
-        }
-
-        .download-card .btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .download-card .file-info {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 12px;
-            direction: ltr;
-            text-align: center;
-        }
-
-        .download-card .file-info code {
-            background: var(--code-bg);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            color: var(--code-text);
-        }
-
-        /* ========== COMPARISON TABLE ========== */
-        .comparison-wrapper {
-            overflow-x: auto;
-            border-radius: 18px;
-            border: 1px solid var(--border-card);
-            box-shadow: var(--shadow-md);
-            background: var(--bg-card);
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 650px;
-        }
-
-        .comparison-table thead th {
-            background: var(--bg-secondary);
-            padding: 16px 20px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            border-bottom: 2px solid var(--border-subtle);
-        }
-
-        .comparison-table thead th:first-child {
-            text-align: right;
-            border-radius: 0 18px 0 0;
-        }
-
-        .comparison-table thead th:last-child {
-            border-radius: 18px 0 0 0;
-            color: var(--accent-glow);
-        }
-
-        .comparison-table tbody td {
-            padding: 14px 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--divider);
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            transition: background 0.3s;
-        }
-
-        .comparison-table tbody td:first-child {
-            text-align: right;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .comparison-table tbody tr:hover td {
-            background: var(--table-stripe);
-        }
-
-        .comparison-table tbody tr:last-child td:first-child {
-            border-radius: 0 0 0 18px;
-        }
-
-        .comparison-table tbody tr:last-child td:last-child {
-            border-radius: 0 0 18px 0;
-        }
-
-        .check-icon {
-            color: #2a9d8f;
-            font-weight: 700;
-        }
-
-        .star-icon {
-            color: #4cd7d0;
-        }
-
-        /* ========== SYSTEM REQUIREMENTS ========== */
-        .requirements-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 18px;
-            padding: 32px 28px;
-            box-shadow: var(--shadow-sm);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .requirements-card h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-align: center;
-            color: var(--text-primary);
-        }
-
-        .req-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .req-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px;
-            border-radius: 10px;
-            background: var(--bg-secondary);
-            transition: background 0.3s;
-        }
-
-        .req-item:hover {
-            background: var(--bg-card-hover);
-        }
-
-        .req-item i {
-            color: var(--accent-secondary);
-            font-size: 1.1rem;
-            margin-top: 2px;
-            flex-shrink: 0;
-        }
-
-        .req-item .req-label {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-
-        .req-item .req-value {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* ========== INSTALL NOTES ========== */
-        /* ── جدول الأوامر مع أزرار النسخ ── */
-        .cmd-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px;
-            direction: rtl;
-        }
-
-        .cmd-table td {
-            background: var(--bg-card);
-            border-top: 1px solid var(--border-card);
-            border-bottom: 1px solid var(--border-card);
-            padding: 11px 14px;
-            vertical-align: middle;
-        }
-
-        .cmd-table td:first-child {
-            border-right: 1px solid var(--border-card);
-            border-radius: 0 10px 10px 0;
-            white-space: nowrap;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-            width: 1%;
-        }
-
-        .cmd-table td:last-child {
-            border-left: 1px solid var(--border-card);
-            border-radius: 10px 0 0 10px;
-            width: 1%;
-        }
-
-        /* الأمر نفسه لاتينيّ دائماً — لا يعبث به اتجاه الصفحة */
-        .cmd-table code {
-            direction: ltr;
-            display: block;
-            text-align: left;
-            unicode-bidi: isolate;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: var(--code-text);
-            white-space: nowrap;
-            overflow-x: auto;
-        }
-
-        .copy-btn {
-            background: transparent;
-            border: 1px solid var(--border-card);
-            color: var(--accent-primary);
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 0.78rem;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            white-space: nowrap;
-        }
-
-        .copy-btn:hover {
-            background: var(--accent-primary);
-            color: var(--bg-card);
-        }
-
-        .copy-btn.copied {
-            border-color: #4caf50;
-            color: #4caf50;
-        }
-
-        .copy-btn.copied:hover {
-            background: #4caf50;
-            color: var(--bg-card);
-        }
-
-        @media (max-width: 600px) {
-            .cmd-table td:first-child { display: none; }
-        }
-
-        /* ── معرض اللقطات: عرضٌ تلقائيٌّ بشرائح ── */
-        .shots {
-            max-width: 980px;
-            margin: 0 auto;
-        }
-
-        .shots-frame {
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border-card);
-            background: var(--bg-card);
-            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
-            aspect-ratio: 1440 / 900;
-        }
-
-        .shots-track {
-            position: absolute;
-            inset: 0;
-        }
-
-        .shot {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.6s ease;
-        }
-
-        .shot.active { opacity: 1; }
-
-        .shot img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* شريط التسمية أسفل الشريحة */
-        .shot-label {
-            position: absolute;
-            inset-inline: 0;
-            bottom: 0;
-            padding: 26px 22px 14px;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
-            color: #fff;
-            font-size: 0.95rem;
-            font-weight: 700;
-            text-align: right;
-            direction: rtl;
-        }
-
-        .shot-label small {
-            display: block;
-            font-weight: 400;
-            font-size: 0.8rem;
-            opacity: 0.85;
-            margin-top: 3px;
-        }
-
-        /* أسهم التنقّل */
-        .shots-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            background: rgba(0, 0, 0, 0.45);
-            color: #fff;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s ease;
-            z-index: 2;
-        }
-
-        .shots-arrow:hover { background: rgba(0, 0, 0, 0.75); }
-        .shots-arrow.prev { right: 12px; }
-        .shots-arrow.next { left: 12px; }
-
-        /* النقاط */
-        .shots-dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .shots-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            border: none;
-            background: var(--border-card);
-            cursor: pointer;
-            padding: 0;
-            transition: all 0.2s ease;
-        }
-
-        .shots-dot.active {
-            background: var(--accent-primary);
-            width: 26px;
-            border-radius: 99px;
-        }
-
-        /* شريط تقدّمٍ رفيعٌ يبيّن متى تتبدّل الشريحة */
-        .shots-progress {
-            height: 3px;
-            background: var(--border-card);
-            border-radius: 99px;
-            overflow: hidden;
-            margin-top: 14px;
-        }
-
-        .shots-bar {
-            height: 100%;
-            width: 0;
-            background: var(--accent-primary);
-            transition: width 0.1s linear;
-        }
-
-        @media (max-width: 600px) {
-            .shots-arrow { width: 32px; height: 32px; font-size: 0.85rem; }
-            .shot-label { font-size: 0.82rem; padding: 20px 14px 10px; }
-        }
-
-        .install-notes {
-            background: var(--code-bg);
-            border-radius: 14px;
-            padding: 24px 28px;
-            margin-top: 40px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            border: 1px solid var(--border-card);
-            direction: ltr;
-            text-align: left;
-        }
-
-        .install-notes h4 {
-            color: var(--accent-primary);
-            margin-bottom: 12px;
-            font-size: 1rem;
-            text-align: right;
-            direction: rtl;
-        }
-
-        .install-notes pre {
-            background: var(--bg-card);
-            padding: 16px 20px;
-            border-radius: 10px;
-            overflow-x: auto;
-            font-size: 0.85rem;
-            color: var(--code-text);
-            border: 1px solid var(--border-card);
-            direction: ltr;
-            text-align: left;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* ========== FOOTER ========== */
-        .site-footer {
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-subtle);
-            padding: 40px 0;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            transition: background 0.4s ease;
-        }
-
-        .site-footer .footer-brand {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-
-        .site-footer .footer-brand i {
-            color: var(--accent-secondary);
-        }
-
-        .site-footer p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-        }
-
-        .site-footer .footer-links {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        .site-footer .footer-links a {
-            color: var(--accent-primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .site-footer .footer-links a:hover {
-            color: var(--accent-glow);
-        }
-
-        .footer-credits {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--divider);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .footer-credits strong {
-            color: var(--accent-primary);
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 64px;
-                right: 0;
-                left: 0;
-                background: var(--bg-glass);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                flex-direction: column;
-                padding: 16px 24px;
-                border-bottom: 1px solid var(--border-subtle);
-                gap: 4px;
-                box-shadow: var(--shadow-lg);
-            }
-
-            .nav-links.open {
-                display: flex;
-            }
-
-            .nav-toggle-mobile {
-                display: block;
-            }
-
-            .hero {
-                padding: 50px 0 45px;
-            }
-
-            .hero-icon {
-                font-size: 3rem;
-            }
-
-            .hero-glow {
-                width: 100px;
-                height: 100px;
-            }
-
-            .section {
-                padding: 50px 0;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 18px;
-            }
-
-            .download-grid {
-                grid-template-columns: 1fr;
-                gap: 18px;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-                max-width: 320px;
-            }
-
-            .comparison-table thead th,
-            .comparison-table tbody td {
-                padding: 10px 12px;
-                font-size: 0.8rem;
-            }
-
-            .nav-inner {
-                height: 56px;
-            }
-
-            .requirements-card {
-                padding: 20px 16px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 14px;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero-quran {
-                font-size: 1.2rem;
-            }
-
-            .feature-card {
-                padding: 22px 18px;
-            }
-
-            .download-card {
-                padding: 22px 18px;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-
-            .btn {
-                padding: 12px 20px;
-                font-size: 0.9rem;
-            }
-        }
-
-        /* ========== ANIMATIONS ========== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        /* Staggered animation delays for feature cards */
-        .feature-card:nth-child(1) {
-            transition-delay: 0.05s;
-        }
-        .feature-card:nth-child(2) {
-            transition-delay: 0.1s;
-        }
-        .feature-card:nth-child(3) {
-            transition-delay: 0.15s;
-        }
-        .feature-card:nth-child(4) {
-            transition-delay: 0.2s;
-        }
-        .feature-card:nth-child(5) {
-            transition-delay: 0.25s;
-        }
-        .feature-card:nth-child(6) {
-            transition-delay: 0.3s;
-        }
-        /* نسخة الهاتف في أعلى الصفحة — نظير شريط «نسخة الحاسوب» في موقع الهاتف */
-        .phone-strip {
-            display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px;
-            max-width: 820px; margin: 26px auto 0; padding: 14px 18px; border-radius: 18px;
-            background: var(--bg-glass); border: 1px solid var(--border-subtle);
-            backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
-            box-shadow: var(--shadow-md);
-        }
-        .phone-strip .lbl { flex: 1 1 260px; font-size: .98rem; color: var(--text-secondary); text-align: start; }
-        .phone-strip b { color: var(--accent-primary); }
-        .phone-strip .btn { padding: 10px 16px; font-size: .92rem; }
-        .nav-phone {
-            padding: 7px 12px !important; border-radius: 12px; border: 1px solid var(--border-subtle);
-            background: var(--badge-bg); font-weight: 700; white-space: nowrap;
-        }
-        @media (max-width: 640px) { .phone-strip .btn { flex: 1 1 45%; } }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GT-SALAT — تطبيق إسلاميّ شامل لغنو/لينكس</title>
+<meta name="description" content="GT-SALAT لسطح المكتب: مواقيت الصلاة والأذان والقرآن الكريم بتفسيره والأذكار وحصن المسلم والإذاعات، بسمةٍ زجاجيّةٍ وخلفيّات مساجد — تطبيق حرّ لغنو/لينكس يعمل دون إنترنت." />
+<meta name="theme-color" content="#0F1512" />
+<meta property="og:title" content="GT-SALAT — تطبيق إسلاميّ شامل لغنو/لينكس" />
+<meta property="og:description" content="مواقيت الصلاة والأذان والقرآن والأذكار والإذاعات، بسمةٍ زجاجيّة، ويعمل دون إنترنت." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://salehgnutux.github.io/GT-SALAT/" />
+<meta property="og:image" content="https://salehgnutux.github.io/GT-SALAT/screenshots/dashboard.png" />
+<link rel="icon" href="icon/icon-192x192.png" />
+<link rel="manifest" href="manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ألوان السمة الزجاجيّة نفسها في موقع نسخة الهاتف: لا أبيض ناصع ولا أسود تامّ، أخضرٌ للتفاعل وذهبيٌّ للوقت. */
+  :root{
+    --bg:#0F1512; --text:#EAF1EC; --muted:#C2D0C7; --accent:#8FDDB6; --gold:#E8C766;
+    --glass:rgba(16,26,21,.58); --glass-strong:rgba(18,34,26,.70); --edge:rgba(255,255,255,.12);
+    --chip:rgba(143,221,182,.14); --on-accent:#00381F; --code:rgba(0,0,0,.28);
+    --orb-a:rgba(46,139,99,.55); --orb-b:rgba(201,162,39,.30); --orb-c:rgba(27,107,76,.45);
+    --shadow:0 18px 50px -24px rgba(0,0,0,.65);
+    --radius:22px; --maxw:1180px;
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F8F5; --text:#12201A; --muted:#3C4E44; --accent:#0B5039; --gold:#6F5200;
+    --glass:rgba(255,255,255,.62); --glass-strong:rgba(255,255,255,.74); --edge:rgba(255,255,255,.85);
+    --chip:rgba(11,80,57,.10); --on-accent:#FFFFFF; --code:rgba(11,80,57,.08);
+    --orb-a:rgba(46,139,99,.30); --orb-b:rgba(201,162,39,.24); --orb-c:rgba(143,221,182,.40);
+    --shadow:0 18px 50px -28px rgba(19,78,55,.30);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Tajawal",system-ui,"Segoe UI",Tahoma,sans-serif;
+    line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .backdrop{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+  .backdrop i{position:absolute;border-radius:50%;filter:blur(70px)}
+  .backdrop i:nth-child(1){width:520px;height:520px;background:var(--orb-a);top:-160px;right:-120px}
+  .backdrop i:nth-child(2){width:420px;height:420px;background:var(--orb-b);top:38%;left:-140px}
+  .backdrop i:nth-child(3){width:560px;height:560px;background:var(--orb-c);bottom:-220px;right:18%}
+  .backdrop::after{content:"";position:absolute;inset:0;opacity:.35;
+    background-image:radial-gradient(var(--edge) 1px,transparent 1px);background-size:26px 26px}
+  h1,h2,h3,.amiri{font-family:"Amiri",serif;font-weight:700}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  .muted{color:var(--muted)}
+  .gold{color:var(--gold)}
+  .eyebrow{color:var(--gold);font-weight:700;letter-spacing:1.5px;font-size:.85rem}
+  .num{direction:ltr;unicode-bidi:isolate}
+
+  .glass{background:var(--glass);border:1px solid var(--edge);box-shadow:var(--shadow);
+    -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3)}
+  .glass.strong{background:var(--glass-strong)}
+
+  /* الشريط العلويّ */
+  .nav{position:sticky;top:10px;z-index:20;margin:10px auto 0;max-width:calc(var(--maxw) - 24px);border-radius:20px}
+  .nav-in{display:flex;align-items:center;gap:10px;height:62px;padding:0 14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+  .brand img{width:34px;height:34px;border-radius:10px}
+  .brand b{font-family:"Amiri",serif;font-size:1.3rem;color:var(--accent)}
+  .nav-links{margin-inline-start:auto;display:flex;gap:4px;align-items:center}
+  .nav-links a{padding:8px 12px;border-radius:12px;color:var(--muted);font-weight:500}
+  .nav-links a:hover{color:var(--text);background:var(--chip)}
+  .nav-phone{padding:8px 12px;border-radius:12px;border:1px solid var(--edge);background:var(--chip);font-weight:700!important;color:var(--text)!important;white-space:nowrap}
+  .icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--edge);background:var(--chip);
+    color:var(--text);cursor:pointer;font-size:1.05rem;line-height:1}
+  @media(max-width:900px){.nav-links a.hide-sm{display:none}}
+
+  /* البطل */
+  .hero{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center;padding:60px 0 30px}
+  .hero-logo{width:92px;height:92px;border-radius:24px;box-shadow:0 0 0 1px var(--edge),0 18px 40px -18px var(--orb-a)}
+  .hero h1{font-size:clamp(34px,6vw,56px);margin:12px 0 4px;color:var(--text)}
+  .tag{font-size:1.15rem;color:var(--muted);max-width:560px;margin:0}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .badge{font-size:.86rem;font-weight:500;padding:6px 13px;border-radius:999px;background:var(--chip);
+    border:1px solid var(--edge);color:var(--muted)}
+  .badge b{color:var(--accent)}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 22px;border-radius:16px;
+    font-weight:700;font-size:1rem;border:1px solid transparent;cursor:pointer;transition:transform .18s,border-color .18s,background .18s;font-family:inherit}
+  .btn.primary{background:var(--accent);color:var(--on-accent);box-shadow:0 14px 30px -16px var(--orb-a)}
+  .btn.primary:hover{transform:translateY(-2px)}
+  .btn.ghost{background:var(--glass);border-color:var(--edge);color:var(--text);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .ver{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:6px 14px;border-radius:999px;
+    background:var(--chip);border:1px solid var(--edge);color:var(--text);font-weight:700;font-size:.92rem}
+  .ver i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--chip)}
+  /* نسخة الهاتف في أعلى الصفحة — نظير «نسخة الحاسوب» في موقع الهاتف */
+  .phone-strip{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:22px;padding:14px 16px;border-radius:18px}
+  .phone-strip b{color:var(--accent)}
+  .phone-strip .lbl{flex:1 1 220px;font-size:.95rem}
+  .phone-strip .btn{padding:10px 16px;font-size:.92rem}
+  @media(max-width:640px){.phone-strip .btn{flex:1 1 45%}}
+
+  /* الحاسوب بلقطات التطبيق الحقيقيّة */
+  .laptop{position:relative;max-width:640px;margin:0 auto}
+  .lid{position:relative;padding:12px 12px 14px;border-radius:20px 20px 10px 10px;
+    background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,.04));border:1px solid var(--edge);box-shadow:var(--shadow)}
+  .lid::before{content:"";position:absolute;top:5px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--edge)}
+  .shots{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:#0a0c10}
+  .shots img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}
+  .shots img.on{opacity:1}
+  .base{height:16px;margin:0 -34px;border-radius:0 0 22px 22px;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
+    border:1px solid var(--edge);border-top:none;position:relative}
+  .base::after{content:"";position:absolute;top:0;left:50%;width:110px;height:6px;margin-left:-55px;border-radius:0 0 8px 8px;background:var(--edge)}
+  .bg-cap{margin:14px 0 0;text-align:center;font-size:.86rem;color:var(--muted);min-height:1.6em;transition:opacity .4s}
+
+  .section{padding:54px 0}
+  .sec-head{text-align:center;margin-bottom:26px}
+  .sec-head h2{font-size:clamp(24px,5vw,36px);margin:6px 0}
+  .sec-head p{color:var(--muted);max-width:680px;margin:0 auto}
+
+  .news{display:grid;gap:16px;grid-template-columns:1.25fr .75fr}
+  .news-card{border-radius:var(--radius);padding:26px}
+  .news-card h3{margin:2px 0 12px;font-size:1.5rem;color:var(--accent)}
+  .news-card ul{margin:0;padding:0 18px 0 0}
+  .news-card li{margin:7px 0;color:var(--text)}
+  .news-card li b{color:var(--accent)}
+  .news-card .muted li{color:var(--muted)}
+
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .card{border-radius:var(--radius);padding:22px;transition:transform .2s,border-color .2s}
+  .card:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .card .ic{font-size:1.5rem;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--chip);margin-bottom:10px}
+  .card h3{margin:4px 0 6px;font-size:1.3rem;color:var(--accent)}
+  .card p{margin:0;color:var(--muted);font-size:.95rem}
+
+  /* معرض اللقطات */
+  .gallery{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+  .shot{border-radius:18px;padding:10px;cursor:zoom-in;transition:transform .2s,border-color .2s;margin:0}
+  .shot:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .shot img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border-radius:10px}
+  .shot figcaption{padding:8px 4px 2px;font-weight:700;color:var(--text)}
+  .lightbox{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:24px;
+    background:rgba(4,8,6,.86);cursor:zoom-out}
+  .lightbox.on{display:flex}
+  .lightbox img{max-width:min(1440px,96vw);max-height:90vh;border-radius:12px;box-shadow:var(--shadow)}
+
+  .panel{border-radius:28px;padding:40px 30px;text-align:center}
+  .panel .amiri{font-size:1.7rem;color:var(--gold);line-height:1.95;margin:8px 0}
+
+  /* التنزيل */
+  .download{border-radius:28px;padding:42px 30px;text-align:center}
+  .download h2{font-size:clamp(24px,5vw,34px);margin:6px 0}
+  .download .cta{justify-content:center}
+  .pkgs{display:grid;gap:14px;grid-template-columns:repeat(3,1fr);margin-top:24px;text-align:right}
+  .pkg{border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px}
+  .pkg h3{margin:0;font-size:1.35rem;color:var(--accent)}
+  .pkg .btn{margin-top:auto}
+  .meta{font-size:.82rem;color:var(--muted)}
+  .meta code,.fp{font-family:ui-monospace,monospace;direction:ltr;unicode-bidi:isolate}
+  .arm{margin-top:18px;border-radius:20px;padding:18px 20px;text-align:right}
+  .arm h3{margin:0 0 8px;font-size:1.2rem;color:var(--accent)}
+  .arm table{width:100%;border-collapse:collapse;font-size:.92rem}
+  .arm td{padding:8px 6px;border-top:1px solid var(--edge)}
+  .arm a{color:var(--accent);font-weight:700}
+  .note{margin:14px auto 0;font-size:.92rem;color:var(--muted);max-width:780px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;text-align:right}
+  .split > div{border-radius:20px;padding:20px}
+  .split h3{margin:0 0 4px;font-size:1.25rem;color:var(--accent)}
+  .cmd{display:flex;align-items:center;gap:8px;margin:8px 0 0;padding:8px 10px;border-radius:12px;background:var(--code);border:1px solid var(--edge)}
+  .cmd code{flex:1;font-family:ui-monospace,monospace;font-size:.86rem;direction:ltr;text-align:left;overflow-x:auto;white-space:nowrap}
+  .cmd button{border:1px solid var(--edge);background:var(--chip);color:var(--text);border-radius:9px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:.8rem}
+  .cmd small{color:var(--muted);min-width:96px}
+
+  /* المقارنة */
+  .cmp{border-radius:24px;padding:10px 6px;overflow-x:auto}
+  .cmp table{width:100%;border-collapse:collapse;min-width:560px}
+  .cmp th,.cmp td{padding:12px 16px;text-align:right;border-bottom:1px solid var(--edge)}
+  .cmp tr:last-child td{border-bottom:none}
+  .cmp th{color:var(--gold);font-family:"Amiri",serif;font-size:1.1rem}
+  .cmp td:last-child{color:var(--accent);font-weight:700}
+
+  .src-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  .src{display:block;border-radius:18px;padding:15px 18px;transition:transform .18s,border-color .18s}
+  .src:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .src b{display:block;color:var(--text);font-weight:700;margin-bottom:2px}
+  .src span{color:var(--muted);font-size:.9rem}
+
+  .dev{border-radius:28px;padding:34px;text-align:center}
+  .dev h3{font-size:1.8rem;margin:6px 0}
+  .dev .cta{justify-content:center}
+
+  footer{padding:34px 0 40px;text-align:center;color:var(--muted)}
+  footer .amiri{color:var(--gold);font-size:1.25rem;margin:0 0 8px}
+  footer a{color:var(--accent)}
+
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}.reveal{opacity:1;transform:none}}
+  @media(max-width:980px){
+    .hero{grid-template-columns:1fr;text-align:center;padding:40px 0 20px;gap:30px}
+    .hero .tag{margin:0 auto}
+    .badges,.hero .cta{justify-content:center}
+    .news,.split,.pkgs{grid-template-columns:1fr}
+    .base{margin:0 -16px}
+  }
+  @media(max-width:640px){
+    .wrap{padding:0 16px}
+    .nav{margin:8px 10px 0}
+    .section{padding:38px 0}
+    .hero .cta .btn,.download .cta .btn{flex:1 1 100%}
+    .download,.panel{padding:28px 16px}
+    .panel .amiri{font-size:1.3rem}
+    .gallery{grid-template-columns:1fr}
+    .backdrop i{filter:blur(56px)}
+  }
+</style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="site-nav" role="navigation" aria-label="القائمة الرئيسية">
-        <div class="nav-inner">
-            <a href="#" class="nav-brand" aria-label="GT-SALAT الرئيسية">
-                <i class="fas fa-mosque" aria-hidden="true"></i>
-                <span>GT-<em>Salat</em></span>
-            </a>
-            <button class="nav-toggle-mobile" id="nav-toggle" aria-label="فتح القائمة" aria-expanded="false">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul class="nav-links" id="nav-links">
-                <li><a href="#features">المزايا</a></li>
-                <li><a href="#new-23">جديد 2.3</a></li>
-                <li><a href="#screenshots">اللقطات</a></li>
-                <li><a href="#downloads">التحميل</a></li>
-                <li><a href="#comparison">المقارنة</a></li>
-                <li><a href="#requirements">المتطلبات</a></li>
-                <li><a class="nav-phone" href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener">📱 نسخة الهاتف</a></li>
-                <li>
-                    <button class="theme-toggle" id="theme-toggle" aria-label="تبديل المظهر">
-                        <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
-                        <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
-                    </button>
-                </li>
-            </ul>
-        </div>
+<div class="backdrop" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="nav glass strong">
+  <div class="nav-in">
+    <a class="brand" href="#top"><img src="icon/icon-192x192.png" alt="" /><b>GT‑SALAT</b></a>
+    <nav class="nav-links" aria-label="أقسام الصفحة">
+      <a class="hide-sm" href="#news">الجديد</a>
+      <a class="hide-sm" href="#features">المميزات</a>
+      <a class="hide-sm" href="#screenshots">اللقطات</a>
+      <a class="hide-sm" href="#download">التنزيل</a>
+      <a class="hide-sm" href="#sources">المصادر</a>
+      <a class="nav-phone" target="_blank" rel="noopener noreferrer" href="https://salehgnutux.github.io/GT-SALAT-PHONE/">📱 نسخة الهاتف</a>
+      <button class="icon-btn" id="themeBtn" aria-label="تبديل الوضع الداكن والفاتح">🌙</button>
     </nav>
+  </div>
+</header>
 
-    <!-- Hero Section -->
-    <header class="hero" role="banner">
-        <div class="container">
-            <div class="hero-icon" aria-hidden="true">
-                <div class="hero-glow"></div>
-                <i class="fas fa-mosque"></i>
-            </div>
-            <h1>
-                <span class="gt">GT-</span><span class="salat">SALAT</span>
-            </h1>
-            <p class="hero-tagline">الجيل الجديد من GT-salat-dikr</p>
-            <p class="hero-subtitle">
-                تطبيق إسلامي شامل على غنو/لينكس: مواقيت الصلاة والأذان والأذكار، والقرآن الكريم
-                بتفسيره، وحصن المسلم، والأدعية والأحاديث والإذاعات — كلّه مُضمَّن ويعمل دون إنترنت،
-                بواجهة رسومية عصرية مبنية بتقنيات Electron + React + TypeScript
-            </p>
-            <p class="hero-quran" lang="ar">
-                بِسْم اللَّهِ توكَّلْتُ عَلَى اللَّهِ، وَلا حوْلَ وَلا قُوةَ إلاَّ بِاللَّهِ
-            </p>
-            <div class="hero-buttons">
-                <a href="#downloads" class="btn btn-primary">
-                    <i class="fas fa-download" aria-hidden="true"></i> تحميل التطبيق
-                </a>
-                <a href="https://github.com/SalehGNUTUX/GT-SALAT" target="_blank" rel="noopener" class="btn btn-github">
-                    <i class="fab fa-github" aria-hidden="true"></i> GitHub
-                </a>
-                <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.3.0" target="_blank" rel="noopener" class="btn btn-outline">
-                    <i class="fas fa-tag" aria-hidden="true"></i> الإصدار 2.3.0
-                </a>
-            </div>
-            <div class="phone-strip">
-                <span class="lbl">📱 <b>متوفّرٌ أيضاً للهاتف</b>: نسخة أندرويد بالمزايا نفسها، أحدث إصدارٍ <b><bdi>v2.1</bdi></b>.</span>
-                <a class="btn btn-outline" href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener">🌐 موقع نسخة الهاتف</a>
-                <a class="btn btn-outline" href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE" target="_blank" rel="noopener">📦 مستودعها على GitHub</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- Features Section -->
-    <section class="section" id="features">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-label">المزايا</span>
-                <h2 class="section-title">لماذا GT-SALAT؟</h2>
-                <p class="section-desc">تطوير كامل للتطبيق الأصلي مع الحفاظ على جميع الميزات وإضافة واجهة رسومية تفاعلية حديثة</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
-                    <h3>مواقيت الصلاة</h3>
-                    <p>حساب مواقيت الصلاة الخمس بـ 22 طريقة حسابية تشمل أم القرى وISNA ورابطة العالم الإسلامي والمغرب والجزائر وغيرها، مع مصدر مزدوج: API أولاً وحساب محلي احتياطي يعمل دون إنترنت.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
-                    <h3>الإشعارات والأذان</h3>
-                    <p>إشعارات قبل الصلاة بفترة قابلة للضبط، تشغيل الأذان عند دخول الوقت بخيارين (كامل وقصير)، دعم رفع أذان مخصص بصيغ OGG وMP3 وWAV، مع دعاء بعد الأذان وأذكار بعد الصلاة.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-book-open"></i></div>
-                    <h3>الأذكار</h3>
-                    <p>قاعدة بيانات كاملة للأذكار مع بحث فوري في النصوص، وعداد لكل ذكر محفوظ محلياً، وعرض ذكر عشوائي في لوحة التحكم الرئيسية.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-terminal"></i></div>
-                    <h3>التكامل مع الطرفية</h3>
-                    <p>عند فتح أي طرفية جديدة يظهر تلقائياً: ترويسة &laquo;بسم الله الرحمن الرحيم&raquo; وذكر عشوائي واسم الصلاة القادمة ووقتها والوقت المتبقي. يدعم bash وzsh وfish.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-desktop"></i></div>
-                    <h3>التكامل مع النظام</h3>
-                    <p>أيقونة شريط المهام مع قائمة سياق، تصغير إلى شريط المهام بدلاً من الإغلاق، بدء تشغيل تلقائي مع الجهاز، وفتح مجلد جداول المواقيت مباشرة من الإعدادات.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-palette"></i></div>
-                    <h3>واجهة عصرية</h3>
-                    <p>وضعان: مظلم وفاتح، خطوط Ubuntu Arabic وAmiri Quran مضمّنة تعمل بلا اتصال إنترنت، واجهة عربية RTL كاملة، ومعالج إعداد خطوة بخطوة للتهيئة الأولى.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Downloads Section -->
-
-    <!-- What's new in 2.3 -->
-    <section class="section" id="new-23">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-label">جديد النسخة 2.3</span>
-                <h2 class="section-title">التوقيت يتبع النظام، وخلفيّاتٌ وزجاجٌ من نسخة الهاتف</h2>
-                <p class="section-desc">إصلاحٌ لتقدّم الأذان ساعةً في المغرب، ومزايا نسخة الهاتف <bdi>v2.0</bdi> و<bdi>v2.1</bdi> على سطح المكتب</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
-                    <h3>التطبيق يتبع توقيت النظام</h3>
-                    <p>بيانات المناطق الزمنيّة المضمَّنة في Electron ظلّت تحسب المغرب على <bdi>GMT+1</bdi> بعد عودته إلى <bdi>GMT+0</bdi>، فتقدّمت الساعة والأذان ساعة. صار التطبيق يقرأ إزاحة النظام الفعليّة ويتبعها، ومواقيت الإنترنت تُحسب بإزاحة الخادم، ومعها خيار «توقيت التطبيق» لتصحيحه يدويّاً.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-mosque"></i></div>
-                    <h3>خلفيّات المساجد والسمة الزجاجيّة</h3>
-                    <p>ثماني صورٍ للمساجد (مسجد حسّان افتراضيّاً بنسختين نهاريّةٍ وليليّة) أو صورةٌ من حاسوبك خلف لوحة التحكّم، بثلاث درجات ظهور. واللوحات زجاجٌ شفّافٌ في كلّ الأقسام بشدّة تغبيشٍ من 0 إلى 100، ونافذة الأذان تتبع الخلفيّة.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-volume-high"></i></div>
-                    <h3>الأذان المغربيّ</h3>
-                    <p>الأذان بالصيغة المغربيّة كاملاً وقصيراً مع معاينتهما، والمغربيّ الكامل هو الأذان الافتراضيّ. ودعاء ما بعد الأذان مفعَّلٌ افتراضيّاً، ولا أذان خارج وقته: إن فات الموعد والحاسوب نائم يُعلَن دخول الوقت بإشعارٍ صامت.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-radio"></i></div>
-                    <h3>مؤقّت الإذاعة وإعادة الاتّصال</h3>
-                    <p>مؤقّت إيقافٍ من 15 إلى 90 دقيقة للإذاعة والتلاوة مع المتبقّي، وإعادة اتّصالٍ تلقائيّة بالبثّ عند انقطاع الشبكة بتباعدٍ متزايد، وفوراً عند عودتها.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-location-dot"></i></div>
-                    <h3>372 مدينةً مغربيّة</h3>
-                    <p>قاعدة المواقع المُضمَّنة تضمّ 372 مدينةً وبلدةً مغربيّة لاختيار الموقع دون إنترنت: الإحداثيّات من GeoNames والأسماء العربيّة من OpenStreetMap، بترخيص ODbL.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-arrow-up-from-bracket"></i></div>
-                    <h3>التحديث من داخل التطبيق</h3>
-                    <p>من 2.2.1 فما بعد يصلك هذا الإصدار من «الإعدادات الإضافيّة ← حول»: تُنزَّل الحزمة المناسبة لجهازك وتُتحقَّق بصمتها وتُثبَّت من مكانها.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- What's new in 2.0 -->
-    <section class="section" id="whats-new">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-label">جديد النسخة 2.2</span>
-                <h2 class="section-title">من مذكّر صلاة إلى تطبيق إسلامي شامل</h2>
-                <p class="section-desc">تعلّمُ الطهارة والصلاة والرقية الشرعية والأذكار الصوتية وروايات القرآن — كلّه مُضمَّنٌ في الحزمة ويعمل دون إنترنت. ومع 2.2.1: التحديثُ من داخل التطبيق</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-book-quran"></i></div>
-                    <h3>القرآن الكريم والتفسير</h3>
-                    <p>114 سورة بالرسم العثماني مع التفسير الميسّر لكل آية، وبحث شامل في 6236 آية بتطبيع عربي يطابق «الرحمن» مهما اختلف رسمها، وإشارات مرجعية ومتابعة لموضع القراءة، وتمرير تلقائي بمهلة تناسب طول كل آية.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
-                    <h3>حصن المسلم والأذكار</h3>
-                    <p>حصن المسلم المصنّف في 132 باباً و267 ذكراً ببحث وعدّاد تكرار، وجلستا أذكار الصباح والمساء بشريط تقدّم يُحفظ ليومه، ومِسبحة بهدف ومجموع تراكمي.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-scroll"></i></div>
-                    <h3>أحاديث وأدعية وحِكَم</h3>
-                    <p>الأربعون النووية ومختارات رياض الصالحين (90 حديثاً)، و28 دعاءً مأثوراً، وأسماء الله الحسنى المئة بمعانيها وشواهدها، و32 حكمة، و59 حدثاً من السيرة والتاريخ الإسلامي.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-radio"></i></div>
-                    <h3>إذاعات وإمساكية</h3>
-                    <p>ستٌّ وثلاثون إذاعة قرآنية مباشرة قابلة للتحرير والإضافة، بمشغّل لا ينقطع عند التنقّل بين الأقسام، وإمساكية رمضان كاملة بالإمساك والفجر والمغرب.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-hands-praying"></i></div>
-                    <h3>الطهارة والصلاة — جديد 2.2</h3>
-                    <p>ثلاثة عشر درساً على المذهب المالكيّ بمصادرها: الوضوء والغسل والتيمّم والمسح على الخفّين وطهارة المرأة وصفة الصلاة وسجود السهو وصلاة المسافر وتجهيز الميّت. كلّ خطوةٍ بمستويين وحُكمِها ومصدرها، ومعها دليلٌ مصوَّرٌ في 233 صورة بتكبيرٍ وملء شاشة، وأداتان تفاعليّتان: «هل يجوز لي القصر الآن؟» و«طهرتُ الآن، ماذا أصلّي؟».</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-hand-holding-heart"></i></div>
-                    <h3>الرقية الشرعية — جديد 2.2</h3>
-                    <p>تسعة أقسام: الرقية الشاملة والتحصين اليوميّ والعين والسحر والمسّ والمرض وتحصين البيت وأحكام الرقية. نصّ الآيات من مصحف التطبيق نفسه، والأدعية بمصادرها، ومعها استماعٌ بصوت الشيخ سعد الغامدي مُضمَّنٌ في الحزمة يعمل دون إنترنت.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-headphones"></i></div>
-                    <h3>صوتٌ وروايات — جديد 2.2</h3>
-                    <p>أذكار الصباح والمساء والنوم تسجيلاتٍ مُضمَّنةً بشريط مدّةٍ وعدّادِ زمن، وروايات ورش وقالون والدوري في القرآن النصّيّ إلى جانب حفص، والمصحف المصوَّر بملء الشاشة والتكبير، وتذكيرُ السُّنن الموسميّة (عاشوراء وعرفة وعشر ذي الحجّة وستّ شوّال والاثنين والخميس)، وتسبيحٌ بالصوت يَعُدّ كلّ نطقة.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-arrow-up-from-bracket"></i></div>
-                    <h3>التحديث من داخل التطبيق &mdash; جديد 2.2.1</h3>
-                    <p>لم يعد التحديث انتقالاً إلى المستودع وجلباً يدوياً للحزمة: يُنزَّل الإصدار الجديد ويُثبَّت من مكانه. ولكلّ صيغةٍ طريقُها &mdash; صورة AppImage تستبدل نفسها بلا صلاحيات، وحزمة DEB/RPM تُسلَّم إلى مدير حزم النظام. وتُتحقَّق بصمة الحزمة (SHA256) المنشورة قبل تثبيتها، والتنزيل يُستأنَف بعد انقطاع الشبكة، وتُختار الحزمة بمعماريّة جهازك (x86_64 أو arm64 أو armv7l).</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-sliders"></i></div>
-                    <h3>إعدادات إضافية</h3>
-                    <p>مذهب حساب العصر، ومستوى صوت الأذان مع معاينة كل صوت، ونمط تنبيه لكل صلاة (أذان أو رنّة أو صامت)، وتذكيرات يومية، ونظام 12/24 ساعة، وإزاحة التاريخ الهجري، وأسماء الأشهر المغاربية والشامية والقياسية.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-mobile-screen-button"></i></div>
-                    <h3>ومعه نسخة الهاتف</h3>
-                    <p>GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت والسمة الزجاجيّة وخلفيّات المساجد، وبنكهة حرّة بلا خدمات Google. أحدث إصدار <strong>v2.1</strong> (7 نونبر 2026) بنكهتين: <a href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.1/GT-SALAT-v2.1-foss.apk" target="_blank" rel="noopener" style="color: var(--accent-primary);">حرّة (FOSS)</a> و<a href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.1/GT-SALAT-v2.1-full.apk" target="_blank" rel="noopener" style="color: var(--accent-primary);">كاملة</a>. <a href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener" style="color: var(--accent-primary);">تعرّف على نسخة الهاتف &larr;</a></p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- Screenshots -->
-    <section class="section" id="screenshots" style="background: var(--bg-secondary); transition: background 0.4s ease;">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-label">لقطات الشاشة</span>
-                <h2 class="section-title">هكذا يبدو التطبيق</h2>
-                <p class="section-desc">واجهة عربية كاملة الاتجاه، بوضعٍ داكنٍ وفاتح ولونٍ مميّزٍ تختاره</p>
-            </div>
-            <div class="shots">
-                <div class="shots-frame" id="shots-frame">
-                    <div class="shots-track">
-                    <figure class="shot active" data-index="0">
-                        <img src="screenshots/dashboard.webp" alt="لوحة التحكم — GT-SALAT" loading="eager" width="1440" height="900">
-                        <figcaption class="shot-label">لوحة التحكم<small>الصلاة القادمة بعدّادٍ حيّ · آية اليوم · حكمة اليوم · مواقيت اليوم</small></figcaption>
-                    </figure>
-                    <figure class="shot" data-index="1">
-                        <img src="screenshots/timetable.webp" alt="مواقيت الصلاة — GT-SALAT" loading="lazy" width="1440" height="900">
-                        <figcaption class="shot-label">مواقيت الصلاة<small>عرضٌ أسبوعيّ ونصف شهريّ وشهريّ، بتقويمٍ هجريّ أو ميلادي</small></figcaption>
-                    </figure>
-                    <figure class="shot" data-index="2">
-                        <img src="screenshots/more.webp" alt="قسم المزيد — GT-SALAT" loading="lazy" width="1440" height="900">
-                        <figcaption class="shot-label">قسم المزيد<small>ثلاثة عشر قسماً: القرآن والتفسير وحصن المسلم والأذكار والأحاديث والإذاعات</small></figcaption>
-                    </figure>
-                    <figure class="shot" data-index="3">
-                        <img src="screenshots/dhikr.webp" alt="الأذكار — GT-SALAT" loading="lazy" width="1440" height="900">
-                        <figcaption class="shot-label">الأذكار<small>قاعدة الأذكار كاملةً ببحثٍ فوريّ وعدّادٍ لكلّ ذكر</small></figcaption>
-                    </figure>
-                    <figure class="shot" data-index="4">
-                        <img src="screenshots/settings.webp" alt="الإعدادات الأساسية — GT-SALAT" loading="lazy" width="1440" height="900">
-                        <figcaption class="shot-label">الإعدادات الأساسية<small>الموقع · الإشعارات · تكامل الطرفية · النظام</small></figcaption>
-                    </figure>
-                    <figure class="shot" data-index="5">
-                        <img src="screenshots/advanced.webp" alt="الإعدادات الإضافية — GT-SALAT" loading="lazy" width="1440" height="900">
-                        <figcaption class="shot-label">الإعدادات الإضافية<small>مذهب العصر · نمط تنبيهٍ لكلّ صلاة · التقويم · المظهر · النسخ الاحتياطي</small></figcaption>
-                    </figure>
-                    <figure class="shot" data-index="6">
-                        <img src="screenshots/status.webp" alt="حالة النظام — GT-SALAT" loading="lazy" width="1440" height="900">
-                        <figcaption class="shot-label">حالة النظام<small>سجلّ الإشعارات وصحّة المكوّنات والجداول المخزَّنة</small></figcaption>
-                    </figure>
-                    </div>
-                    <button class="shots-arrow prev" id="shots-prev" type="button" aria-label="السابقة">&#10095;</button>
-                    <button class="shots-arrow next" id="shots-next" type="button" aria-label="التالية">&#10094;</button>
-                </div>
-                <div class="shots-progress"><div class="shots-bar" id="shots-bar"></div></div>
-                <div class="shots-dots" id="shots-dots">
-                <button class="shots-dot active" data-go="0" type="button" aria-label="لوحة التحكم"></button>
-                <button class="shots-dot" data-go="1" type="button" aria-label="مواقيت الصلاة"></button>
-                <button class="shots-dot" data-go="2" type="button" aria-label="قسم المزيد"></button>
-                <button class="shots-dot" data-go="3" type="button" aria-label="الأذكار"></button>
-                <button class="shots-dot" data-go="4" type="button" aria-label="الإعدادات الأساسية"></button>
-                <button class="shots-dot" data-go="5" type="button" aria-label="الإعدادات الإضافية"></button>
-                <button class="shots-dot" data-go="6" type="button" aria-label="حالة النظام"></button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="downloads" style="background: var(--bg-secondary); transition: background 0.4s ease;">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-label">التحميل</span>
-                <h2 class="section-title">حزمة تناسب توزيعتك</h2>
-                <p class="section-desc">اختر صيغة التحميل المناسبة لنظامك — لحواسيب <strong>x86_64</strong> ولأجهزة <strong>ARM</strong> (راسبيري باي وخوادم aarch64)</p>
-            </div>
-            <div class="download-grid">
-                <!-- AppImage -->
-                <div class="download-card recommended">
-                    <div class="download-icon"><i class="fas fa-cube"></i></div>
-                    <h3>AppImage</h3>
-                    <p class="download-distros">جميع التوزيعات<br>Ubuntu &middot; Fedora &middot; Arch &middot; openSUSE</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-x86_64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
-                        <i class="fas fa-download" aria-hidden="true"></i> تحميل AppImage
-                    </a>
-                    <p class="file-info">
-                        <code>GT-SALAT-2.3.0-x86_64.AppImage</code><br>
-                        <small>134 MB &middot; sha256: 3a3c9a66...</small>
-                    </p>
-                </div>
-                <!-- DEB -->
-                <div class="download-card">
-                    <div class="download-icon"><i class="fab fa-ubuntu"></i></div>
-                    <h3>DEB</h3>
-                    <p class="download-distros">Debian &middot; Ubuntu &middot; Linux Mint<br>ومشتقاتها</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_amd64.deb" class="btn btn-primary" target="_blank" rel="noopener">
-                        <i class="fas fa-download" aria-hidden="true"></i> تحميل DEB
-                    </a>
-                    <p class="file-info">
-                        <code>GT-SALAT_2.3.0_amd64.deb</code><br>
-                        <small>102 MB &middot; sha256: 1df11a1e...</small>
-                    </p>
-                </div>
-                <!-- RPM -->
-                <div class="download-card">
-                    <div class="download-icon"><i class="fab fa-fedora"></i></div>
-                    <h3>RPM</h3>
-                    <p class="download-distros">Fedora &middot; RHEL &middot; Rocky Linux<br>ومشتقاتها</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/gt-salat-2.3.0-1.x86_64.rpm" class="btn btn-primary" target="_blank" rel="noopener">
-                        <i class="fas fa-download" aria-hidden="true"></i> تحميل RPM
-                    </a>
-                    <p class="file-info">
-                        <code>gt-salat-2.3.0-1.x86_64.rpm</code><br>
-                        <small>102 MB &middot; sha256: 732d4346...</small>
-                    </p>
-                </div>
-            </div>
-
-            <h3 style="text-align:center; margin: 40px 0 6px; font-size: 1.25rem;">🍓 أجهزة ARM</h3>
-            <p style="text-align:center; margin-bottom: 24px; color: var(--text-secondary); font-size: 0.95rem;">
-                راسبيري باي وحواسيب ARM وخوادم aarch64 — اعرف معماريتك بالأمر <code>uname -m</code>
-            </p>
-            <div class="download-grid">
-                <div class="download-card">
-                    <div class="download-icon"><i class="fas fa-microchip"></i></div>
-                    <h3>aarch64 &middot; AppImage</h3>
-                    <p class="download-distros">arm64 &mdash; جميع التوزيعات<br>راسبيري باي 4/5 &middot; خوادم ARM</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-arm64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
-                        <i class="fas fa-download" aria-hidden="true"></i> تحميل arm64
-                    </a>
-                    <p class="file-info">
-                        <code>GT-SALAT-2.3.0-arm64.AppImage</code><br>
-                        <small>134 MB &middot; sha256: 6135ce83...</small>
-                    </p>
-                </div>
-                <div class="download-card">
-                    <div class="download-icon"><i class="fab fa-ubuntu"></i></div>
-                    <h3>aarch64 &middot; DEB</h3>
-                    <p class="download-distros">arm64 &mdash; Debian &middot; Ubuntu<br>Raspberry Pi OS (64-بت)</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_arm64.deb" class="btn btn-primary" target="_blank" rel="noopener">
-                        <i class="fas fa-download" aria-hidden="true"></i> تحميل arm64 DEB
-                    </a>
-                    <p class="file-info">
-                        <code>GT-SALAT_2.3.0_arm64.deb</code><br>
-                        <small>98 MB &middot; sha256: a1d143fb...</small>
-                    </p>
-                </div>
-                <div class="download-card">
-                    <div class="download-icon"><i class="fas fa-microchip"></i></div>
-                    <h3>armv7l &middot; 32-بت</h3>
-                    <p class="download-distros">armhf &mdash; الأجهزة الأقدم<br>راسبيري باي (نظام 32-بت)</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-armv7l.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
-                        <i class="fas fa-download" aria-hidden="true"></i> تحميل armv7l
-                    </a>
-                    <p class="file-info">
-                        <code>GT-SALAT-2.3.0-armv7l.AppImage</code> &middot; 123 MB &middot; <small>sha256: c2e676f8...</small><br>
-                        <small>و<a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_armv7l.deb" target="_blank" rel="noopener" style="color: var(--accent-primary);">حزمة DEB</a> &middot; 96 MB &middot; sha256: 7b5bdc70...</small>
-                    </p>
-                </div>
-            </div>
-
-            <p style="text-align:center; margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">
-                <i class="fas fa-circle-info" aria-hidden="true"></i>
-                لا تتوفّر حزمة <strong>x86 32-بت (i386)</strong>: مشروع Electron أوقف بناءها للينكس منذ الإصدار 4 (2018)،
-                فلا سبيل إليها إلا بمحرّكٍ قديمٍ بلا تحديثاتٍ أمنية.
-            </p>
-
-            <!-- Installation notes -->
-            <div class="install-notes">
-                <h4>تثبيت سريع</h4>
-                <table class="cmd-table">
-                    <tbody>
-                        <tr>
-                            <td>Debian &middot; Ubuntu &middot; Mint</td>
-                            <td><code>sudo dpkg -i GT-SALAT_*.deb</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo dpkg -i GT-SALAT_*.deb">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>حلّ الاعتماديات</td>
-                            <td><code>sudo apt-get install -f</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo apt-get install -f">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>Fedora &middot; RHEL &middot; Rocky</td>
-                            <td><code>sudo rpm -i gt-salat-*.rpm</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo rpm -i gt-salat-*.rpm">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>AppImage &mdash; تصريح التنفيذ</td>
-                            <td><code>chmod +x GT-SALAT_*.AppImage</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="chmod +x GT-SALAT_*.AppImage">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>AppImage &mdash; التشغيل</td>
-                            <td><code>./GT-SALAT_*.AppImage</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="./GT-SALAT_*.AppImage">نسخ</button></td>
-                        </tr>
-                    </tbody>
-                </table>
+<a id="top"></a>
+<div class="wrap">
+  <section class="hero">
+    <div class="reveal">
+      <img class="hero-logo" src="icon/icon-192x192.png" alt="شعار GT‑SALAT" />
+      <h1>GT‑SALAT</h1>
+      <p class="tag">تطبيقٌ إسلاميٌّ شاملٌ لغنو/لينكس: مواقيتُ الصلاة والأذانُ والقرآنُ الكريم بتفسيره والأذكارُ وحصنُ المسلم والإذاعات، بسمةٍ زجاجيّةٍ وخلفيّات مساجد، <b class="gold">ويعمل دون إنترنت</b>.</p>
+      <div class="badges">
+        <span class="badge">📶 يعمل <b>دون إنترنت</b></span>
+        <span class="badge">🔓 حرٌّ ومفتوح المصدر</span>
+        <span class="badge">🛡️ بلا تتبُّع ولا إعلانات</span>
+        <span class="badge">🐧 <span class="num">x86_64 · arm64 · armv7l</span></span>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="#download">⬇️ تنزيل <span class="num">2.3.0</span></a>
+        <a class="btn ghost" href="#news">✨ ما الجديد</a>
+      </div>
+      <span class="ver"><i></i>الإصدار المستقرّ <span class="num">2.3.0</span> · نونبر 2026</span>
+      <div class="phone-strip glass">
+        <span class="lbl">📱 <b>متوفّرٌ أيضاً للهاتف</b>: نسخة أندرويد بالمزايا نفسها، أحدث إصدارٍ <b class="num">v2.1</b>.</span>
+        <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://salehgnutux.github.io/GT-SALAT-PHONE/">🌐 موقع نسخة الهاتف</a>
+        <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE">📦 مستودعها على GitHub</a>
+      </div>
     </div>
+    <div class="reveal">
+      <div class="laptop">
+        <div class="lid">
+          <div class="shots" id="heroShots">
+            <img src="screenshots/hero/hassan_night.webp" alt="لوحة التحكّم بخلفيّة مسجد حسّان ليلاً" data-title="مسجد حسّان ليلاً · الرباط" class="on" />
+            <img src="screenshots/hero/haram.webp" alt="لوحة التحكّم بخلفيّة المسجد الحرام" data-title="المسجد الحرام · مكّة المكرّمة" loading="lazy" />
+            <img src="screenshots/hero/nabawi.webp" alt="لوحة التحكّم بخلفيّة المسجد النبويّ" data-title="المسجد النبويّ · المدينة المنوّرة" loading="lazy" />
+            <img src="screenshots/hero/aqsa.webp" alt="لوحة التحكّم بخلفيّة قبّة الصخرة" data-title="قبّة الصخرة · المسجد الأقصى المبارك" loading="lazy" />
+            <img src="screenshots/hero/hassan2_sea.webp" alt="لوحة التحكّم بخلفيّة مسجد الحسن الثاني" data-title="مسجد الحسن الثاني · الدار البيضاء" loading="lazy" />
+            <img src="screenshots/hero/qarawiyyin.webp" alt="لوحة التحكّم بخلفيّة جامع القرويّين" data-title="جامع القرويّين · فاس" loading="lazy" />
+            <img src="screenshots/hero/hassan2_sunset.webp" alt="لوحة التحكّم بخلفيّة مسجد الحسن الثاني عند الغروب" data-title="مسجد الحسن الثاني عند الغروب · الدار البيضاء" loading="lazy" />
+            <img src="screenshots/hero/hassan_day.webp" alt="لوحة التحكّم بخلفيّة مسجد حسّان نهاراً" data-title="مسجد حسّان نهاراً · الرباط" loading="lazy" />
+          </div>
+        </div>
+        <div class="base" aria-hidden="true"></div>
+      </div>
+      <p class="bg-cap" id="bgCap" aria-live="polite">لقطةٌ حقيقيّةٌ من التطبيق · مسجد حسّان ليلاً · الرباط</p>
+    </div>
+  </section>
+
+  <section class="section" id="news">
+    <div class="sec-head reveal">
+      <div class="eyebrow">آخر الإصدارات</div>
+      <h2>الجديد في GT‑SALAT</h2>
+      <p>الإصدار 2.3 يصلح توقيت التطبيق ويحمل إلى سطح المكتب تصميم نسخة الهاتف الزجاجيّ وخلفيّاتها.</p>
+    </div>
+    <div class="news">
+      <div class="news-card glass strong reveal">
+        <div class="eyebrow">الإصدار <span class="num">2.3.0</span> · صدر في 7 نونبر 2026</div>
+        <h3>التوقيت يتبع النظام، وتصميمٌ زجاجيّ</h3>
+        <ul>
+          <li><b>التطبيق يتبع توقيت النظام:</b> أُصلح تقدّم الساعة والأذان ساعةً في المغرب بعد عودته إلى <span class="num">GMT+0</span>، ومعه خيارٌ لتصحيح التوقيت يدويّاً.</li>
+          <li><b>خلفيّات المساجد</b> للوحة التحكّم أو صورةٌ من حاسوبك، ونافذة الأذان تتبعها.</li>
+          <li><b>السمة الزجاجيّة</b> في كلّ الأقسام، بشدّة تغبيشٍ من <span class="num">0</span> إلى <span class="num">100</span>.</li>
+          <li><b>الأذان المغربيّ</b> كاملاً وقصيراً، والكامل هو الافتراضيّ.</li>
+          <li><b>مؤقّت إيقافٍ</b> للإذاعة والتلاوة، و<b>إعادة اتّصالٍ تلقائيّة</b> بالبثّ.</li>
+          <li><b>372 مدينةً وبلدةً مغربيّة</b> لاختيار الموقع دون إنترنت.</li>
+        </ul>
+      </div>
+      <div class="news-card glass reveal">
+        <div class="eyebrow">الإصداران <span class="num">2.2</span> و<span class="num">2.2.1</span></div>
+        <h3>محتوىً وتحديث</h3>
+        <ul class="muted">
+          <li>التحديث من داخل التطبيق بالتحقّق من البصمة</li>
+          <li>تعلّم الطهارة والصلاة على المذهب المالكيّ</li>
+          <li>الرقية الشرعية نصّاً واستماعاً</li>
+          <li>الأذكار الصوتيّة المضمَّنة</li>
+          <li>روايات ورش وقالون والدوري</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="sec-head reveal">
+      <div class="eyebrow">ما يقدّمه التطبيق</div>
+      <h2>مميّزاتٌ غنيّة في تطبيقٍ واحد</h2>
+      <p>كلُّ ما يحتاجه المسلم في يومه على حاسوبه، بواجهةٍ عربيّةٍ زجاجيّةٍ في الوضعين الداكن والفاتح.</p>
+    </div>
+    <div class="grid">
+      <div class="card glass reveal"><div class="ic">🕌</div><h3>مواقيت وأذان</h3><p><span class="num">22</span> طريقة حساب، ومواقيت الإنترنت بإزاحة الخادم مع حسابٍ محلّيٍّ احتياطيّ، وأذانٌ بالصيغة المغربيّة أو المشرقيّة أو بملفّك، ونافذة أذانٍ بملء الشاشة.</p></div>
+      <div class="card glass reveal"><div class="ic">📖</div><h3>القرآن الكريم</h3><p>نصٌّ باستماعٍ آية-بآية وتظليلٍ متزامن، وتلاواتٌ كاملة، و<span class="num">4</span> روايات، ومصحفٌ مصوَّر، وتفسيرٌ ميسّر، وبحثٌ في الآيات، وتنزيلٌ للعمل دون إنترنت.</p></div>
+      <div class="card glass reveal"><div class="ic">📻</div><h3>الإذاعات</h3><p><span class="num">36</span> إذاعةً قرآنيّةً ببثٍّ حيٍّ يعيد الاتّصال تلقائيّاً، مع مؤقّتٍ للإيقاف وإذاعاتٍ مخصّصة.</p></div>
+      <div class="card glass reveal"><div class="ic">📿</div><h3>الأذكار وحصن المسلم</h3><p>أذكار الصباح والمساء والنوم بعدّها وصوتها المسجَّل، وحصن المسلم في <span class="num">132</span> باباً، وتسبيحٌ صوتيّ ومختلط.</p></div>
+      <div class="card glass reveal"><div class="ic">✨</div><h3>السمة الزجاجيّة</h3><p>لوحاتٌ كالزجاج فوق خلفيّات المساجد أو صورتك أنت، بشدّة تغبيشٍ تضبطها ودرجة ظهورٍ تختارها.</p></div>
+      <div class="card glass reveal"><div class="ic">🕐</div><h3>توقيتٌ يتبع النظام</h3><p>يقرأ التطبيق إزاحة نظامك الفعليّة ولو قَدُمت بيانات المناطق المضمَّنة، ولك تصحيح التوقيت يدويّاً.</p></div>
+      <div class="card glass reveal"><div class="ic">💧</div><h3>الطهارة والصلاة والرقية</h3><p>دروسٌ مصوَّرة على المذهب المالكيّ بمصادرها، وأداتا القصر والطهر، والرقية الشرعية نصّاً واستماعاً.</p></div>
+      <div class="card glass reveal"><div class="ic">💻</div><h3>التكامل مع الطرفية</h3><p>عند فتح طرفيةٍ جديدة: البسملة وذكرٌ عشوائيّ والصلاة القادمة ووقتها والمتبقّي. يدعم bash وzsh وfish.</p></div>
+      <div class="card glass reveal"><div class="ic">🖥️</div><h3>التكامل مع النظام</h3><p>أيقونةٌ في شريط المهام بقائمة سياق، وتصغيرٌ إليها بدل الإغلاق، وبدءٌ تلقائيّ مع الجهاز.</p></div>
+      <div class="card glass reveal"><div class="ic">⬆️</div><h3>تحديثٌ من داخل التطبيق</h3><p>تُنزَّل الحزمة المناسبة لجهازك وصيغته وتُتحقَّق بصمتها وتُثبَّت من مكانها، مع خيارٍ للنسخ التجريبيّة.</p></div>
+      <div class="card glass reveal"><div class="ic">🌙</div><h3>رمضان والسُّنن</h3><p>بطاقةٌ بعدٍّ للإفطار والسحور وإمساكيّةٌ شهريّة، وتذكيرات السُّنن الموسميّة بحسب التقويم الهجريّ.</p></div>
+      <div class="card glass reveal"><div class="ic">💾</div><h3>نسخٌ احتياطيّ مشترك</h3><p>حزمةٌ واحدةٌ تنتقل بين الحاسوب والهاتف بإعداداتك ومواقيتك، والمستورِد يختار ما يستعيد.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="screenshots">
+    <div class="sec-head reveal">
+      <div class="eyebrow">لقطاتٌ حقيقيّة</div>
+      <h2>هكذا يبدو التطبيق</h2>
+      <p>لقطاتٌ من الإصدار <span class="num">2.3.0</span> بالسمة الزجاجيّة. انقر لتكبيرها.</p>
+    </div>
+    <div class="gallery">
+      <figure class="shot glass reveal"><img src="screenshots/dashboard.webp" alt="لوحة التحكّم" loading="lazy" width="1440" height="900" /><figcaption>لوحة التحكّم</figcaption></figure>
+      <figure class="shot glass reveal"><img src="screenshots/timetable.webp" alt="مواقيت الصلاة" loading="lazy" width="1440" height="900" /><figcaption>مواقيت الصلاة</figcaption></figure>
+      <figure class="shot glass reveal"><img src="screenshots/more.webp" alt="قسم المزيد" loading="lazy" width="1440" height="900" /><figcaption>المزيد</figcaption></figure>
+      <figure class="shot glass reveal"><img src="screenshots/dhikr.webp" alt="الأذكار" loading="lazy" width="1440" height="900" /><figcaption>الأذكار</figcaption></figure>
+      <figure class="shot glass reveal"><img src="screenshots/advanced.webp" alt="الخلفيّة والزجاج في الإعدادات الإضافيّة" loading="lazy" width="1440" height="900" /><figcaption>الخلفيّة والزجاج</figcaption></figure>
+      <figure class="shot glass reveal"><img src="screenshots/settings.webp" alt="الإعدادات الأساسيّة" loading="lazy" width="1440" height="900" /><figcaption>الإعدادات الأساسيّة</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="panel glass strong reveal">
+      <div class="eyebrow">مبدأ التصميم</div>
+      <p class="amiri">كلُّ ما يُمكن أن يعمل محلّيّاً يعمل محلّيّاً،<br />وما يحتاج إنترنت يُنزَّل مرّةً ليعمل بعدها دون اتّصال.</p>
+      <p class="muted">خصوصيّةٌ كاملة: لا حساباتٌ ولا تتبُّعٌ ولا إعلانات. حساب المواقيت كلّه على جهازك.</p>
+    </div>
+  </section>
+
+  <section class="section" id="download">
+    <div class="download glass strong reveal">
+      <div class="eyebrow">الإصدار المستقرّ</div>
+      <h2>نزّل التطبيق</h2>
+      <span class="ver"><i></i><span class="num">2.3.0</span> مستقرّ</span>
+      <div class="pkgs">
+        <div class="pkg glass">
+          <h3>📦 AppImage</h3>
+          <span class="muted">كلّ التوزيعات · بلا تثبيت</span>
+          <span class="meta"><code>GT-SALAT-2.3.0-x86_64.AppImage</code><br /><span class="num">134 MB · sha256: 3a3c9a66…</span></span>
+          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-x86_64.AppImage">⬇️ تحميل AppImage</a>
+        </div>
+        <div class="pkg glass">
+          <h3>🟠 DEB</h3>
+          <span class="muted">Debian · Ubuntu · Linux Mint</span>
+          <span class="meta"><code>GT-SALAT_2.3.0_amd64.deb</code><br /><span class="num">102 MB · sha256: 1df11a1e…</span></span>
+          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_amd64.deb">⬇️ تحميل DEB</a>
+        </div>
+        <div class="pkg glass">
+          <h3>🎩 RPM</h3>
+          <span class="muted">Fedora · RHEL · openSUSE</span>
+          <span class="meta"><code>gt-salat-2.3.0-1.x86_64.rpm</code><br /><span class="num">102 MB · sha256: 732d4346…</span></span>
+          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/gt-salat-2.3.0-1.x86_64.rpm">⬇️ تحميل RPM</a>
+        </div>
+      </div>
+
+      <div class="arm glass">
+        <h3>🍓 ARM (راسبيري باي · حواسيب ARM)</h3>
+        <table>
+          <tr><td>arm64</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-arm64.AppImage">AppImage</a></td><td class="meta"><span class="num">134 MB · 6135ce83…</span></td></tr>
+          <tr><td>arm64</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_arm64.deb">DEB</a></td><td class="meta"><span class="num">98 MB · a1d143fb…</span></td></tr>
+          <tr><td>armv7l</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-armv7l.AppImage">AppImage</a></td><td class="meta"><span class="num">123 MB · c2e676f8…</span></td></tr>
+          <tr><td>armv7l</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_armv7l.deb">DEB</a></td><td class="meta"><span class="num">96 MB · 7b5bdc70…</span></td></tr>
+        </table>
+        <p class="meta" style="margin:8px 0 0">اعرف معماريّة جهازك بالأمر <code>uname -m</code>. البصمات كاملةً في <a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.3.0">صفحة الإصدار</a>.</p>
+      </div>
+
+      <p class="note">من الإصدار <span class="num">2.2.1</span> فما بعد يصلك الجديد من داخل التطبيق: «الإعدادات الإضافيّة ← حول ← فحص التحديثات».</p>
+
+      <div class="split">
+        <div class="glass">
+          <h3>🛠️ التثبيت</h3>
+          <div class="cmd"><small>Debian · Ubuntu</small><code>sudo apt install ./GT-SALAT_2.3.0_amd64.deb</code><button data-copy>نسخ</button></div>
+          <div class="cmd"><small>Fedora · RHEL</small><code>sudo dnf install ./gt-salat-2.3.0-1.x86_64.rpm</code><button data-copy>نسخ</button></div>
+          <div class="cmd"><small>AppImage</small><code>chmod +x GT-SALAT-2.3.0-x86_64.AppImage</code><button data-copy>نسخ</button></div>
+          <p class="meta" style="margin:10px 0 0">ولصوت الأذان مشغّلٌ مثل <code>mpv</code> (أو ffplay أو cvlc أو paplay).</p>
+        </div>
+        <div class="glass">
+          <h3>📱 نسخة الهاتف</h3>
+          <p class="muted" style="margin:0 0 10px">لأندرويد بالمزايا نفسها، بنكهةٍ حرّةٍ بلا خدمات Google. آخر إصدار: <span class="num">v2.1</span>.</p>
+          <div class="cta" style="margin-top:0;justify-content:flex-start">
+            <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://salehgnutux.github.io/GT-SALAT-PHONE/">🌐 موقعها</a>
+            <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.1/GT-SALAT-v2.1-foss.apk">⬇️ تنزيل</a>
+            <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE">📦 المستودع</a>
+          </div>
+        </div>
+      </div>
+      <div class="cta">
+        <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases">📄 كلّ الإصدارات</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="comparison">
+    <div class="sec-head reveal">
+      <div class="eyebrow">من الطرفية إلى الواجهة</div>
+      <h2>الجيل الجديد من GT‑salat‑dikr</h2>
+      <p>تطويرٌ شاملٌ مع الحفاظ على روح المشروع الأصليّ.</p>
+    </div>
+    <div class="cmp glass reveal">
+      <table>
+        <tr><th>الجانب</th><th>GT‑salat‑dikr (الأصل)</th><th>GT‑SALAT (الجديد)</th></tr>
+        <tr><td>الواجهة</td><td class="muted">طرفيّة (Bash)</td><td>رسوميّةٌ كاملة بسمةٍ زجاجيّة</td></tr>
+        <tr><td>التكامل مع الطرفيّة</td><td class="muted">افتراضيّ</td><td>اختياريٌّ من الإعدادات</td></tr>
+        <tr><td>التثبيت</td><td class="muted">سكربت bash</td><td>AppImage · DEB · RPM، وتحديثٌ من الداخل</td></tr>
+        <tr><td>المواقيت</td><td class="muted">حسابٌ محلّيّ</td><td>الإنترنت بإزاحة الخادم + حسابٌ محلّيّ</td></tr>
+        <tr><td>الأذان</td><td class="muted">ملفٌّ ثابت</td><td>مغربيٌّ ومشرقيّ، كاملٌ وقصير، ومخصّص</td></tr>
+        <tr><td>المحتوى</td><td class="muted">أذكار</td><td>قرآنٌ وتفسيرٌ وحصنٌ وإذاعاتٌ ودروس</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" id="sources">
+    <div class="sec-head reveal">
+      <div class="eyebrow">قامت على أكتاف الحرّ والمفتوح</div>
+      <h2>المصادر المعتمَدة</h2>
+      <p>محتوىً وبياناتٌ من مشاريع GNUTUX ومصادرَ حرّة، بالشكر والتقدير.</p>
+    </div>
+    <div class="src-grid">
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT_HISNMUSLIM"><b>GT_HISNMUSLIM</b><span>حصن المسلم المصنّف (132 باباً)</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SIRM"><b>GT‑SIRM</b><span>أحاديث · أدعية · حِكَم · أسماء الله</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT_QURANRADIO"><b>GT_QURANRADIO</b><span>قائمة إذاعات القرآن</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-QURANREADER"><b>GT‑QURANREADER</b><span>فهرس القرآن والأجزاء والسجدات</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://alquran.cloud"><b>alquran.cloud</b><span>النصّ العثمانيّ والتفسير الميسّر والروايات</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://everyayah.com"><b>everyayah.com</b><span>صوت القرآن آية-بآية (13 قارئاً)</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://mp3quran.net"><b>mp3quran.net</b><span>تلاوات السور الكاملة</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/Quran-PNG"><b>Quran‑PNG</b><span>صور صفحات مصحف المدينة (حفص)</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/QuranHub/quran-pages-images"><b>QuranHub/quran-pages-images</b><span>صور مصحف ورش (مجمّع الملك فهد)</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://aladhan.com"><b>AlAdhan API</b><span>المواقيت والتاريخ الهجريّ</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://github.com/batoulapps/adhan-js"><b>Adhan (Batoul Apps)</b><span>حساب المواقيت محلّيّاً بلا إنترنت</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://www.geonames.org"><b>GeoNames</b><span>إحداثيّات المدن والبلدات المغربيّة (CC BY 4.0)</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/copyright"><b>OpenStreetMap</b><span>الأسماء العربيّة للبلدات المغربيّة (ODbL)</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://ipapi.co"><b>ipapi.co · ip-api.com</b><span>اكتشاف الموقع من عنوان الإنترنت</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://www.amirifont.org"><b>خطّ أميري</b><span>الخطّ القرآنيّ للنصوص</span></a>
+      <a class="src glass" target="_blank" rel="noopener noreferrer" href="https://design.ubuntu.com/font"><b>خطّ Ubuntu Arabic</b><span>خطّ الواجهة</span></a>
+    </div>
+  </section>
+
+  <section class="section" id="dev">
+    <div class="dev glass reveal">
+      <div class="eyebrow">المطوّر</div>
+      <h3 class="amiri">SalehGNUTUX</h3>
+      <p class="muted">مطوّرُ برمجيّاتٍ حرّةٍ ومفتوحةِ المصدر، عربيّة الهويّة.</p>
+      <div class="cta">
+        <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX">GitHub</a>
+        <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://salehgnutux.github.io/gnutux/">مشاريع GNUTUX</a>
+        <a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT">📦 مستودع التطبيق</a>
+      </div>
+    </div>
+  </section>
 </div>
-</section>
 
-<!-- Comparison Section -->
-<section class="section" id="comparison">
-    <div class="container">
-        <div class="section-header">
-            <span class="section-label">المقارنة</span>
-            <h2 class="section-title">الفرق بين GT-SALAT و GT-salat-dikr</h2>
-            <p class="section-desc">تطوير شامل مع الحفاظ على روح المشروع الأصلي</p>
-        </div>
-        <div class="comparison-wrapper">
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>الجانب</th>
-                        <th>GT-salat-dikr (الأصل)</th>
-                        <th>GT-SALAT (الجديد)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>الواجهة</td>
-                        <td>طرفية (Bash)</td>
-                        <td><span class="star-icon">★</span> رسومية كاملة (Electron + React)</td>
-                    </tr>
-                    <tr>
-                        <td>التكامل مع الطرفية</td>
-                        <td>افتراضي</td>
-                        <td><span class="star-icon">★</span> اختياري من الإعدادات</td>
-                    </tr>
-                    <tr>
-                        <td>التثبيت</td>
-                        <td>bash script</td>
-                        <td><span class="star-icon">★</span> AppImage / DEB / RPM</td>
-                    </tr>
-                    <tr>
-                        <td>الخطوط</td>
-                        <td>خطوط النظام</td>
-                        <td><span class="star-icon">★</span> Ubuntu Arabic + Amiri Quran مضمّنة</td>
-                    </tr>
-                    <tr>
-                        <td>الإعداد</td>
-                        <td>متغيرات بيئة / CLI</td>
-                        <td><span class="star-icon">★</span> معالج رسومي 5 خطوات</td>
-                    </tr>
-                    <tr>
-                        <td>الأذان</td>
-                        <td>ملف صوتي ثابت</td>
-                        <td><span class="star-icon">★</span> افتراضي (كامل/قصير) + مخصص</td>
-                    </tr>
-                    <tr>
-                        <td>المواقيت</td>
-                        <td>حساب محلي</td>
-                        <td><span class="star-icon">★</span> API + حساب محلي احتياطي</td>
-                    </tr>
-                    <tr>
-                        <td>الحالة</td>
-                        <td>النسخة الأصلية</td>
-                        <td><span class="star-icon">★</span> الجيل الجديد</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
-
-<!-- Requirements Section -->
-<section class="section" id="requirements" style="background: var(--bg-secondary); transition: background 0.4s ease;">
-    <div class="container">
-        <div class="section-header">
-            <span class="section-label">متطلبات النظام</span>
-            <h2 class="section-title">الحد الأدنى للتشغيل</h2>
-            <p class="section-desc">تطبيق خفيف يعمل على معظم توزيعات غنو/لينكس</p>
-        </div>
-        <div class="requirements-card">
-            <h3><i class="fas fa-microchip" aria-hidden="true"></i> مواصفات الجهاز</h3>
-            <div class="req-grid">
-                <div class="req-item">
-                    <i class="fab fa-linux"></i>
-                    <div>
-                        <div class="req-label">نظام التشغيل</div>
-                        <div class="req-value">Linux (x86_64)</div>
-                    </div>
-                </div>
-                <div class="req-item">
-                    <i class="fas fa-memory"></i>
-                    <div>
-                        <div class="req-label">الذاكرة</div>
-                        <div class="req-value">256 ميغابايت</div>
-                    </div>
-                </div>
-                <div class="req-item">
-                    <i class="fas fa-microchip"></i>
-                    <div>
-                        <div class="req-label">المعالج</div>
-                        <div class="req-value">أي معالج حديث</div>
-                    </div>
-                </div>
-                <div class="req-item">
-                    <i class="fas fa-puzzle-piece"></i>
-                    <div>
-                        <div class="req-label">مكتبات النظام</div>
-                        <div class="req-value">libnotify &middot; GTK3 &middot; ALSA</div>
-                    </div>
-                </div>
-                <div class="req-item">
-                    <i class="fas fa-volume-up"></i>
-                    <div>
-                        <div class="req-label">مشغّل الصوت</div>
-                        <div class="req-value">mpv (موصى به) أو ffplay أو cvlc أو paplay أو sox</div>
-                    </div>
-                </div>
-            </div>
-            <div class="install-notes" style="margin-top: 24px;">
-                <h4>تثبيت مشغّل الصوت الموصى به</h4>
-                <table class="cmd-table">
-                    <tbody>
-                        <tr>
-                            <td>Debian &middot; Ubuntu</td>
-                            <td><code>sudo apt install mpv</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo apt install mpv">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>Fedora</td>
-                            <td><code>sudo dnf install mpv</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo dnf install mpv">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>Arch</td>
-                            <td><code>sudo pacman -S mpv</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo pacman -S mpv">نسخ</button></td>
-                        </tr>
-                        <tr>
-                            <td>openSUSE</td>
-                            <td><code>sudo zypper install mpv</code></td>
-                            <td><button class="copy-btn" type="button" data-cmd="sudo zypper install mpv">نسخ</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Footer -->
-<footer class="site-footer" role="contentinfo">
-    <div class="container">
-        <div class="footer-brand">
-            <i class="fas fa-mosque" aria-hidden="true"></i> GT-SALAT
-        </div>
-        <p>تطبيق إسلامي شامل لمواقيت الصلاة والأذكار والقرآن على غنو/لينكس</p>
-        <div class="footer-links">
-            <a href="https://github.com/SalehGNUTUX/GT-SALAT" target="_blank" rel="noopener">
-                <i class="fab fa-github"></i> GitHub
-            </a>
-            <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases" target="_blank" rel="noopener">
-                <i class="fas fa-tag"></i> الإصدارات
-            </a>
-            <a href="https://github.com/SalehGNUTUX/GT-SALAT/blob/main/LICENSE" target="_blank" rel="noopener">
-                <i class="fas fa-balance-scale"></i> GPL-3.0
-            </a>
-            <a href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener">
-                <i class="fas fa-mobile-screen-button"></i> نسخة الهاتف
-            </a>
-            <a href="https://github.com/SalehGNUTUX/GT-salat-dikr" target="_blank" rel="noopener">
-                <i class="fas fa-code-branch"></i> المشروع الأصلي
-            </a>
-        </div>
-        <div class="footer-credits">
-            بقلم <strong>SalehGNUTUX</strong> &copy; 2026 — مرخص بموجب
-            <a href="https://github.com/SalehGNUTUX/GT-SALAT/blob/main/LICENSE" target="_blank" rel="noopener" style="color: var(--accent-primary);">رخصة GNU العامة الإصدار 3 (GPL-3.0)</a>
-        </div>
-    </div>
+<footer>
+  <div class="wrap">
+    <p class="amiri">﴾ وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ ﴿</p>
+    <p>© GNUTUX 2026 · رخصة <a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/blob/main/LICENSE">GNU GPL v3</a> · قاعدة المواقع بترخيص <a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/blob/main/GT-SALAT/resources/content/places.LICENSE.txt">ODbL</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT">المستودع</a> · <a target="_blank" rel="noopener noreferrer" href="https://salehgnutux.github.io/GT-SALAT-PHONE/">نسخة الهاتف</a></p>
+  </div>
 </footer>
 
+<div class="lightbox" id="lightbox" role="dialog" aria-label="تكبير اللقطة"><img alt="" /></div>
+
 <script>
-    (function() {
-        // ========== THEME MANAGEMENT ==========
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('theme-toggle');
-        const THEME_KEY = 'gt-salat-theme-preference';
-
-        function getSystemPreference() {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-
-        function getStoredTheme() {
-            return localStorage.getItem(THEME_KEY);
-        }
-
-        function applyTheme(theme) {
-            html.classList.remove('dark-mode', 'light-mode');
-            if (theme === 'dark') {
-                html.classList.add('dark-mode');
-            } else if (theme === 'light') {
-                html.classList.add('light-mode');
-            }
-        }
-
-        function getCurrentEffectiveTheme() {
-            if (html.classList.contains('dark-mode')) return 'dark';
-            if (html.classList.contains('light-mode')) return 'light';
-            return getSystemPreference();
-        }
-
-        function cycleTheme() {
-            const stored = getStoredTheme();
-            const system = getSystemPreference();
-
-            if (!stored || stored === 'auto') {
-                const newTheme = system === 'dark' ? 'light' : 'dark';
-                localStorage.setItem(THEME_KEY, newTheme);
-                applyTheme(newTheme);
-            } else if (stored === 'dark') {
-                localStorage.setItem(THEME_KEY, 'light');
-                applyTheme('light');
-            } else if (stored === 'light') {
-                localStorage.setItem(THEME_KEY, 'auto');
-                applyTheme('auto');
-            }
-        }
-
-        const stored = getStoredTheme();
-        if (stored && stored !== 'auto') {
-            applyTheme(stored);
-        } else {
-            applyTheme('auto');
-        }
-
-        if (themeToggle) {
-            themeToggle.addEventListener('click', cycleTheme);
-        }
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            if (!getStoredTheme() || getStoredTheme() === 'auto') {
-                applyTheme('auto');
-            }
-        });
-
-        // ========== MOBILE NAVIGATION ==========
-        const navToggle = document.getElementById('nav-toggle');
-        const navLinks = document.getElementById('nav-links');
-
-        if (navToggle && navLinks) {
-            navToggle.addEventListener('click', () => {
-                const isOpen = navLinks.classList.toggle('open');
-                navToggle.setAttribute('aria-expanded', isOpen);
-                navToggle.querySelector('i').className = isOpen ? 'fas fa-times' : 'fas fa-bars';
-            });
-
-            navLinks.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('open');
-                    navToggle.setAttribute('aria-expanded', 'false');
-                    navToggle.querySelector('i').className = 'fas fa-bars';
-                });
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!navLinks.contains(e.target) && !navToggle.contains(e.target)) {
-                    navLinks.classList.remove('open');
-                    navToggle.setAttribute('aria-expanded', 'false');
-                    navToggle.querySelector('i').className = 'fas fa-bars';
-                }
-            });
-        }
-
-        // ========== SCROLL ANIMATIONS ==========
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px 0px -60px 0px',
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.feature-card').forEach(card => {
-            observer.observe(card);
-        });
-
-        document.querySelectorAll('.download-card').forEach(card => {
-            observer.observe(card);
-        });
-
-        // ========== SMOOTH SCROLL ==========
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                const targetEl = document.querySelector(targetId);
-                if (targetEl) {
-                    e.preventDefault();
-                    const navHeight = document.querySelector('.site-nav')?.offsetHeight || 64;
-                    const targetPosition = targetEl.getBoundingClientRect().top + window.pageYOffset -
-                        navHeight - 16;
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // ========== ACTIVE NAV LINK ==========
-        const sections = document.querySelectorAll('section[id], header[id]');
-        const navAnchors = document.querySelectorAll('.nav-links a[href^="#"]');
-
-        function updateActiveNavLink() {
-            let currentId = '';
-            const navHeight = document.querySelector('.site-nav')?.offsetHeight || 64;
-            const offset = navHeight + 80;
-
-            sections.forEach(section => {
-                const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
-                if (window.pageYOffset + offset >= sectionTop) {
-                    currentId = section.getAttribute('id');
-                }
-            });
-
-            navAnchors.forEach(anchor => {
-                anchor.style.color = '';
-                anchor.style.background = '';
-                if (anchor.getAttribute('href') === '#' + currentId) {
-                    anchor.style.color = 'var(--accent-primary)';
-                    anchor.style.background = 'var(--badge-bg)';
-                }
-            });
-        }
-
-        window.addEventListener('scroll', updateActiveNavLink, { passive: true });
-        updateActiveNavLink();
-
-        console.log('%c🕌 GT-SALAT %c| %cالجيل الجديد من GT-salat-dikr',
-            'font-size:1.4em;font-weight:bold;color:#4cd7d0;',
-            '',
-            'color:#2a9d8f;');
-        console.log('%c🚀 Electron + React + TypeScript %c| %cGPL-3.0',
-            'color:#1a5e63;',
-            '',
-            'color:#6b8084;');
-        console.log('%c🖥️ https://github.com/SalehGNUTUX/GT-SALAT',
-            'color:#4cd7d0;text-decoration:underline;');
-
-        // ========== COPY COMMAND BUTTONS ==========
-        // تفويضٌ واحدٌ لكل الأزرار، مع بديلٍ لبيئات لا تتيح clipboard API.
-        document.addEventListener('click', function (e) {
-            var btn = e.target.closest('.copy-btn');
-            if (!btn) return;
-            var cmd = btn.getAttribute('data-cmd') || '';
-            var done = function () {
-                var original = btn.textContent;
-                btn.textContent = 'تمّ النسخ ✓';
-                btn.classList.add('copied');
-                setTimeout(function () {
-                    btn.textContent = original;
-                    btn.classList.remove('copied');
-                }, 1600);
-            };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(cmd).then(done).catch(function () { fallback(cmd, done); });
-            } else {
-                fallback(cmd, done);
-            }
-        });
-
-        function fallback(text, done) {
-            var ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); done(); } catch (err) { /* تُترَك للنسخ اليدوي */ }
-            document.body.removeChild(ta);
-        }
-
-        // ========== SCREENSHOTS CAROUSEL ==========
-        // عرضٌ تلقائيٌّ يتوقّف عند التحويم أو التفاعل، ويحترم تفضيل تقليل الحركة.
-        (function () {
-            var frame = document.getElementById('shots-frame');
-            if (!frame) return;
-            var slides = Array.prototype.slice.call(frame.querySelectorAll('.shot'));
-            var dots = Array.prototype.slice.call(document.querySelectorAll('.shots-dot'));
-            var bar = document.getElementById('shots-bar');
-            var DURATION = 5000;
-            var current = 0, elapsed = 0, last = 0, paused = false, raf = null;
-            var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            function show(i) {
-                current = (i + slides.length) % slides.length;
-                slides.forEach(function (s, k) { s.classList.toggle('active', k === current); });
-                dots.forEach(function (d, k) { d.classList.toggle('active', k === current); });
-                elapsed = 0;
-                if (bar) bar.style.width = '0%';
-            }
-
-            function tick(now) {
-                if (!last) last = now;
-                var dt = now - last;
-                last = now;
-                if (!paused) {
-                    elapsed += dt;
-                    if (bar) bar.style.width = Math.min(100, (elapsed / DURATION) * 100) + '%';
-                    if (elapsed >= DURATION) show(current + 1);
-                }
-                raf = requestAnimationFrame(tick);
-            }
-
-            document.getElementById('shots-next').addEventListener('click', function () { show(current + 1); });
-            document.getElementById('shots-prev').addEventListener('click', function () { show(current - 1); });
-            dots.forEach(function (d) {
-                d.addEventListener('click', function () { show(parseInt(d.getAttribute('data-go'), 10)); });
-            });
-
-            frame.addEventListener('mouseenter', function () { paused = true; });
-            frame.addEventListener('mouseleave', function () { paused = false; });
-            // لا نُشغّل المؤقّت والقسم خارج الشاشة — لا فائدة من تبديلٍ لا يراه أحد.
-            if ('IntersectionObserver' in window) {
-                new IntersectionObserver(function (entries) {
-                    entries.forEach(function (e) { paused = !e.isIntersecting; });
-                }, { threshold: 0.25 }).observe(frame);
-            }
-
-            if (!reduced) raf = requestAnimationFrame(tick);
-            else if (bar) bar.parentElement.style.display = 'none';
-        })();
-
+  (function(){
+    var root=document.documentElement, btn=document.getElementById('themeBtn');
+    var param=new URLSearchParams(location.search).get('theme');
+    var saved=null; try{ saved=localStorage.getItem('gt-theme'); }catch(e){}
+    var theme=param||saved||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');
+    root.setAttribute('data-theme',theme);
+    function sync(){
+      var light=root.getAttribute('data-theme')==='light';
+      btn.textContent=light?'🌙':'☀️';
+      document.querySelector('meta[name="theme-color"]').setAttribute('content',light?'#F4F8F5':'#0F1512');
+    }
+    sync();
+    btn.addEventListener('click',function(){
+      var next=root.getAttribute('data-theme')==='light'?'dark':'light';
+      root.setAttribute('data-theme',next); try{ localStorage.setItem('gt-theme',next); }catch(e){} sync();
+    });
+    // تبديل لقطات الحاسوب بخلفيّات المساجد كلّ بضع ثوانٍ، إلّا مع «تقليل الحركة».
+    (function(){
+      var imgs=document.querySelectorAll('#heroShots img'), cap=document.getElementById('bgCap'), i=0;
+      if(imgs.length<2||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      setInterval(function(){
+        imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on');
+        cap.style.opacity=0; setTimeout(function(){ cap.textContent='لقطةٌ حقيقيّةٌ من التطبيق · '+imgs[i].getAttribute('data-title'); cap.style.opacity=1; },400);
+      },4500);
     })();
+    // تكبير اللقطات
+    var lb=document.getElementById('lightbox'), lbImg=lb.querySelector('img');
+    document.querySelectorAll('.shot img').forEach(function(im){
+      im.parentNode.addEventListener('click',function(){ lbImg.src=im.src; lbImg.alt=im.alt; lb.classList.add('on'); });
+    });
+    lb.addEventListener('click',function(){ lb.classList.remove('on'); });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape') lb.classList.remove('on'); });
+    // نسخ أوامر التثبيت
+    document.querySelectorAll('[data-copy]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var t=b.parentNode.querySelector('code').textContent;
+        (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){ b.textContent='نُسخ ✓'; setTimeout(function(){ b.textContent='نسخ'; },1500); },function(){});
+      });
+    });
+    try{
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.1});
+      document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+    }catch(e){ document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in')}); }
+  })();
 </script>
 </body>
 </html>
