@@ -26,6 +26,8 @@ export interface PlaceEntry {
   lon: number;
 }
 
+export type AdhanType = 'full' | 'short' | 'maghribi_full' | 'maghribi_short';
+
 export interface AppSettings {
   // ── الإعدادات الأساسية (صفحة الإعدادات) ───────────────
   lat: number | null;
@@ -43,7 +45,8 @@ export interface AppSettings {
   autoUpdateLocation: boolean;
   preNotifyMinutes: number;
   zikrIntervalMinutes: number;
-  adhanType: 'full' | 'short';
+  /** الكامل والقصير (المشرقيّ) والصيغة المغربيّة بنوعيها — كما في الهاتف (`AdhanType`). */
+  adhanType: AdhanType;
   enableSalatNotify: boolean;
   enableZikrNotify: boolean;
   systemSalatNotify: boolean;
@@ -107,10 +110,29 @@ export interface AppSettings {
   clock24h: boolean;
   timetableCalendar: CalendarKind;
   hijriOffset: number;                   // -3..+3 يوماً
+  /**
+   * المنطقة الزمنيّة: 'auto' يتبع إزاحة النظام الفعليّة ولو قَدُمت بيانات Electron،
+   * و'manual' يفرض `manualUtcOffset` (بالساعات، -12..+14). انظر electron/timezone.ts.
+   */
+  timeZoneMode: 'auto' | 'manual';
+  manualUtcOffset: number;
+  /** نسخة صيغة كاش المواقيت؛ رفعها يمسح الكاش القديم مرّةً (2 = إزاحة الخادم). */
+  timetableCacheVersion: number;
+  /** ترحيل 2.3: الأذان الكامل (افتراضيّ ما قبلها) يصير الأذان المغربيّ الكامل مرّةً واحدة. */
+  maghribiAdhanMigrated: boolean;
   monthScheme: MonthScheme;
 
   /** المظهر */
   accentColor: string;                   // '' = اللون الفيروزي الافتراضي، أو #rrggbb
+  /** خلفيّة لوحة التحكّم: صورة مسجدٍ أو صورة المستخدم (`custom`)، كما في الهاتف. */
+  homeBackgroundEnabled: boolean;
+  homeBackgroundId: string;              // 'hassan' يتبع الوضع (نهاريّ/ليليّ) · 'custom' صورة المستخدم
+  homeBackgroundLevel: number;           // 0 هادئة · 1 متوازنة · 2 واضحة
+  /** يتغيّر عند استبدال صورة المستخدم فيُعاد تحميلها. */
+  customBackgroundStamp: number;
+  /** السمة الزجاجيّة: لوحاتٌ شفّافة فوق الخلفيّة. */
+  glassTheme: boolean;
+  glassBlur: number;                     // 0 حادّة · 100 تمويهٌ كامل
 
   /** حالة الواجهة المحفوظة */
   advancedOpenSection: string;           // آخر قسم مفتوح في الصفحة المتقدمة ('' = الكل مطوي)
@@ -619,4 +641,19 @@ export interface RuqyahSection {
 export interface RuqyahFile {
   sections: RuqyahSection[];
   disclaimer?: string;
+}
+
+/** حال المنطقة الزمنيّة للعرض في الإعدادات. الإزاحات بالدقائق شرقَ غرينتش. */
+export interface TimeZoneStatus {
+  mode: 'auto' | 'manual';
+  /** إزاحة النظام الفعليّة (null إن تعذّرت قراءتها). */
+  systemOffset: number | null;
+  /** إزاحة Electron بقواعده المضمَّنة. */
+  engineOffset: number;
+  /** الإزاحة التي يعمل بها التطبيق الآن. */
+  appOffset: number;
+  /** المنطقة التي فرضها التطبيق، أو null. */
+  applied: string | null;
+  /** اختلافٌ بإزاحةٍ نصفيّة لا يُصحَّح تلقائيّاً. */
+  unsupported: boolean;
 }

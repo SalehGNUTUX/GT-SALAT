@@ -19,6 +19,7 @@ export function Card({
       onClick={onClick}
       style={{
         background: 'var(--bg-card)',
+        backdropFilter: 'var(--glass-backdrop)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         padding: '18px 22px',

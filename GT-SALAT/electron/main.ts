@@ -1,12 +1,14 @@
+// ★ أوّل استيراد عمداً: يضبط المنطقة الزمنيّة قبل أيّ نافذة كي تتبع الواجهةُ توقيت النظام.
+import { applyTimeZone, setTimeZoneRefresher } from './timezone.js';
 import { setAudioStateListener } from './audio.js';
-import { app, BrowserWindow, nativeImage, Menu } from 'electron';
+import { app, BrowserWindow, nativeImage, Menu, powerMonitor } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerIpc } from './ipc.js';
 import { createTray, destroyTray } from './tray.js';
-import { startScheduler, stopScheduler } from './scheduler.js';
-import { getSettings, setSettings, importLegacySettings } from './settings.js';
-import { autoDetectLocation, prefetchUpcomingMonths, suggestMethodByCountry } from './prayer.js';
+import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
+import { getSettings, setSettings, importLegacySettings, migrateMaghribiAdhan } from './settings.js';
+import { autoDetectLocation, migrateTimetableCache, prefetchUpcomingMonths, suggestMethodByCountry } from './prayer.js';
 import { refreshHookScriptIfEnabled } from './shell-hook.js';
 import { azkarFilePath } from './dhikr.js';
 import { checkForUpdate } from './updates.js';
@@ -66,9 +68,9 @@ function toggleMainWindow(): void {
   mainWindow.focus();
 }
 
-function createMainWindow(): void {
+function createMainWindow(opts: { hidden?: boolean; route?: string } = {}): void {
   const s = getSettings();
-  mainWindow = new BrowserWindow({
+  const win = new BrowserWindow({
     width: 1200,
     height: 780,
     minWidth: 900,
@@ -86,6 +88,7 @@ function createMainWindow(): void {
     },
   });
 
+  mainWindow = win;
   Menu.setApplicationMenu(null);
 
   const isDev = !app.isPackaged && process.env.VITE_DEV_SERVER_URL;
@@ -100,7 +103,7 @@ function createMainWindow(): void {
   // و`res` للموارد المحزَّمة (صور الدروس المصوَّرة وأصوات الأذكار والرقية المُضمَّنة).
   const MEDIA = "media-src 'self' file: data: gtsalat: https: http:";
   const IMG = "img-src 'self' data: gtsalat: https:";
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     const csp = isDev
       ? `default-src 'self' 'unsafe-inline' 'unsafe-eval' ws:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; ${IMG}; ${MEDIA}; connect-src 'self' ws: wss: https://api.aladhan.com https://ipapi.co https://ip-api.com`
       : `default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; ${IMG}; ${MEDIA}; connect-src 'self' https://api.aladhan.com https://ipapi.co https://ip-api.com`;
@@ -113,28 +116,51 @@ function createMainWindow(): void {
   });
 
   if (isDev) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!);
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    win.loadURL(process.env.VITE_DEV_SERVER_URL!);
+    win.webContents.openDevTools({ mode: 'detach' });
   } else {
-    mainWindow.loadFile(path.join(app.getAppPath(), 'dist', 'index.html'));
+    win.loadFile(path.join(app.getAppPath(), 'dist', 'index.html'));
   }
 
-  const startHidden = process.argv.includes('--hidden') || s.startMinimized;
-  mainWindow.once('ready-to-show', () => {
-    if (!startHidden) mainWindow!.show();
+  const startHidden = opts.hidden ?? (process.argv.includes('--hidden') || s.startMinimized);
+  win.once('ready-to-show', () => {
+    if (!startHidden) win.show();
   });
+  if (opts.route) {
+    const route = opts.route;
+    win.webContents.once('did-finish-load', () => win.webContents.send('nav:go', route));
+  }
 
-  mainWindow.on('close', (e) => {
+  win.on('close', (e) => {
     const st = getSettings();
     if (st.minimizeToTray && !(app as any).isQuitting) {
       e.preventDefault();
-      mainWindow!.hide();
+      win.hide();
     }
   });
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  // لا نمحو المرجع إلّا إن كانت هذه النافذة نفسها: عند إعادة الإنشاء تُغلَق القديمة بعد فتح الجديدة.
+  win.on('closed', () => {
+    if (mainWindow === win) mainWindow = null;
   });
+}
+
+/**
+ * تُعاد المنطقة الزمنيّة عند تغيّرها (تغيير إعدادٍ، أو تبدّل إزاحة النظام، أو استئنافٌ من السبات).
+ * عمليّة العرض المفتوحة لا تتبع TZ الجديد ولو أُعيد تحميلها، فتُستبدَل النافذة بأخرى جديدة
+ * بنفس حال الظهور.
+ */
+function refreshTimeZone(route?: string): boolean {
+  if (!applyTimeZone()) return false;
+  const old = mainWindow;
+  if (old) {
+    const hidden = !old.isVisible();
+    createMainWindow({ hidden, route });
+    old.removeAllListeners('close');
+    old.destroy();
+  }
+  restartSchedulerIfRunning();
+  return true;
 }
 
 app.on('second-instance', () => {
@@ -159,11 +185,20 @@ app.whenReady().then(async () => {
     mainWindow?.webContents.send('audio:state', kind);
   });
 
+  // الكاش القديم حُسبت لحظاته بقواعد المناطق المضمَّنة؛ يُمسح مرّةً فيُعاد ملؤه صحيحاً.
+  migrateTimetableCache();
+  migrateMaghribiAdhan();
+
+  setTimeZoneRefresher(refreshTimeZone);
   serveQuranScheme();
   registerIpc(() => mainWindow);
   createMainWindow();
   createTray(showMainWindow, toggleMainWindow);
   startScheduler();
+
+  // إزاحة النظام قد تتبدّل والتطبيق يعمل (تغيير المنطقة، أو توقيتٌ صيفيّ وقد فرضنا منطقةً ثابتة).
+  setInterval(() => { refreshTimeZone(); }, 10 * 60 * 1000);
+  powerMonitor.on('resume', () => { refreshTimeZone(); });
 
   // تحديث سكربت الطرفية عند بدء التشغيل إذا كان التكامل مفعّلاً
   const s2 = getSettings();

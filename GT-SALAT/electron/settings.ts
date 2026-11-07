@@ -17,7 +17,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoUpdateLocation: false,
   preNotifyMinutes: 15,
   zikrIntervalMinutes: 30,
-  adhanType: 'full',
+  // الأذان المغربيّ الكامل افتراضيّاً، كما في الهاتف.
+  adhanType: 'maghribi_full',
   enableSalatNotify: true,
   enableZikrNotify: true,
   systemSalatNotify: true,
@@ -32,7 +33,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   doNotDisturb: false,
   setupCompleted: false,
-  enableDuaAfterAdhan: false,
+  enableDuaAfterAdhan: true,
   enablePostPrayerDhikr: false,
   postPrayerDhikrDelayMinutes: 20,
   customAdhanPath: '',
@@ -65,8 +66,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   clock24h: true,
   timetableCalendar: 'hijri',
   hijriOffset: 0,
+  timeZoneMode: 'auto',
+  manualUtcOffset: 0,
+  timetableCacheVersion: 0,
+  maghribiAdhanMigrated: false,
   monthScheme: 'auto',
   accentColor: '',
+  homeBackgroundEnabled: true,
+  homeBackgroundId: 'hassan',
+  homeBackgroundLevel: 1,
+  customBackgroundStamp: 0,
+  glassTheme: true,
+  glassBlur: 30,
   advancedOpenSection: 'حساب المواقيت',
   checkUpdates: true,
   allowPrereleaseUpdates: false,
@@ -175,6 +186,17 @@ export function importLegacySettings(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * ترحيل 2.3: الأذان المغربيّ الكامل صار الافتراضيّ. الأذان الكامل كان الافتراضيّ قبلها ويُحفَظ مع
+ * أوّل حفظٍ للإعدادات، فلا يُميَّز من اختاره عمّن ورثه؛ فيُنقَل إلى المغربيّ مرّةً واحدة، ومن أراد
+ * المشرقيّ أعاده من الإعدادات فلا يُرحَّل ثانيةً.
+ */
+export function migrateMaghribiAdhan(): void {
+  const s = getSettings();
+  if (s.maghribiAdhanMigrated) return;
+  setSettings({ maghribiAdhanMigrated: true, ...(s.adhanType === 'full' ? { adhanType: 'maghribi_full' } : {}) });
 }
 
 export function getStorePath(): string {

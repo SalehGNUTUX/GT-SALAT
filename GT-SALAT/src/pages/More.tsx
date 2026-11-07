@@ -6,22 +6,22 @@ export const MAX_FAVORITE_SECTIONS = 3;
 
 /** أقسام «المزيد» — الترتيب حسب الأولوية، مطابقٌ لنسخة الهاتف. */
 export const MORE_FEATURES: { id: string; label: string; icon: string; desc: string }[] = [
-  { id: 'learn', label: 'الطهارة والصلاة', icon: '🕌', desc: '13 درساً مالكيّاً بمصادره · 233 صورة · أداتان تفاعليّتان' },
-  { id: 'ruqyah', label: 'الرقية الشرعية', icon: '🌿', desc: '9 أقسام · نصٌّ واستماعٌ بصوت سعد الغامدي' },
+  { id: 'radios', label: 'الإذاعات', icon: '📻', desc: '36 إذاعةً قرآنيةً مباشرة' },
   { id: 'tafsir', label: 'التفسير الميسّر', icon: '📝', desc: 'تفسير كل آية · بحثٌ في نصّ التفسير نفسه' },
-  { id: 'hisn', label: 'حصن المسلم', icon: '🛡️', desc: '132 باباً · 267 ذكراً' },
   { id: 'adhkar-morning', label: 'أذكار الصباح', icon: '☀️', desc: '22 ذكراً بعدد تكرارها' },
   { id: 'adhkar-evening', label: 'أذكار المساء', icon: '🌙', desc: '21 ذكراً بعدد تكرارها' },
   { id: 'adhkar-sleep', label: 'أذكار النوم', icon: '🛏️', desc: 'بابُ النوم من حصن المسلم' },
   { id: 'adhkar-audio', label: 'الأذكار الصوتية', icon: '🎧', desc: 'الصباح والمساء والنوم — تسجيلاتٌ مُضمَّنة' },
+  { id: 'hisn', label: 'حصن المسلم', icon: '🛡️', desc: '132 باباً · 267 ذكراً' },
   { id: 'tasbih', label: 'التسبيح', icon: '📿', desc: 'عدّادٌ بهدفٍ · وضعٌ صوتيّ · تسبيحٌ مختلط' },
   { id: 'duas', label: 'الأدعية المأثورة', icon: '🤲', desc: '28 دعاءً في 5 أبواب' },
   { id: 'hadith', label: 'الأربعون والأحاديث', icon: '📜', desc: 'النووية 40 · رياض الصالحين 50' },
   { id: 'asma', label: 'أسماء الله الحسنى', icon: '✨', desc: '100 اسمٍ بمعانيها وشواهدها' },
+  { id: 'learn', label: 'الطهارة والصلاة', icon: '🕌', desc: '13 درساً مالكيّاً بمصادره · 233 صورة · أداتان تفاعليّتان' },
+  { id: 'ruqyah', label: 'الرقية الشرعية', icon: '🌿', desc: '9 أقسام · نصٌّ واستماعٌ بصوت سعد الغامدي' },
+  { id: 'imsakiah', label: 'إمساكية رمضان', icon: '🌛', desc: 'الإمساك والإفطار طوال الشهر' },
   { id: 'hikam', label: 'حِكَم ومواعظ', icon: '💬', desc: '32 حكمةً في 4 أبواب' },
   { id: 'events', label: 'أحداثٌ تاريخية', icon: '🏛️', desc: '59 حدثاً في السيرة والتاريخ' },
-  { id: 'radios', label: 'الإذاعات', icon: '📻', desc: '36 إذاعةً قرآنيةً مباشرة' },
-  { id: 'imsakiah', label: 'إمساكية رمضان', icon: '🌛', desc: 'الإمساك والإفطار طوال الشهر' },
 ];
 
 export function MorePage({

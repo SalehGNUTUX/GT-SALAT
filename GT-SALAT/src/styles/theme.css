@@ -68,6 +68,9 @@
   --font-arabic: 'Ubuntu Arabic', 'Segoe UI', sans-serif;
   --font-display: 'Amiri Quran', 'Amiri', serif;
   --font-mono: 'Consolas', 'Courier New', monospace;
+
+  /* تمويه ما خلف اللوحات في السمة الزجاجيّة؛ يضبطه App من `glassBlur`. */
+  --glass-backdrop: none;
 }
 
 /* Light theme override */
@@ -83,3 +86,30 @@
   --fg-muted: #6b7699;
   --fg-terminal: #006064;
 }
+
+/*
+ * السمة الزجاجيّة (نظير LocalGlassTheme في الهاتف): اللوحات شفّافةٌ فوق طبقة الخلفيّة،
+ * وتموّه ما خلفها بـ`--glass-backdrop` (يضبطه App من `glassBlur`). الحوارات والقوائم
+ * المنسدلة تبقى معتمة لأنّها تستعمل ألوانها الخاصّة.
+ */
+:root[data-glass='on'] {
+  --bg-base: rgba(15, 17, 23, 0.3);
+  --bg-panel: rgba(20, 23, 32, 0.55);
+  --bg-card: rgba(26, 30, 46, 0.6);
+  --bg-elevated: rgba(30, 36, 54, 0.58);
+  --bg-hover: rgba(37, 43, 64, 0.66);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --shadow-sm: none;
+}
+:root[data-glass='on'][data-theme='light'] {
+  --bg-base: rgba(247, 249, 252, 0.3);
+  --bg-panel: rgba(255, 255, 255, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.64);
+  --bg-elevated: rgba(240, 244, 250, 0.62);
+  --bg-hover: rgba(232, 238, 245, 0.72);
+  --border-subtle: rgba(26, 30, 46, 0.12);
+}
+
+/* قوائم الاختيار المنسدلة تُرسَم أصليّاً: تبقى معتمة فوق الزجاج. */
+:root[data-glass='on'] select option { background: #1a1e2e; color: #e4e8f0; }
+:root[data-glass='on'][data-theme='light'] select option { background: #ffffff; color: #1a1e2e; }

@@ -7,6 +7,7 @@ import type {
   BackupContents,
   BackupResult,
   UpdateInfo,
+  TimeZoneStatus,
   UpdateAsset,
   UpdateChannel,
   UpdateDownloadResult,
@@ -110,13 +111,13 @@ const api = {
     }> => ipcRenderer.invoke('content:credits'),
   },
   audio: {
-    play: (kind: 'full' | 'short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr') => ipcRenderer.invoke('audio:play', kind),
+    play: (kind: 'full' | 'short' | 'maghribi_full' | 'maghribi_short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr') => ipcRenderer.invoke('audio:play', kind),
     playFile: (filePath: string) => ipcRenderer.invoke('audio:play-file', filePath),
     stop: () => ipcRenderer.invoke('audio:stop'),
     playing: (): Promise<boolean> => ipcRenderer.invoke('audio:playing'),
     playingKind: (): Promise<string | null> => ipcRenderer.invoke('audio:playing-kind'),
     preview: (
-      kind: 'full' | 'short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr' | 'custom',
+      kind: 'full' | 'short' | 'maghribi_full' | 'maghribi_short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr' | 'custom',
       customPath?: string,
     ): Promise<string | null> => ipcRenderer.invoke('audio:preview', kind, customPath),
     players: (): Promise<string[]> => ipcRenderer.invoke('audio:players'),
@@ -224,6 +225,17 @@ const api = {
       ipcRenderer.on('update:progress', listener);
       return () => ipcRenderer.removeListener('update:progress', listener);
     },
+  },
+  background: {
+    /** منتقي الصور؛ عند النجاح تُضبط الخلفيّة على صورة المستخدم ويُبثّ تغيّر الإعدادات. */
+    pickCustom: (): Promise<{ ok: boolean; error?: string }> => ipcRenderer.invoke('bg:pick'),
+    customUrl: (): Promise<string | null> => ipcRenderer.invoke('bg:custom'),
+    removeCustom: (): Promise<boolean> => ipcRenderer.invoke('bg:remove'),
+  },
+  time: {
+    status: (): Promise<TimeZoneStatus> => ipcRenderer.invoke('time:status'),
+    set: (mode: 'auto' | 'manual', offsetHours: number): Promise<TimeZoneStatus> =>
+      ipcRenderer.invoke('time:set', mode, offsetHours),
   },
   app: {
     version: () => ipcRenderer.invoke('app:version'),

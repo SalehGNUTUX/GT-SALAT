@@ -63,6 +63,8 @@ import {
 import type { AppSettings, DownloadKind, UpdateAsset } from './types.js';
 import { startScheduler, stopScheduler, restartSchedulerIfRunning } from './scheduler.js';
 import { refreshTray } from './tray.js';
+import { refreshTimeZoneNow, timeZoneStatus } from './timezone.js';
+import { customBackgroundUrl, pickCustomBackground, removeCustomBackground } from './backgrounds.js';
 import { getRiwayaSurah, isRiwayaCached, riwayaCachedCount } from './riwaya.js';
 
 export function registerIpc(getMainWindow: () => BrowserWindow | null) {
@@ -306,6 +308,34 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   ipcMain.handle('update:clear-packages', () => clearPackages());
 
   // ── App ─────────────────────────────────────────────────
+  // ── خلفيّة المستخدم ──────────────────────────────────────
+  ipcMain.handle('bg:pick', async () => {
+    const r = await pickCustomBackground(getMainWindow());
+    if (r.ok) {
+      const merged = setSettings({ homeBackgroundId: 'custom', homeBackgroundEnabled: true, customBackgroundStamp: Date.now() });
+      getMainWindow()?.webContents.send('settings:changed', merged);
+    }
+    return r;
+  });
+  ipcMain.handle('bg:custom', () => customBackgroundUrl());
+  ipcMain.handle('bg:remove', () => {
+    removeCustomBackground();
+    const cur = getSettings();
+    const merged = setSettings({ homeBackgroundId: cur.homeBackgroundId === 'custom' ? 'hassan' : cur.homeBackgroundId, customBackgroundStamp: Date.now() });
+    getMainWindow()?.webContents.send('settings:changed', merged);
+    return true;
+  });
+
+  // ── المنطقة الزمنيّة ──────────────────────────────────────
+  ipcMain.handle('time:status', () => timeZoneStatus());
+  ipcMain.handle('time:set', (_e, mode: 'auto' | 'manual', offsetHours: number) => {
+    const h = Math.max(-12, Math.min(14, Math.round(Number(offsetHours) || 0)));
+    setSettings({ timeZoneMode: mode === 'manual' ? 'manual' : 'auto', manualUtcOffset: h });
+    // يُطبَّق بعد أن يصل الردّ: النافذة الطالبة نفسها تُستبدَل وتعود إلى الإعدادات الإضافيّة.
+    setTimeout(() => refreshTimeZoneNow('advanced'), 150);
+    return timeZoneStatus();
+  });
+
   ipcMain.handle('app:version', () => app.getVersion());
   ipcMain.handle('app:quit', () => app.quit());
   ipcMain.handle('app:open-url', (_e, url: string) => shell.openExternal(url));

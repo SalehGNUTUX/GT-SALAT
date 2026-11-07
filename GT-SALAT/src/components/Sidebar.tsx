@@ -33,9 +33,12 @@ export function Sidebar({ page, sub, onSelect, version, doNotDisturb, notifyActi
   return (
     <aside
       style={{
+        position: 'relative',
+        zIndex: 1,
         width: 230,
         minHeight: '100vh',
         background: 'var(--bg-panel)',
+        backdropFilter: 'var(--glass-backdrop)',
         borderLeft: '1px solid var(--border-subtle)',
         display: 'flex',
         flexDirection: 'column',

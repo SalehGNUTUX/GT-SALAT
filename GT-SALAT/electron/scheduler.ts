@@ -31,8 +31,15 @@ let announcedForPrayer = new Set<string>(); // مفاتيح "prayerId@YYYY-MM-DD
 let announcedApproaching = new Set<string>();
 let announcedReminders = new Set<string>();  // مفاتيح "reminderId@YYYY-MM-DD"
 
+/** تاريخ اليوم المحلّيّ YYYY-MM-DD — بصيغة `DayTimetable.date` نفسها التي تُبنى بها المفاتيح. */
+function localDate(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function resetDayIfNeeded(): void {
-  const today = new Date().toISOString().slice(0, 10);
+  // محلّيٌّ لا UTC: في المناطق الغربيّة يسبق تاريخ غرينتش تاريخ المستخدم مساءً، فكانت مفاتيح
+  // العشاء تُمحى ويُعاد إعلانها.
+  const today = localDate();
   for (const key of [...announcedForPrayer]) {
     if (!key.endsWith(today)) announcedForPrayer.delete(key);
   }
@@ -102,12 +109,26 @@ async function tick(): Promise<void> {
       if (diff <= 0 && diff > -60_000 && !announcedForPrayer.has(key)) {
         announcedForPrayer.add(key);
         announcePrayer(p);
+      } else if (diff <= -60_000 && diff > -MISSED_GRACE_MS && !announcedForPrayer.has(key)) {
+        // ★ فات الموعد والحاسوب نائمٌ أو التطبيق مغلق: لا أذان خارج وقته (كما في الهاتف)،
+        // بل إعلامٌ صامتٌ بوقت الدخول. ولا يُعلَن ما فات بأكثر من المهلة.
+        announcedForPrayer.add(key);
+        notify({
+          type: 'salat',
+          title: `🕌 دخل وقت صلاة ${p.name} عند ${p.time}`,
+          body: 'فات موعد الأذان والجهاز نائم، فلم يُشغَّل الصوت.',
+          urgent: false,
+          route: 'dashboard',
+        });
       }
     }
   } catch (err) {
     console.error('[scheduler] tick error:', err);
   }
 }
+
+/** أقصى تأخّرٍ يُعلَن فيه دخول الوقت صامتاً بعد فوات الأذان (استئنافٌ من السبات أو تشغيلٌ متأخّر). */
+const MISSED_GRACE_MS = 30 * 60_000;
 
 function announceApproaching(p: PrayerTime, minutes: number): void {
   const s = getSettings();
@@ -182,7 +203,8 @@ function announcePrayer(p: PrayerTime): void {
 const REMINDER_GRACE_MS = 60 * 60_000;
 
 function fireReminderOnce(id: string, hour: number, now: Date, title: string, body: string, route?: string): void {
-  const dateStr = now.toISOString().slice(0, 10);
+  // التاريخ المحلّيّ لا UTC: وإلّا تبدّل مفتاح اليوم عند منتصف ليل غرينتش لا منتصف ليل المستخدم.
+  const dateStr = localDate(now);
   const key = `${id}@${dateStr}`;
   if (announcedReminders.has(key)) return;
 

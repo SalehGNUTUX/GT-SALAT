@@ -14,7 +14,7 @@ import type {
   NextPrayerInfo,
   CalculationMethod,
 } from './types.js';
-import { getSettings } from './settings.js';
+import { getSettings, setSettings } from './settings.js';
 
 const PRAYER_NAMES_AR: Record<PrayerTime['id'], string> = {
   fajr: 'الفجر',
@@ -180,15 +180,22 @@ export async function fetchMonthlyFromApi(
       const hijriWeekday = (day.date.hijri.weekday?.ar ?? '') as string;
       const hijri = `${hijriWeekday ? hijriWeekday + ' ' : ''}${day.date.hijri.day} ${day.date.hijri.month.ar} ${day.date.hijri.year} هـ`.trim();
       const makeTime = (key: string): PrayerTime => {
-        const raw = (day.timings[key] as string).split(' ')[0]; // "05:12 (GMT+1)"
+        const full = day.timings[key] as string; // "05:12 (+00)" أو "05:12 (GMT+1)"
+        const raw = full.split(' ')[0];
         const [hh, mm] = raw.split(':').map((x: string) => parseInt(x, 10));
-        const dateObj = new Date(parseInt(d[2]), parseInt(d[1]) - 1, parseInt(d[0]), hh, mm);
+        const y = parseInt(d[2]), mo = parseInt(d[1]) - 1, dd = parseInt(d[0]);
+        // ★ اللحظة من إزاحة الخادم المرسلة مع الوقت، لا من قواعد المناطق المحلّيّة: قد تكون
+        // قديمة (عاد المغرب إلى GMT+0 وElectron يحسبه +1) فيتقدّم الأذان ساعة. انظر timezone.ts.
+        const off = parseOffset(full);
+        const timestamp = off != null
+          ? Date.UTC(y, mo, dd, hh, mm) - off * 60_000
+          : new Date(y, mo, dd, hh, mm).getTime();
         return {
           id: key.toLowerCase() as PrayerTime['id'],
           name: PRAYER_NAMES_AR[key.toLowerCase() as PrayerTime['id']] ?? key,
           time: `${pad2(hh)}:${pad2(mm)}`,
           date: dateStr,
-          timestamp: dateObj.getTime(),
+          timestamp,
         };
       };
       return {
@@ -210,6 +217,34 @@ export async function fetchMonthlyFromApi(
   } catch {
     return null;
   }
+}
+
+/** إزاحة الخادم بالدقائق من مثل "(+00)" أو "(GMT+1)" أو "(+05:30)"، أو null. */
+export function parseOffset(raw: string): number | null {
+  const m = /\((?:GMT|UTC)?([+-])(\d{1,2})(?::?(\d{2}))?\)/.exec(raw);
+  if (!m) return null;
+  const minutes = parseInt(m[2], 10) * 60 + (m[3] ? parseInt(m[3], 10) : 0);
+  return m[1] === '-' ? -minutes : minutes;
+}
+
+/** نسخة صيغة الكاش: 2 = اللحظات محسوبةٌ من إزاحة الخادم. */
+const TIMETABLE_CACHE_VERSION = 2;
+
+/**
+ * يمسح كاش المواقيت مرّةً عند ترقية صيغته: الكاش القديم حُسبت لحظاته بقواعد المناطق
+ * المضمَّنة، فبقي الأذان متقدّماً ساعةً في المغرب حتى بعد إصلاح الحساب. يُعاد ملؤه من
+ * الخادم أو بالحساب المحلّيّ.
+ */
+export function migrateTimetableCache(): void {
+  const s = getSettings();
+  if ((s.timetableCacheVersion ?? 0) >= TIMETABLE_CACHE_VERSION) return;
+  try {
+    const dir = cacheDir();
+    for (const f of fs.readdirSync(dir)) {
+      if (f.startsWith('timetable_') && f.endsWith('.json')) fs.rmSync(path.join(dir, f), { force: true });
+    }
+  } catch {}
+  setSettings({ timetableCacheVersion: TIMETABLE_CACHE_VERSION });
 }
 
 /**

@@ -30,6 +30,7 @@ import { applyAccent } from './utils/accent';
 import { PlayerProvider } from './hooks/usePlayer';
 import { UpdaterProvider } from './hooks/useUpdater';
 import { MiniPlayer } from './components/MiniPlayer';
+import { Backdrop } from './components/Backdrop';
 
 const PAGE_LABELS: Record<PageId, string> = {
   dashboard: 'لوحة التحكم',
@@ -148,17 +149,20 @@ function AppShell() {
   const showWhatsNew = settings.lastWhatsNewVersion !== WHATS_NEW.version;
 
   const notifyActive = settings.enableSalatNotify || settings.enableZikrNotify;
+  const backdrop = backdropMode(settings, page);
   // المثبَّتة تُعرَض بترتيب الشبكة لا بترتيب الإضافة، فيثبت موضعها في الشريط.
   const favoriteSections = MORE_FEATURES.filter((f) => (settings.favoriteSections ?? []).includes(f.id));
   const label = sub ? SUB_LABELS[sub] ?? PAGE_LABELS[page] : PAGE_LABELS[page];
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', flexDirection: 'row' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', flexDirection: 'row', position: 'relative' }}>
+      <GlassSync active={backdrop !== 'none'} blur={settings.glassBlur} />
+      <Backdrop settings={settings} mode={backdrop} />
       {showWhatsNew && (
         <WhatsNewDialog onClose={() => updateSettings({ lastWhatsNewVersion: WHATS_NEW.version })} />
       )}
 
-      {/* الشريط الجانبي — يمين (أول DOM في RTL = يمين) */}
+      {/* الشريط الجانبي — يمين (أول DOM في RTL = يمين). فوق طبقة الخلفيّة. */}
       <Sidebar
         page={page}
         sub={sub}
@@ -172,7 +176,7 @@ function AppShell() {
         onToggleTheme={() => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
       />
       {/* المحتوى الرئيسي — يسار */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', zIndex: 1 }}>
         <UpdateBanner settings={settings} update={updateSettings} />
         <PhonePromoBanner settings={settings} update={updateSettings} />
         {/* زرّ الرجوع للأقسام الفرعية في «المزيد» فقط — تبويبات القرآن يُتنقَّل بينها بشريطها */}
@@ -237,4 +241,33 @@ function AppShell() {
       </div>
     </div>
   );
+}
+
+/**
+ * أيّ خلفيّةٍ تُرسَم في الصفحة الحاليّة (انظر `Backdrop`):
+ * لوحة التحكّم بالصورة حادّة، وبقيّة الأقسام بها مموَّهةً مع السمة الزجاجيّة، والقرآن بلا صورة.
+ */
+function backdropMode(s: NonNullable<ReturnType<typeof useSettings>[0]>, page: PageId): 'sharp' | 'blurred' | 'gradient' | 'none' {
+  const glass = s.glassTheme;
+  const bg = s.homeBackgroundEnabled;
+  if (page === 'quran') return glass ? 'gradient' : 'none';
+  if (page === 'dashboard') return bg ? 'sharp' : glass ? 'gradient' : 'none';
+  if (!glass) return 'none';
+  return bg ? 'blurred' : 'gradient';
+}
+
+/** يضبط سِمة الزجاج وشدّة تمويه ما خلف اللوحات على جذر المستند. */
+function GlassSync({ active, blur }: { active: boolean; blur: number }) {
+  useEffect(() => {
+    const root = document.documentElement;
+    if (active) {
+      root.setAttribute('data-glass', 'on');
+      const px = Math.max(0, Math.min(100, blur)) * 0.24;
+      root.style.setProperty('--glass-backdrop', px > 0 ? `blur(${px.toFixed(1)}px) saturate(1.15)` : 'saturate(1.1)');
+    } else {
+      root.removeAttribute('data-glass');
+      root.style.setProperty('--glass-backdrop', 'none');
+    }
+  }, [active, blur]);
+  return null;
 }

@@ -1,19 +1,31 @@
 import { AudioSeekBar } from './AudioSeekBar';
+import { useEffect, useState } from 'react';
 import { usePlayer } from '../hooks/usePlayer';
+
+/** خيارات مؤقّت الإيقاف بالدقائق، كما في الهاتف. */
+const SLEEP_CHOICES = [15, 30, 45, 60, 90];
 
 /**
  * شريط المشغّل السفلي — يبقى ظاهراً في كل الأقسام ما دام هناك صوتٌ يُبَثّ.
  * النقر على اسم المقطع يعيدك إلى القسم الذي شغّلته منه.
  */
 export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
-  const { track, status, volume, index, queueLength, togglePause, next, prev, stop, setVolume } = usePlayer();
+  const { track, status, volume, index, queueLength, togglePause, next, prev, stop, setVolume, sleepEndsAt, setSleepTimer, reconnecting } = usePlayer();
+  // ساعةٌ محلّيّة للمتبقّي من المؤقّت: تُعيد رسم الشريط وحده لا التطبيق كلّه.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (sleepEndsAt == null) return;
+    const t = window.setInterval(() => setTick((n) => n + 1), 15_000);
+    return () => window.clearInterval(t);
+  }, [sleepEndsAt]);
   if (!track) return null;
+  const sleepLeft = sleepEndsAt != null ? Math.max(1, Math.ceil((sleepEndsAt - Date.now()) / 60_000)) : null;
 
   const playing = status === 'playing';
   const inQueue = queueLength > 1;
   const statusText =
     status === 'playing' ? 'يُبَثّ الآن'
-      : status === 'loading' ? 'جارٍ الاتصال…'
+      : status === 'loading' ? (reconnecting > 0 ? `انقطع البثّ — إعادة الاتصال (المحاولة ${reconnecting})…` : 'جارٍ الاتصال…')
       : status === 'paused' ? 'متوقّفٌ مؤقّتاً'
       : status === 'error' ? 'تعذّر الاتصال بالبثّ — جرّب مصدراً آخر'
       : '';
@@ -26,6 +38,7 @@ export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
         gap: 14,
         padding: '10px 20px',
         background: 'var(--bg-panel)',
+        backdropFilter: 'var(--glass-backdrop)',
         borderTop: '1px solid var(--teal-600)',
         flexShrink: 0,
       }}
@@ -89,6 +102,7 @@ export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
         <div style={{ fontSize: 11.5, color: status === 'error' ? 'var(--color-error)' : 'var(--fg-muted)', marginTop: 2 }}>
           {statusText}{track.subtitle && status !== 'error' ? ` · ${track.subtitle}` : ''}
           {inQueue && status !== 'error' ? ` · ${index + 1}/${queueLength}` : ''}
+          {sleepLeft != null ? ` · ⏲ يتوقّف بعد ${sleepLeft} دقيقة` : ''}
         </div>
       </div>
 
@@ -115,6 +129,34 @@ export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
           {volume}٪
         </span>
       </div>
+
+      {/* ⏲ مؤقّت الإيقاف — للنوم على الإذاعة أو التلاوة */}
+      <select
+        value={sleepEndsAt != null ? 'on' : ''}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v === 'off') setSleepTimer(null);
+          else if (v !== 'on' && v !== '') setSleepTimer(parseInt(v, 10));
+        }}
+        title="مؤقّت الإيقاف"
+        style={{
+          height: 30,
+          borderRadius: 'var(--radius-sm)',
+          border: `1px solid ${sleepEndsAt != null ? 'var(--teal-500)' : 'var(--border-subtle)'}`,
+          background: 'var(--bg-panel)',
+          color: sleepEndsAt != null ? 'var(--teal-400)' : 'var(--fg-muted)',
+          fontSize: 12,
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}
+      >
+        <option value="" disabled hidden>⏲ مؤقّت</option>
+        {sleepEndsAt != null && <option value="on" disabled hidden>⏲ {sleepLeft} دقيقة</option>}
+        {SLEEP_CHOICES.map((m) => (
+          <option key={m} value={m}>{m} دقيقة</option>
+        ))}
+        {sleepEndsAt != null && <option value="off">إلغاء المؤقّت</option>}
+      </select>
 
       {/* ⏹ إيقافٌ تامّ يُغلق المشغّل — منفصلٌ عن الإيقاف المؤقّت */}
       <button

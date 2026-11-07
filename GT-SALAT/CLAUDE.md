@@ -85,7 +85,35 @@ grep -rn "@electron/" src/ | grep -v "^[^:]*:[0-9]*:import type" \
 
 حقل `DayTimetable.hijri` يأتي من API فقط (الحساب المحلي لا يُولّده).
 
+**لحظة كلّ صلاةٍ من إزاحة الخادم** المرسلة مع الوقت (`"05:22 (+00)"` ← `parseOffset`) لا من قواعد المناطق المحلّيّة،
+و`migrateTimetableCache()` يمسح الكاش القديم مرّةً (`timetableCacheVersion = 2`).
+
+### المنطقة الزمنيّة (`electron/timezone.ts`)
+
+Electron يحمل ICU خاصّاً ببيانات مناطق يوم بنائه: عاد المغرب إلى GMT+0 في 2026-09-20 وElectron 30 ما زال
+يحسب `Africa/Casablanca` على +1، فتقدّمت ساعة التطبيق والأذان ساعةً رغم صحّة النظام.
+العلاج: `timezone.ts` **أوّل استيرادٍ في `main.ts`** يقرأ إزاحة النظام (`date +%z`) ويقارنها بإزاحة المحرّك،
+فإن اختلفتا ضبط `process.env.TZ` على `Etc/GMT∓N` (معكوس الإشارة في POSIX) قبل أيّ نافذة.
+العمليّة الرئيسيّة تتبعه فوراً، وكلّ عمليّة عرضٍ **جديدة**؛ أمّا النافذة المفتوحة فلا تتبعه ولو أُعيد تحميلها
+(مُختبَر)، لذا `refreshTimeZone()` في `main.ts` **يستبدل النافذة** عند التغيّر (كلّ 10 دقائق، وعند الاستئناف من السبات،
+وعند تغيير الإعداد). الوضع اليدويّ (`timeZoneMode='manual'` + `manualUtcOffset` بالساعات) في «التقويم والتواريخ»
+عبر `TimeZoneSetting`. الإزاحات النصفيّة لا تُصحَّح تلقائيّاً. على ويندوز لا كشف (`date` غير متاح).
+
 `suggestMethodByCountry(country)` تعيد رقم الطريقة المناسبة (1–22) بناءً على اسم البلد — تُستدعى في `autoDetectLocation()` وتُضاف `suggestedMethodId` للنتيجة.
+
+### الخلفيّة والسمة الزجاجيّة (2.3، نظير الهاتف)
+
+- الصور في `src/assets/backgrounds/{id}.webp` (+`thumb/`) **أفقيّة 1920×1080**، تُولَّد بـ`tools/prepare_backgrounds.sh`
+  من أصول الهاتف (`../GT-SALAT-PHONE/خلفيات/`): الصورة حادّةٌ بكامل الارتفاع فوق امتدادٍ من **شريط حافّتها فقط**
+  (الامتداد من الصورة كلّها يُظهر أشباح الكعبة والمآذن). المعرّفات والعناوين في `src/utils/backgrounds.ts` مطابقةٌ
+  لـ`HomeBackgrounds.kt`، و`hassan` يتبع الوضع (نهاريّ/ليليّ). **قبل النشر العامّ يلزم توثيق مصدر كلّ صورةٍ وترخيصها.**
+- `Backdrop` طبقةٌ ثابتةٌ خلف النافذة كلّها؛ `backdropMode` في `App.tsx`: لوحة التحكّم حادّة · بقيّة الأقسام مموَّهة
+  (مع الزجاج) · القرآن تدرّجٌ بلا صورة. الشريط الجانبيّ والمحتوى `zIndex: 1` فوقها.
+- الزجاج بـ`data-glass='on'` على الجذر يعيد تعريف `--bg-*` شفّافةً (`theme.css`)، و`--glass-backdrop` (من `glassBlur`)
+  يُطبَّق `backdropFilter` في `Card` والشريطين والمشغّل. **أيّ لوحةٍ جديدة تأخذ `backdropFilter: 'var(--glass-backdrop)'`.**
+- صورة المستخدم: `electron/backgrounds.ts` يصغّرها بـ`nativeImage` إلى `userData/backgrounds/custom.jpg` وتُسلَّم
+  رابطَ بيانات؛ `customBackgroundStamp` يجدّدها. لا تُدرَج في النسخ الاحتياطيّ. نافذة الأذان (`data:`) تأخذ الخلفيّة
+  رابطَ بيانات (`adhanBackdropUrl`)، ويُبحث عن الملفّ في `dist/assets` باسمه المجزّأ بعد البناء.
 
 ### المحتوى الإسلامي (2.0)
 
@@ -598,6 +626,12 @@ CSP مُطبَّقة في `electron/main.ts` عبر `session.webRequest.onHeader
 `src/assets/` تُدار بـ Vite (أيقونة الشريط الجانبي + خطوط Ubuntu Arabic و Amiri Quran).
 
 ### بناء RPM على Debian
+
+> **منذ 2.3:** `scripts/build-rpm.sh` يبني الـRPM بـ`rpmbuild` مباشرةً من محتوى الـDEB (مواصفةٌ مكتوبة: `%defattr` root،
+> وسكربت ما بعد التثبيت يربط `/usr/bin/gt-salat` ويضبط `chrome-sandbox` على 4755، ولا يحذف الرابط عند الترقية).
+> alien كان يُسقط هذه السكربتات. **و`build-all.sh` بهدفٍ صريح يبني x64 وحده**؛ لـarm:
+> `npx electron-builder --linux AppImage deb --arm64 --armv7l`. الحزم السبع: AppImage وDEB لـx64/arm64/armv7l + RPM x64.
+
 
 `scripts/build-all.sh` يتبع هذا التسلسل للـ RPM:
 1. يحاول `electron-builder --linux rpm` (يفشل على Debian لأن `rpmbuild` ينقصه ماكروات البناء).

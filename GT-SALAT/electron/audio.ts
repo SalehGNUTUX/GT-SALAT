@@ -28,12 +28,14 @@ function audioDir(): string {
   return path.join(app.getAppPath(), 'resources', 'audio');
 }
 
-export type AdhanAudioKind = 'full' | 'short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr';
+export type AdhanAudioKind = 'full' | 'short' | 'maghribi_full' | 'maghribi_short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr';
 
 export function audioFilePath(kind: AdhanAudioKind): string {
   const file =
     kind === 'full' ? 'adhan.ogg' :
     kind === 'short' ? 'short_adhan.ogg' :
+    kind === 'maghribi_full' ? 'adhan_maghribi_full.ogg' :
+    kind === 'maghribi_short' ? 'adhan_maghribi_short.ogg' :
     kind === 'approaching' ? 'prayer_approaching.ogg' :
     kind === 'dua_after_adhan' ? 'dua_after_adhan.ogg' :
     'post_prayer_dhikr.ogg';

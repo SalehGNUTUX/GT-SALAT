@@ -11,6 +11,8 @@ import {
   Toggle,
 } from '../components/common';
 import { UpdateManager } from '../components/UpdateManager';
+import { TimeZoneSetting } from '../components/TimeZoneSetting';
+import { HomeBackgroundSettings } from '../components/HomeBackgroundSettings';
 import type { AppSettings } from '../hooks/useSettings';
 import type { AlertMode, AsrMadhab, BackupContents, CalendarKind, CreditSource, MonthScheme } from '@electron/types';
 import { formatGregorian, formatHijri, formatHour, gregorianMonthName } from '../utils/format';
@@ -66,7 +68,7 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
     return () => clearInterval(t);
   }, []);
 
-  const preview = async (kind: 'full' | 'short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr' | 'custom') => {
+  const preview = async (kind: 'full' | 'short' | 'maghribi_full' | 'maghribi_short' | 'approaching' | 'dua_after_adhan' | 'post_prayer_dhikr' | 'custom') => {
     const now = await window.gtSalat.audio.preview(kind, settings.customAdhanPath || undefined);
     setPlaying(now);
   };
@@ -147,6 +149,8 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             {([
               ['full', 'الأذان الكامل'],
               ['short', 'الأذان القصير'],
+              ['maghribi_full', 'الأذان المغربيّ الكامل'],
+              ['maghribi_short', 'الأذان المغربيّ القصير'],
               ['approaching', 'رنّة تنبيه الاقتراب'],
               ['dua_after_adhan', 'دعاء بعد الأذان'],
               ['post_prayer_dhikr', 'أذكار بعد الصلاة'],
@@ -308,6 +312,8 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
           />
         </SettingRow>
 
+        <TimeZoneSetting />
+
         <SettingRow
           label="تعديل التاريخ الهجري"
           sub={`الآن: ${formatHijri(now, settings.hijriOffset)}${settings.hijriOffset !== 0 ? ' — محسوبٌ محلياً بأمّ القرى' : ' — من الإنترنت إن توفّر'}`}
@@ -347,6 +353,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
       </Collapsible>
 
       {/* ── المظهر ──────────────────────────────────────── */}
+      <Collapsible title="الخلفيّة والزجاج" icon="🕌" expanded={open === 'الخلفيّة والزجاج'} onToggle={() => toggle('الخلفيّة والزجاج')}>
+        <HomeBackgroundSettings settings={settings} update={update} />
+      </Collapsible>
+
       <Collapsible title="المظهر" icon="🎨" expanded={open === 'المظهر'} onToggle={() => toggle('المظهر')}>
         <SettingRow label="السِمة">
           <ChipGroup<'dark' | 'light'>
@@ -524,16 +534,6 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         )}
       </Collapsible>
 
-      {/* ── المصادر المعتمَدة ───────────────────────────── */}
-      <Collapsible title="المصادر المعتمَدة" icon="📚" expanded={open === 'المصادر المعتمَدة'} onToggle={() => toggle('المصادر المعتمَدة')}>
-        <div style={{ fontSize: 12.5, color: 'var(--fg-muted)', marginBottom: 12, lineHeight: 1.8 }}>
-          أُثري التطبيق بمحتوىً وبياناتٍ من مشاريعَ حرّةٍ ومفتوحةِ المصدر، بالشكر والتقدير:
-        </div>
-        {credits?.sources.map((s) => (
-          <LinkRow key={s.name} title={s.name} sub={s.note} url={s.url} />
-        ))}
-      </Collapsible>
-
       {/* ── حول ─────────────────────────────────────────── */}
       <Collapsible title="حول GT-SALAT" icon="ℹ️" expanded={open === 'حول GT-SALAT'} onToggle={() => toggle('حول GT-SALAT')}>
         <SettingRow label="النسخة">
@@ -552,6 +552,16 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             <LinkRow title="مشاريع GNUTUX" sub="بقيّة مشاريع المطوّر" url={credits.projects} />
           </>
         )}
+      </Collapsible>
+
+      {/* ── المصادر المعتمَدة ───────────────────────────── */}
+      <Collapsible title="المصادر المعتمَدة" icon="📚" expanded={open === 'المصادر المعتمَدة'} onToggle={() => toggle('المصادر المعتمَدة')}>
+        <div style={{ fontSize: 12.5, color: 'var(--fg-muted)', marginBottom: 12, lineHeight: 1.8 }}>
+          أُثري التطبيق بمحتوىً وبياناتٍ من مشاريعَ حرّةٍ ومفتوحةِ المصدر، بالشكر والتقدير:
+        </div>
+        {credits?.sources.map((s) => (
+          <LinkRow key={s.name} title={s.name} sub={s.note} url={s.url} />
+        ))}
       </Collapsible>
     </div>
   );

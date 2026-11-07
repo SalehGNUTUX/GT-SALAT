@@ -1,6 +1,7 @@
 import { BrowserWindow, screen } from 'electron';
 import * as audio from './audio.js';
 import { getSettings } from './settings.js';
+import { adhanBackdropUrl } from './backgrounds.js';
 
 /**
  * نافذةُ أذانٍ بملء الشاشة فوق كلّ النوافذ — نظيرُ `AdhanAlarmActivity` في نسخة الهاتف.
@@ -22,12 +23,16 @@ let hardTimer: NodeJS.Timeout | null = null;
 /** سقفٌ زمنيٌّ للنافذة مهما جرى — أطولُ أذانٍ دون خمس دقائق بكثير. */
 const HARD_LIMIT_MS = 5 * 60_000;
 
-function html(title: string, subtitle: string, icon: string): string {
+function html(title: string, subtitle: string, icon: string, backdrop: string | null, dark: boolean): string {
+  // خلفيّة التطبيق المختارة تحت غشاوةٍ تحفظ وضوح النصّ، وإلّا التدرّج الأخضر.
+  const bg = backdrop
+    ? `linear-gradient(rgba(5,12,14,${dark ? 0.55 : 0.45}),rgba(5,12,14,${dark ? 0.7 : 0.6})),url(${backdrop}) center/cover no-repeat`
+    : 'linear-gradient(160deg,#07211f,#0d3b34 55%,#07211f)';
   // كلّ الأنماط سطريّة: النافذة تُحمَّل من `data:` فلا مورد خارجيّ ولا CSP تمنعها.
   return `<!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${title}</title></head>
 <body style="margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  background:linear-gradient(160deg,#07211f,#0d3b34 55%,#07211f);color:#e8f5f2;
+  background:${bg};color:#e8f5f2;
   font-family:'Ubuntu Arabic','Noto Naskh Arabic',sans-serif;user-select:none;overflow:hidden">
   <div style="font-size:96px;line-height:1;animation:p 2.4s ease-in-out infinite">${icon}</div>
   <div style="font-size:44px;font-weight:700;color:#f5c518">${title}</div>
@@ -62,7 +67,7 @@ export function showAdhanWindow(title: string, subtitle: string, icon = '🕌'):
   });
 
   win.setAlwaysOnTop(true, 'screen-saver');
-  void win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html(title, subtitle, icon)));
+  void win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html(title, subtitle, icon, adhanBackdropUrl(), s.theme !== 'light')));
   win.once('ready-to-show', () => win?.show());
 
   // الإغلاق — بالزرّ أو بـEsc أو تلقائياً — يوقف الصوت الجاري. مصدرٌ واحدٌ لكلّ الطرق.

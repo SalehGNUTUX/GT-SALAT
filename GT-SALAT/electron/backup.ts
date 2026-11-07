@@ -109,7 +109,7 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['auto_update_loc'] = B(s.autoUpdateLocation);
   p['madhab'] = S(s.madhab === 'hanafi' ? 'HANAFI' : 'SHAFI');
   p['pre_notify_min'] = I(s.preNotifyMinutes);
-  p['adhan_type'] = S(s.useCustomAdhan ? 'CUSTOM' : s.adhanType === 'short' ? 'SHORT' : 'FULL');
+  p['adhan_type'] = S(s.useCustomAdhan ? 'CUSTOM' : s.adhanType.toUpperCase());
   p['en_salat_notify'] = B(s.enableSalatNotify);
   p['en_adhan_sound'] = B(s.systemSalatNotify);
   p['en_dua_after'] = B(s.enableDuaAfterAdhan);
@@ -170,6 +170,12 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['gtd_enableTodayEvent'] = B(s.enableTodayEvent);
   p['gtd_enableRamadanCard'] = B(s.enableRamadanCard);
   p['gtd_accentColor'] = S(s.accentColor);
+  // الخلفيّة والزجاج بمفاتيح الهاتف. صورة المستخدم لا تُصدَّر (كما في الهاتف)، فتسقط إلى الافتراضيّة.
+  p['home_bg_enabled'] = B(s.homeBackgroundEnabled);
+  p['home_bg_id'] = S(s.homeBackgroundId === 'custom' ? 'hassan' : s.homeBackgroundId);
+  p['home_bg_level'] = I(s.homeBackgroundLevel);
+  p['glass_theme'] = B(s.glassTheme);
+  p['glass_blur'] = I(s.glassBlur);
   p['gtd_advancedOpenSection'] = S(s.advancedOpenSection);
   p['gtd_tasbihTarget'] = I(s.tasbihTarget);
   p['gtd_tasbihCount'] = I(s.tasbihCount);
@@ -218,7 +224,8 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('preNotifyMinutes', readNum(p, 'pre_notify_min'));
   const adhanType = readStr(p, 'adhan_type');
   if (adhanType) {
-    out.adhanType = adhanType.toUpperCase() === 'SHORT' ? 'short' : 'full';
+    const t = adhanType.toLowerCase();
+    out.adhanType = t === 'short' || t === 'maghribi_full' || t === 'maghribi_short' ? t : 'full';
     if (adhanType.toUpperCase() === 'CUSTOM') out.useCustomAdhan = true;
   }
   setIf('enableSalatNotify', readBool(p, 'en_salat_notify'));
@@ -293,6 +300,13 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('enableTodayEvent', readBool(p, 'gtd_enableTodayEvent'));
   setIf('enableRamadanCard', readBool(p, 'gtd_enableRamadanCard'));
   setIf('accentColor', readStr(p, 'gtd_accentColor'));
+  setIf('homeBackgroundEnabled', readBool(p, 'home_bg_enabled'));
+  const bgId = readStr(p, 'home_bg_id');
+  if (bgId && !bgId.startsWith('custom')) out.homeBackgroundId = bgId;
+  setIf('homeBackgroundLevel', readNum(p, 'home_bg_level'));
+  setIf('glassTheme', readBool(p, 'glass_theme'));
+  const blur = readNum(p, 'glass_blur');
+  if (blur !== undefined) out.glassBlur = Math.max(0, Math.min(100, blur));
   setIf('advancedOpenSection', readStr(p, 'gtd_advancedOpenSection'));
   setIf('tasbihTarget', readNum(p, 'gtd_tasbihTarget'));
   setIf('tasbihCount', readNum(p, 'gtd_tasbihCount'));

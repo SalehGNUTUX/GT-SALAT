@@ -27,6 +27,7 @@ export function TopBar({ pageLabel, time, city, hijriFromApi, settings, next, on
       style={{
         height: 64,
         background: 'var(--bg-base)',
+        backdropFilter: 'var(--glass-backdrop)',
         borderBottom: '1px solid var(--bg-elevated)',
         display: 'flex',
         alignItems: 'center',

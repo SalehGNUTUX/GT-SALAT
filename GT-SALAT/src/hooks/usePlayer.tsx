@@ -50,7 +50,16 @@ interface PlayerApi {
    * فلا يُعاد رسم التطبيق كلّه أربع مرّاتٍ في الثانية.
    */
   audioRef: React.RefObject<HTMLAudioElement>;
+  /** مؤقّت الإيقاف: لحظة الإيقاف (ms) أو null. */
+  sleepEndsAt: number | null;
+  /** يضبط مؤقّت الإيقاف بالدقائق، أو يلغيه بـnull. */
+  setSleepTimer: (minutes: number | null) => void;
+  /** رقم محاولة إعادة الاتصال الجارية بالبثّ الحيّ (0 = لا محاولة). */
+  reconnecting: number;
 }
+
+/** تباعد محاولات إعادة الاتصال بالبثّ الحيّ (ثوانٍ)، كما في خدمة الإذاعة بالهاتف. */
+const RECONNECT_DELAYS = [2, 4, 8, 15, 30, 30, 60, 60];
 
 const PlayerContext = createContext<PlayerApi | null>(null);
 
@@ -68,12 +77,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // القائمة في ref لا في state: معالج `ended` يُنشَأ مرّةً ويجب أن يرى أحدث قائمة.
   const queueRef = useRef<PlayerTrack[]>([]);
   const indexRef = useRef(0);
+  const [sleepEndsAt, setSleepEndsAt] = useState<number | null>(null);
+  const sleepTimerRef = useRef<number | null>(null);
+  const [reconnecting, setReconnecting] = useState(0);
+  const attemptRef = useRef(0);
+  const retryTimerRef = useRef<number | null>(null);
+
+  const clearRetry = useCallback(() => {
+    if (retryTimerRef.current != null) window.clearTimeout(retryTimerRef.current);
+    retryTimerRef.current = null;
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume / 100;
   }, [volume, track]);
 
   const stop = useCallback(() => {
+    clearRetry();
+    attemptRef.current = 0;
+    setReconnecting(0);
+    if (sleepTimerRef.current != null) window.clearTimeout(sleepTimerRef.current);
+    sleepTimerRef.current = null;
+    setSleepEndsAt(null);
     audioRef.current?.pause();
     if (audioRef.current) audioRef.current.src = '';
     queueRef.current = [];
@@ -81,7 +106,62 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setIndex(0);
     setTrack(null);
     setStatus('idle');
+  }, [clearRetry]);
+
+  const setSleepTimer = useCallback((minutes: number | null) => {
+    if (sleepTimerRef.current != null) window.clearTimeout(sleepTimerRef.current);
+    sleepTimerRef.current = null;
+    if (minutes == null || minutes <= 0) {
+      setSleepEndsAt(null);
+      return;
+    }
+    const ms = minutes * 60_000;
+    setSleepEndsAt(Date.now() + ms);
+    sleepTimerRef.current = window.setTimeout(() => stop(), ms);
+  }, [stop]);
+
+  /** البثّ الحيّ بلا مدّة (الإذاعات): ينقطع فيُعاد وصله، بخلاف الملفّات. */
+  const isLive = () => {
+    const el = audioRef.current;
+    const t = queueRef.current[indexRef.current];
+    return !!t && (t.section.includes('radios') || (!!el && el.duration === Infinity));
+  };
+
+  /** إعادة الاتصال بتباعدٍ متزايد؛ بعد آخر محاولةٍ يُعلَن الخطأ. */
+  const scheduleReconnect = useCallback(() => {
+    const el = audioRef.current;
+    const t = queueRef.current[indexRef.current];
+    if (!el || !t || retryTimerRef.current != null) return;
+    const n = attemptRef.current;
+    if (n >= RECONNECT_DELAYS.length) {
+      setReconnecting(0);
+      setStatus('error');
+      return;
+    }
+    attemptRef.current = n + 1;
+    setReconnecting(n + 1);
+    setStatus('loading');
+    retryTimerRef.current = window.setTimeout(() => {
+      retryTimerRef.current = null;
+      el.src = t.url;
+      el.play().catch(() => scheduleReconnect());
+    }, RECONNECT_DELAYS[n] * 1000);
   }, []);
+
+  // عودة الشبكة: محاولةٌ فوريّة بدل انتظار المهلة.
+  useEffect(() => {
+    const onOnline = () => {
+      if (retryTimerRef.current == null) return;
+      clearRetry();
+      const el = audioRef.current;
+      const t = queueRef.current[indexRef.current];
+      if (!el || !t) return;
+      el.src = t.url;
+      el.play().catch(() => scheduleReconnect());
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [clearRetry, scheduleReconnect]);
 
   /** يشغّل عنصر القائمة رقم `i`، أو يتوقّف إن تجاوزناها. */
   const playAt = useCallback((i: number) => {
@@ -93,6 +173,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setStatus('paused');
       return;
     }
+    clearRetry();
+    attemptRef.current = 0;
+    setReconnecting(0);
     indexRef.current = i;
     setIndex(i);
     setTrack(q[i]);
@@ -100,7 +183,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     el.src = q[i].url;
     el.volume = volume / 100;
     el.play().catch(() => setStatus('error'));
-  }, [volume]);
+  }, [volume, clearRetry]);
 
   const playQueue = useCallback((tracks: PlayerTrack[], startAt = 0) => {
     if (tracks.length === 0) return;
@@ -158,16 +241,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         stop,
         setVolume,
         audioRef,
+        sleepEndsAt,
+        setSleepTimer,
+        reconnecting,
       }}
     >
       <audio
         ref={audioRef}
-        onPlaying={() => setStatus('playing')}
+        onPlaying={() => {
+          attemptRef.current = 0;
+          setReconnecting(0);
+          setStatus('playing');
+        }}
         onWaiting={() => setStatus('loading')}
         onPause={() => setStatus((s) => (s === 'playing' ? 'paused' : s))}
         // الانتقال التلقائي إلى المقطع التالي — عليه تقوم التلاوة المتتابعة.
-        onEnded={() => playAt(indexRef.current + 1)}
-        onError={() => track && setStatus('error')}
+        onEnded={() => (isLive() ? scheduleReconnect() : playAt(indexRef.current + 1))}
+        onError={() => {
+          if (!track) return;
+          if (isLive()) scheduleReconnect();
+          else setStatus('error');
+        }}
         style={{ display: 'none' }}
       />
       {children}

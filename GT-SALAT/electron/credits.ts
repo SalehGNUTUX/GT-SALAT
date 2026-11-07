@@ -23,6 +23,8 @@ export const CREDIT_SOURCES: CreditSource[] = [
   { name: 'QuranHub/quran-pages-images', note: 'صور مصحف ورش (مجمّع الملك فهد)', url: 'https://github.com/QuranHub/quran-pages-images' },
   { name: 'AlAdhan API', note: 'المواقيت والتاريخ الهجري', url: 'https://aladhan.com' },
   { name: 'Adhan (Batoul Apps)', note: 'حساب المواقيت والقبلة محلّياً بلا إنترنت', url: 'https://github.com/batoulapps/adhan-js' },
+  { name: 'GeoNames', note: 'إحداثيّات المدن والبلدات المغربيّة لاختيار الموقع دون إنترنت (CC BY 4.0)', url: 'https://www.geonames.org' },
+  { name: 'OpenStreetMap', note: 'الأسماء العربيّة للبلدات المغربيّة في قاعدة المواقع (ODbL، places.LICENSE.txt)', url: 'https://www.openstreetmap.org/copyright' },
   { name: 'ipapi.co · ip-api.com', note: 'اكتشاف الموقع من عنوان الإنترنت', url: 'https://ipapi.co' },
   { name: 'خطّ أميري', note: 'الخطّ القرآني للنصوص', url: 'https://www.amirifont.org' },
   { name: 'خطّ Ubuntu Arabic', note: 'خطّ الواجهة', url: 'https://design.ubuntu.com/font' },

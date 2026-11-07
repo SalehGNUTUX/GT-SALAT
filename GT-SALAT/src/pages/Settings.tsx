@@ -307,12 +307,14 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             <label style={{ fontSize: 12, color: 'var(--fg-muted)', display: 'block', marginBottom: 4 }}>نوع الأذان الافتراضي</label>
             <select
               value={settings.adhanType}
-              onChange={(e) => update({ adhanType: e.target.value as 'full' | 'short' })}
+              onChange={(e) => update({ adhanType: e.target.value as AppSettings['adhanType'] })}
               style={{ ...inputStyle, width: 200, display: 'block', opacity: settings.useCustomAdhan ? 0.4 : 1 }}
               disabled={settings.useCustomAdhan}
             >
               <option value="full">أذان كامل</option>
               <option value="short">أذان قصير</option>
+              <option value="maghribi_full">أذان مغربيّ كامل</option>
+              <option value="maghribi_short">أذان مغربيّ قصير</option>
             </select>
           </div>
           <div style={{ flex: 1, minWidth: 260 }}>
