@@ -1390,6 +1390,22 @@
         .feature-card:nth-child(6) {
             transition-delay: 0.3s;
         }
+        /* نسخة الهاتف في أعلى الصفحة — نظير شريط «نسخة الحاسوب» في موقع الهاتف */
+        .phone-strip {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px;
+            max-width: 820px; margin: 26px auto 0; padding: 14px 18px; border-radius: 18px;
+            background: var(--bg-glass); border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+            box-shadow: var(--shadow-md);
+        }
+        .phone-strip .lbl { flex: 1 1 260px; font-size: .98rem; color: var(--text-secondary); text-align: start; }
+        .phone-strip b { color: var(--accent-primary); }
+        .phone-strip .btn { padding: 10px 16px; font-size: .92rem; }
+        .nav-phone {
+            padding: 7px 12px !important; border-radius: 12px; border: 1px solid var(--border-subtle);
+            background: var(--badge-bg); font-weight: 700; white-space: nowrap;
+        }
+        @media (max-width: 640px) { .phone-strip .btn { flex: 1 1 45%; } }
     </style>
 </head>
 <body>
@@ -1405,11 +1421,12 @@
             </button>
             <ul class="nav-links" id="nav-links">
                 <li><a href="#features">المزايا</a></li>
-                <li><a href="#whats-new">جديد 2.0</a></li>
+                <li><a href="#new-23">جديد 2.3</a></li>
                 <li><a href="#screenshots">اللقطات</a></li>
                 <li><a href="#downloads">التحميل</a></li>
                 <li><a href="#comparison">المقارنة</a></li>
                 <li><a href="#requirements">المتطلبات</a></li>
+                <li><a class="nav-phone" href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener">📱 نسخة الهاتف</a></li>
                 <li>
                     <button class="theme-toggle" id="theme-toggle" aria-label="تبديل المظهر">
                         <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
@@ -1446,12 +1463,14 @@
                 <a href="https://github.com/SalehGNUTUX/GT-SALAT" target="_blank" rel="noopener" class="btn btn-github">
                     <i class="fab fa-github" aria-hidden="true"></i> GitHub
                 </a>
-                <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.2.1" target="_blank" rel="noopener" class="btn btn-outline">
-                    <i class="fas fa-tag" aria-hidden="true"></i> الإصدار 2.2.1
+                <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.3.0" target="_blank" rel="noopener" class="btn btn-outline">
+                    <i class="fas fa-tag" aria-hidden="true"></i> الإصدار 2.3.0
                 </a>
-                <a href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener" class="btn btn-outline">
-                    <i class="fas fa-mobile-screen-button" aria-hidden="true"></i> نسخة الهاتف v1.17.2
-                </a>
+            </div>
+            <div class="phone-strip">
+                <span class="lbl">📱 <b>متوفّرٌ أيضاً للهاتف</b>: نسخة أندرويد بالمزايا نفسها، أحدث إصدارٍ <b><bdi>v2.1</bdi></b>.</span>
+                <a class="btn btn-outline" href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener">🌐 موقع نسخة الهاتف</a>
+                <a class="btn btn-outline" href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE" target="_blank" rel="noopener">📦 مستودعها على GitHub</a>
             </div>
         </div>
     </header>
@@ -1500,6 +1519,49 @@
     </section>
 
     <!-- Downloads Section -->
+
+    <!-- What's new in 2.3 -->
+    <section class="section" id="new-23">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">جديد النسخة 2.3</span>
+                <h2 class="section-title">التوقيت يتبع النظام، وخلفيّاتٌ وزجاجٌ من نسخة الهاتف</h2>
+                <p class="section-desc">إصلاحٌ لتقدّم الأذان ساعةً في المغرب، ومزايا نسخة الهاتف <bdi>v2.0</bdi> و<bdi>v2.1</bdi> على سطح المكتب</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                    <h3>التطبيق يتبع توقيت النظام</h3>
+                    <p>بيانات المناطق الزمنيّة المضمَّنة في Electron ظلّت تحسب المغرب على <bdi>GMT+1</bdi> بعد عودته إلى <bdi>GMT+0</bdi>، فتقدّمت الساعة والأذان ساعة. صار التطبيق يقرأ إزاحة النظام الفعليّة ويتبعها، ومواقيت الإنترنت تُحسب بإزاحة الخادم، ومعها خيار «توقيت التطبيق» لتصحيحه يدويّاً.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-mosque"></i></div>
+                    <h3>خلفيّات المساجد والسمة الزجاجيّة</h3>
+                    <p>ثماني صورٍ للمساجد (مسجد حسّان افتراضيّاً بنسختين نهاريّةٍ وليليّة) أو صورةٌ من حاسوبك خلف لوحة التحكّم، بثلاث درجات ظهور. واللوحات زجاجٌ شفّافٌ في كلّ الأقسام بشدّة تغبيشٍ من 0 إلى 100، ونافذة الأذان تتبع الخلفيّة.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-volume-high"></i></div>
+                    <h3>الأذان المغربيّ</h3>
+                    <p>الأذان بالصيغة المغربيّة كاملاً وقصيراً مع معاينتهما، والمغربيّ الكامل هو الأذان الافتراضيّ. ودعاء ما بعد الأذان مفعَّلٌ افتراضيّاً، ولا أذان خارج وقته: إن فات الموعد والحاسوب نائم يُعلَن دخول الوقت بإشعارٍ صامت.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-radio"></i></div>
+                    <h3>مؤقّت الإذاعة وإعادة الاتّصال</h3>
+                    <p>مؤقّت إيقافٍ من 15 إلى 90 دقيقة للإذاعة والتلاوة مع المتبقّي، وإعادة اتّصالٍ تلقائيّة بالبثّ عند انقطاع الشبكة بتباعدٍ متزايد، وفوراً عند عودتها.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-location-dot"></i></div>
+                    <h3>372 مدينةً مغربيّة</h3>
+                    <p>قاعدة المواقع المُضمَّنة تضمّ 372 مدينةً وبلدةً مغربيّة لاختيار الموقع دون إنترنت: الإحداثيّات من GeoNames والأسماء العربيّة من OpenStreetMap، بترخيص ODbL.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-arrow-up-from-bracket"></i></div>
+                    <h3>التحديث من داخل التطبيق</h3>
+                    <p>من 2.2.1 فما بعد يصلك هذا الإصدار من «الإعدادات الإضافيّة ← حول»: تُنزَّل الحزمة المناسبة لجهازك وتُتحقَّق بصمتها وتُثبَّت من مكانها.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- What's new in 2.0 -->
     <section class="section" id="whats-new">
@@ -1558,7 +1620,7 @@
                 <div class="feature-card">
                     <div class="feature-icon"><i class="fas fa-mobile-screen-button"></i></div>
                     <h3>ومعه نسخة الهاتف</h3>
-                    <p>GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google. أحدث إصدار <strong>v1.17.2</strong> (26 غشت 2026) بنكهتين: <a href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v1.17.2/GT-SALAT-v1.17.2-foss.apk" target="_blank" rel="noopener" style="color: var(--accent-primary);">حرّة (FOSS)</a> و<a href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v1.17.2/GT-SALAT-v1.17.2-full.apk" target="_blank" rel="noopener" style="color: var(--accent-primary);">كاملة</a>. <a href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener" style="color: var(--accent-primary);">تعرّف على نسخة الهاتف &larr;</a></p>
+                    <p>GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت والسمة الزجاجيّة وخلفيّات المساجد، وبنكهة حرّة بلا خدمات Google. أحدث إصدار <strong>v2.1</strong> (7 نونبر 2026) بنكهتين: <a href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.1/GT-SALAT-v2.1-foss.apk" target="_blank" rel="noopener" style="color: var(--accent-primary);">حرّة (FOSS)</a> و<a href="https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.1/GT-SALAT-v2.1-full.apk" target="_blank" rel="noopener" style="color: var(--accent-primary);">كاملة</a>. <a href="https://salehgnutux.github.io/GT-SALAT-PHONE/" target="_blank" rel="noopener" style="color: var(--accent-primary);">تعرّف على نسخة الهاتف &larr;</a></p>
                 </div>
             </div>
         </div>
@@ -1635,12 +1697,12 @@
                     <div class="download-icon"><i class="fas fa-cube"></i></div>
                     <h3>AppImage</h3>
                     <p class="download-distros">جميع التوزيعات<br>Ubuntu &middot; Fedora &middot; Arch &middot; openSUSE</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/GT-SALAT-2.2.1-x86_64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-x86_64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
                         <i class="fas fa-download" aria-hidden="true"></i> تحميل AppImage
                     </a>
                     <p class="file-info">
-                        <code>GT-SALAT-2.2.1-x86_64.AppImage</code><br>
-                        <small>131 MB &middot; sha256: 3d3c61c8...</small>
+                        <code>GT-SALAT-2.3.0-x86_64.AppImage</code><br>
+                        <small>134 MB &middot; sha256: 3a3c9a66...</small>
                     </p>
                 </div>
                 <!-- DEB -->
@@ -1648,12 +1710,12 @@
                     <div class="download-icon"><i class="fab fa-ubuntu"></i></div>
                     <h3>DEB</h3>
                     <p class="download-distros">Debian &middot; Ubuntu &middot; Linux Mint<br>ومشتقاتها</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/GT-SALAT_2.2.1_amd64.deb" class="btn btn-primary" target="_blank" rel="noopener">
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_amd64.deb" class="btn btn-primary" target="_blank" rel="noopener">
                         <i class="fas fa-download" aria-hidden="true"></i> تحميل DEB
                     </a>
                     <p class="file-info">
-                        <code>GT-SALAT_2.2.1_amd64.deb</code><br>
-                        <small>100 MB &middot; sha256: 7357bd11...</small>
+                        <code>GT-SALAT_2.3.0_amd64.deb</code><br>
+                        <small>102 MB &middot; sha256: 1df11a1e...</small>
                     </p>
                 </div>
                 <!-- RPM -->
@@ -1661,12 +1723,12 @@
                     <div class="download-icon"><i class="fab fa-fedora"></i></div>
                     <h3>RPM</h3>
                     <p class="download-distros">Fedora &middot; RHEL &middot; Rocky Linux<br>ومشتقاتها</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/gt-salat-2.2.1-2.x86_64.rpm" class="btn btn-primary" target="_blank" rel="noopener">
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/gt-salat-2.3.0-1.x86_64.rpm" class="btn btn-primary" target="_blank" rel="noopener">
                         <i class="fas fa-download" aria-hidden="true"></i> تحميل RPM
                     </a>
                     <p class="file-info">
-                        <code>gt-salat-2.2.1-2.x86_64.rpm</code><br>
-                        <small>130 MB &middot; sha256: 1168b259...</small>
+                        <code>gt-salat-2.3.0-1.x86_64.rpm</code><br>
+                        <small>102 MB &middot; sha256: 732d4346...</small>
                     </p>
                 </div>
             </div>
@@ -1680,36 +1742,36 @@
                     <div class="download-icon"><i class="fas fa-microchip"></i></div>
                     <h3>aarch64 &middot; AppImage</h3>
                     <p class="download-distros">arm64 &mdash; جميع التوزيعات<br>راسبيري باي 4/5 &middot; خوادم ARM</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/GT-SALAT-2.2.1-arm64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-arm64.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
                         <i class="fas fa-download" aria-hidden="true"></i> تحميل arm64
                     </a>
                     <p class="file-info">
-                        <code>GT-SALAT-2.2.1-arm64.AppImage</code><br>
-                        <small>132 MB &middot; sha256: 4adf28e0...</small>
+                        <code>GT-SALAT-2.3.0-arm64.AppImage</code><br>
+                        <small>134 MB &middot; sha256: 6135ce83...</small>
                     </p>
                 </div>
                 <div class="download-card">
                     <div class="download-icon"><i class="fab fa-ubuntu"></i></div>
                     <h3>aarch64 &middot; DEB</h3>
                     <p class="download-distros">arm64 &mdash; Debian &middot; Ubuntu<br>Raspberry Pi OS (64-بت)</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/GT-SALAT_2.2.1_arm64.deb" class="btn btn-primary" target="_blank" rel="noopener">
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_arm64.deb" class="btn btn-primary" target="_blank" rel="noopener">
                         <i class="fas fa-download" aria-hidden="true"></i> تحميل arm64 DEB
                     </a>
                     <p class="file-info">
-                        <code>GT-SALAT_2.2.1_arm64.deb</code><br>
-                        <small>96 MB &middot; sha256: 144797af...</small>
+                        <code>GT-SALAT_2.3.0_arm64.deb</code><br>
+                        <small>98 MB &middot; sha256: a1d143fb...</small>
                     </p>
                 </div>
                 <div class="download-card">
                     <div class="download-icon"><i class="fas fa-microchip"></i></div>
                     <h3>armv7l &middot; 32-بت</h3>
                     <p class="download-distros">armhf &mdash; الأجهزة الأقدم<br>راسبيري باي (نظام 32-بت)</p>
-                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/GT-SALAT-2.2.1-armv7l.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
+                    <a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-armv7l.AppImage" class="btn btn-primary" target="_blank" rel="noopener">
                         <i class="fas fa-download" aria-hidden="true"></i> تحميل armv7l
                     </a>
                     <p class="file-info">
-                        <code>GT-SALAT-2.2.1-armv7l.AppImage</code> &middot; 121 MB &middot; <small>sha256: 38a949b9...</small><br>
-                        <small>و<a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.2.1/GT-SALAT_2.2.1_armv7l.deb" target="_blank" rel="noopener" style="color: var(--accent-primary);">حزمة DEB</a> &middot; 94 MB &middot; sha256: 205c4cde...</small>
+                        <code>GT-SALAT-2.3.0-armv7l.AppImage</code> &middot; 123 MB &middot; <small>sha256: c2e676f8...</small><br>
+                        <small>و<a href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_armv7l.deb" target="_blank" rel="noopener" style="color: var(--accent-primary);">حزمة DEB</a> &middot; 96 MB &middot; sha256: 7b5bdc70...</small>
                     </p>
                 </div>
             </div>
