@@ -15,6 +15,7 @@
 <link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   /* ألوان السمة الزجاجيّة نفسها في موقع نسخة الهاتف: لا أبيض ناصع ولا أسود تامّ، أخضرٌ للتفاعل وذهبيٌّ للوقت. */
@@ -152,6 +153,14 @@
   .pkgs{display:grid;gap:14px;grid-template-columns:repeat(3,1fr);margin-top:24px;text-align:right}
   .pkg{border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px}
   .pkg h3{margin:0;font-size:1.35rem;color:var(--accent)}
+  /* أيقونات الصيغ كما في الموقع السابق (Font Awesome): مكعّب AppImage، أوبونتو DEB، فيدورا RPM، رقاقة ARM */
+  .pkg{align-items:center;text-align:center}
+  .pkg .meta{text-align:center}
+  .pkg .btn{align-self:stretch}
+  .pkg-ic{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:var(--chip);border:1px solid var(--edge);color:var(--accent);font-size:2.3rem;margin-bottom:4px;
+    box-shadow:0 12px 26px -16px var(--orb-a)}
+  .arm h3 i,.arm td i{color:var(--accent);margin-inline-end:6px}
   .pkg .btn{margin-top:auto}
   .meta{font-size:.82rem;color:var(--muted)}
   .meta code,.fp{font-family:ui-monospace,monospace;direction:ltr;unicode-bidi:isolate}
@@ -361,32 +370,35 @@
       <span class="ver"><i></i><span class="num">2.3.1</span> مستقرّ</span>
       <div class="pkgs">
         <div class="pkg glass">
-          <h3>📦 AppImage</h3>
+          <div class="pkg-ic"><i class="fas fa-cube" aria-hidden="true"></i></div>
+          <h3>AppImage</h3>
           <span class="muted">كلّ التوزيعات · بلا تثبيت</span>
           <span class="meta"><code>GT-SALAT-2.3.1-x86_64.AppImage</code><br /><span class="num">134 MB · sha256: 22f78c86…</span></span>
-          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-x86_64.AppImage">⬇️ تحميل AppImage</a>
+          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-x86_64.AppImage"><i class="fas fa-download" aria-hidden="true"></i> تحميل AppImage</a>
         </div>
         <div class="pkg glass">
-          <h3>🟠 DEB</h3>
+          <div class="pkg-ic"><i class="fab fa-ubuntu" aria-hidden="true"></i></div>
+          <h3>DEB</h3>
           <span class="muted">Debian · Ubuntu · Linux Mint</span>
           <span class="meta"><code>GT-SALAT_2.3.1_amd64.deb</code><br /><span class="num">102 MB · sha256: 593137b4…</span></span>
-          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_amd64.deb">⬇️ تحميل DEB</a>
+          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_amd64.deb"><i class="fas fa-download" aria-hidden="true"></i> تحميل DEB</a>
         </div>
         <div class="pkg glass">
-          <h3>🎩 RPM</h3>
+          <div class="pkg-ic"><i class="fab fa-fedora" aria-hidden="true"></i></div>
+          <h3>RPM</h3>
           <span class="muted">Fedora · RHEL · openSUSE</span>
           <span class="meta"><code>gt-salat-2.3.1-1.x86_64.rpm</code><br /><span class="num">102 MB · sha256: 827be425…</span></span>
-          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/gt-salat-2.3.1-1.x86_64.rpm">⬇️ تحميل RPM</a>
+          <a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/gt-salat-2.3.1-1.x86_64.rpm"><i class="fas fa-download" aria-hidden="true"></i> تحميل RPM</a>
         </div>
       </div>
 
       <div class="arm glass">
-        <h3>🍓 ARM (راسبيري باي · حواسيب ARM)</h3>
+        <h3><i class="fas fa-microchip" aria-hidden="true"></i>ARM (راسبيري باي · حواسيب ARM)</h3>
         <table>
-          <tr><td>arm64</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-arm64.AppImage">AppImage</a></td><td class="meta"><span class="num">134 MB · c61c29d8…</span></td></tr>
-          <tr><td>arm64</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_arm64.deb">DEB</a></td><td class="meta"><span class="num">98 MB · 5e0e2a08…</span></td></tr>
-          <tr><td>armv7l</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-armv7l.AppImage">AppImage</a></td><td class="meta"><span class="num">123 MB · f4720900…</span></td></tr>
-          <tr><td>armv7l</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_armv7l.deb">DEB</a></td><td class="meta"><span class="num">96 MB · be10f2fc…</span></td></tr>
+          <tr><td><i class="fab fa-raspberry-pi" aria-hidden="true"></i>arm64</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-arm64.AppImage"><i class="fas fa-cube" aria-hidden="true"></i>AppImage</a></td><td class="meta"><span class="num">134 MB · c61c29d8…</span></td></tr>
+          <tr><td><i class="fab fa-raspberry-pi" aria-hidden="true"></i>arm64</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_arm64.deb"><i class="fab fa-ubuntu" aria-hidden="true"></i>DEB</a></td><td class="meta"><span class="num">98 MB · 5e0e2a08…</span></td></tr>
+          <tr><td><i class="fab fa-raspberry-pi" aria-hidden="true"></i>armv7l</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-armv7l.AppImage"><i class="fas fa-cube" aria-hidden="true"></i>AppImage</a></td><td class="meta"><span class="num">123 MB · f4720900…</span></td></tr>
+          <tr><td><i class="fab fa-raspberry-pi" aria-hidden="true"></i>armv7l</td><td><a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_armv7l.deb"><i class="fab fa-ubuntu" aria-hidden="true"></i>DEB</a></td><td class="meta"><span class="num">96 MB · be10f2fc…</span></td></tr>
         </table>
         <p class="meta" style="margin:8px 0 0">اعرف معماريّة جهازك بالأمر <code>uname -m</code>. البصمات كاملةً في <a target="_blank" rel="noopener noreferrer" href="https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.3.1">صفحة الإصدار</a>.</p>
       </div>
