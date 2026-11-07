@@ -2,6 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { spawn, execFileSync, ChildProcess } from 'node:child_process';
+import { pauseOtherMedia, resumeOtherMedia } from './media-pause.js';
 import { getSettings } from './settings.js';
 
 let currentPlayer: ChildProcess | null = null;
@@ -19,8 +20,20 @@ export function setAudioStateListener(cb: (kind: string | null) => void): void {
   stateListener = cb;
 }
 
+/** مهلة الاستئناف: الأذان يتبعه الدعاء بعد لحظة، فلا تعود الوسائط في الفاصل بينهما. */
+const RESUME_DELAY_MS = 2000;
+let resumeTimer: NodeJS.Timeout | null = null;
+
 function emitState(): void {
-  try { stateListener?.(playingKind()); } catch {}
+  const kind = playingKind();
+  // الوسائط الأخرى تُستأنَف بعد انتهاء أصواتنا كلّها (أذان ← دعاء ← …)، لا بين صوتٍ وآخر.
+  if (kind === null && !resumeTimer) {
+    resumeTimer = setTimeout(() => {
+      resumeTimer = null;
+      if (playingKind() === null) void resumeOtherMedia();
+    }, RESUME_DELAY_MS);
+  }
+  try { stateListener?.(kind); } catch {}
 }
 
 function audioDir(): string {
@@ -91,6 +104,10 @@ function spawnPlayer(file: string, kind: string, onFinished?: () => void): boole
   }
 
   const volume = getSettings().adhanVolume ?? 100;
+
+  // ★ لا يتداخل الأذان مع وسائط تعمل (إذاعة متصفّح، مشغّل موسيقى، مشغّل التطبيق نفسه): تُوقَف مؤقّتاً.
+  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
+  void pauseOtherMedia();
 
   for (const [cmd, baseArgs] of getAvailablePlayers()) {
     try {

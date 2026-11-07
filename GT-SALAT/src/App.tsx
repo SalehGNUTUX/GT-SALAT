@@ -79,8 +79,8 @@ function AppShell() {
   }, [settings?.theme]);
 
   useEffect(() => {
-    applyAccent(settings?.accentColor ?? '');
-  }, [settings?.accentColor]);
+    applyAccent(settings?.accentColor ?? '', settings?.theme === 'light');
+  }, [settings?.accentColor, settings?.theme]);
 
   const nav = (p: PageId) => {
     setPage(p);

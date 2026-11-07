@@ -138,6 +138,13 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
           />
         </SettingRow>
 
+        <SettingRow
+          label="اختبار الأذان في وقته"
+          sub="الإشعار ونافذة الأذان بملء الشاشة والأذان المختار، مع إيقاف الوسائط الأخرى ثمّ استئنافها — كما يحدث عند دخول الوقت"
+        >
+          <Button size="sm" onClick={() => window.gtSalat.notify.testAdhan()}>🕌 جرّب الآن</Button>
+        </SettingRow>
+
         <div style={{ padding: '14px 0', borderBottom: '1px solid var(--bg-elevated)' }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--fg-primary)', marginBottom: 4 }}>
             تجربة الأصوات

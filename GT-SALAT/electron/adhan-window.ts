@@ -9,9 +9,9 @@ import { adhanBackdropUrl } from './backgrounds.js';
  * لِمَ نافذةٌ لا إشعارٌ فقط: إشعارُ النظام يمرّ صامتاً على الشاشة المزدحمة، وقد يُخفيه
  * وضعُ «عدم الإزعاج» في بيئة سطح المكتب. النافذة تُرى ولو كان المستخدم في ملء شاشةٍ آخر.
  *
- * **بلا preload ولا تكامل Node**: زرّ الإيقاف يستدعي `window.close()` وحده — وهو قياسيّ
- * يعمل بلا جسر — والعمليةُ الرئيسية تُوقف الصوت في معالج `closed`. فلا نضيف مدخل بناءٍ
- * ثانياً لصفحةٍ واحدةٍ ولا نفتح جسراً جديداً لنافذةٍ لا تحتاجه.
+ * **بلا preload ولا تكامل Node ولا سكربت**: زرّ الإيقاف رابطٌ تلتقط العمليّةُ الرئيسيّة التنقّلَ إليه
+ * (`will-navigate`) فتُغلق النافذة، وEsc يُلتقَط بـ`before-input-event`؛ والإغلاق يوقف الصوت في معالج
+ * `closed`. فلا جسر جديد لنافذةٍ لا تحتاجه.
  *
  * تُغلَق وحدها عند انتهاء الصوت إلّا أن يُطلَب إبقاؤها (`keepAdhanWindow`)، وفي الحالتين
  * لها **سقفٌ زمنيّ** فلا تبقى نافذةٌ عالقةٌ فوق الشاشة إن تعطّل مشغّلُ الصوت.
@@ -37,13 +37,12 @@ function html(title: string, subtitle: string, icon: string, backdrop: string | 
   <div style="font-size:96px;line-height:1;animation:p 2.4s ease-in-out infinite">${icon}</div>
   <div style="font-size:44px;font-weight:700;color:#f5c518">${title}</div>
   <div style="font-size:20px;opacity:.85">${subtitle}</div>
-  <button onclick="window.close()" style="margin-top:14px;padding:14px 34px;font-size:18px;font-family:inherit;
+  <a href="https://gt-salat.invalid/close" style="margin-top:14px;padding:14px 34px;font-size:18px;text-decoration:none;
     background:rgba(245,197,24,.12);color:#f5c518;border:1px solid #f5c518;border-radius:12px;cursor:pointer">
     ⏹ إيقاف وإغلاق
-  </button>
+  </a>
   <div style="font-size:12px;opacity:.5">GT-SALAT — اضغط Esc أو الزرّ للإغلاق</div>
   <style>@keyframes p{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.08);opacity:1}}</style>
-  <script>document.addEventListener('keydown',function(e){if(e.key==='Escape')window.close();});</script>
 </body></html>`;
 }
 
@@ -70,6 +69,26 @@ export function showAdhanWindow(title: string, subtitle: string, icon = '🕌'):
   void win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html(title, subtitle, icon, adhanBackdropUrl(), s.theme !== 'light')));
   win.once('ready-to-show', () => win?.show());
 
+  // ★ الإغلاق تلتقطه العمليّة الرئيسيّة لا سكربت الصفحة: سياسة CSP التي يضعها `main.ts` على الجلسة
+  // كلّها (`default-src 'self'`) تحجب السكربتات المضمَّنة هنا أيضاً، فلم يكن `onclick="window.close()"`
+  // ولا مستمع Esc يعملان قبل 2.3.1 (ظهر في تجربةٍ حيّة: زرٌّ لا يستجيب وأذانٌ يستمرّ). الزرّ رابطٌ أيّ تنقّلٍ إليه يُغلق، وEsc يُلتقَط من لوحة المفاتيح.
+  // الوجهة نطاقٌ محجوزٌ لا وجود له (`.invalid`): `will-navigate` لا يُطلَق للتنقّل إلى `about:blank`
+  // فكانت النافذة تصير صفحةً فارغةً بدل أن تُغلَق. و`did-start-navigation` احتياطٌ لأيّ تنقّلٍ آخر.
+  win.webContents.on('will-navigate', (e) => {
+    e.preventDefault();
+    closeAdhanWindow();
+  });
+  win.webContents.on('did-start-navigation', (details) => {
+    const url = (details as unknown as { url?: string }).url ?? '';
+    if (url && !url.startsWith('data:')) closeAdhanWindow();
+  });
+  win.webContents.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && input.key === 'Escape') {
+      e.preventDefault();
+      closeAdhanWindow();
+    }
+  });
+
   // الإغلاق — بالزرّ أو بـEsc أو تلقائياً — يوقف الصوت الجاري. مصدرٌ واحدٌ لكلّ الطرق.
   win.on('closed', () => {
     win = null;
@@ -84,8 +103,12 @@ export function showAdhanWindow(title: string, subtitle: string, icon = '🕌'):
 export function closeAdhanWindow(): void {
   if (hardTimer) clearTimeout(hardTimer);
   hardTimer = null;
+  const had = win !== null;
   if (win && !win.isDestroyed()) win.destroy();
   win = null;
+  // ★ الإغلاق يوقف الصوت **هنا مباشرةً** لا في حدث `closed` وحده: في تجربةٍ حيّة أُغلقت النافذة وبقي
+  // الأذان يُسمَع، فبدا زرّ الإيقاف كأنّه لا يستجيب. (يُستدعى أيضاً بعد انتهاء الصوت، فلا ضرر.)
+  if (had) audio.stop();
 }
 
 /**

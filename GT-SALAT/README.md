@@ -97,6 +97,13 @@
 - **أسماء الأشهر الميلادية**: قياسي أو مغاربي (يوليوز/غشت) أو شامي (تمّوز/آب) أو تلقائي حسب بلدك
 - **العمل دون إنترنت كلياً**: تعطيل تحديث المواقيت عبر الإنترنت والاكتفاء بالحساب المحلي
 
+### جديد في 2.3.1
+- **زرّ إغلاق نافذة الأذان يعمل** ويوقف الصوت فوراً، وكذلك Esc (كانت سياسة CSP تحجب سكربت النافذة).
+- **الأذان لا يتداخل مع وسائطك:** المتصفّحات ومشغّلات الوسائط (MPRIS) وإذاعة التطبيق تُوقَف مؤقّتاً ثمّ تُستأنف بعده.
+- **زرّ «اختبار الأذان في وقته»** بصوته ونافذته.
+- **التحديث يجلب صيغة تثبيتك نفسها** (deb أو rpm أو AppImage)، مع ملفّ `SHA256SUMS.txt` للتحقّق، وإعادة تشغيلٍ سليمة بعد تحديث AppImage.
+- **الوضع الفاتح أوضح** بألوان تمييزٍ أغمق.
+
 ### جديد في 2.3
 - **التطبيق يتبع توقيت النظام**: أُصلح تقدّم الساعة والأذان ساعةً في المغرب بعد عودته إلى GMT+0 (بيانات المناطق
   المضمَّنة في Electron قديمة)، مع خيار «توقيت التطبيق» لتصحيحه يدويّاً في «التقويم والتواريخ».
@@ -150,24 +157,24 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 
 ---
 
-## التحميل (الإصدار 2.3.0)
+## التحميل (الإصدار 2.3.1)
 
 ### 🖥️ الحواسيب (x86_64)
 
 | الصيغة | التوزيعات | الملف | الحجم |
 |--------|-----------|-------|-------|
-| **AppImage** | جميع التوزيعات | [GT-SALAT-2.3.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-x86_64.AppImage) | 134 MB |
-| **DEB** | Debian · Ubuntu · Mint | [GT-SALAT_2.3.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_amd64.deb) | 102 MB |
-| **RPM** | Fedora · RHEL · Rocky | [gt-salat-2.3.0-1.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/gt-salat-2.3.0-1.x86_64.rpm) | 102 MB |
+| **AppImage** | جميع التوزيعات | [GT-SALAT-2.3.1-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-x86_64.AppImage) | 134 MB |
+| **DEB** | Debian · Ubuntu · Mint | [GT-SALAT_2.3.1_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_amd64.deb) | 102 MB |
+| **RPM** | Fedora · RHEL · Rocky | [gt-salat-2.3.1-1.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/gt-salat-2.3.1-1.x86_64.rpm) | 102 MB |
 
 ### 🍓 ARM (راسبيري باي · حواسيب ARM · خوادم aarch64)
 
 | المعمارية | الصيغة | الملف | الحجم |
 |-----------|--------|-------|-------|
-| **aarch64 / arm64** | AppImage | [GT-SALAT-2.3.0-arm64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-arm64.AppImage) | 134 MB |
-| **aarch64 / arm64** | DEB | [GT-SALAT_2.3.0_arm64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_arm64.deb) | 98 MB |
-| **armv7l / armhf** (32-بت) | AppImage | [GT-SALAT-2.3.0-armv7l.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT-2.3.0-armv7l.AppImage) | 123 MB |
-| **armv7l / armhf** (32-بت) | DEB | [GT-SALAT_2.3.0_armv7l.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.0/GT-SALAT_2.3.0_armv7l.deb) | 96 MB |
+| **aarch64 / arm64** | AppImage | [GT-SALAT-2.3.1-arm64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-arm64.AppImage) | 134 MB |
+| **aarch64 / arm64** | DEB | [GT-SALAT_2.3.1_arm64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_arm64.deb) | 98 MB |
+| **armv7l / armhf** (32-بت) | AppImage | [GT-SALAT-2.3.1-armv7l.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT-2.3.1-armv7l.AppImage) | 123 MB |
+| **armv7l / armhf** (32-بت) | DEB | [GT-SALAT_2.3.1_armv7l.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.3.1/GT-SALAT_2.3.1_armv7l.deb) | 96 MB |
 
 > لمعرفة معمارية جهازك: `uname -m` — فإن كانت `aarch64` فحزم arm64، وإن كانت `armv7l` فحزم armv7l.
 >
@@ -178,13 +185,13 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 للتحقّق من سلامة التنزيل (sha256):
 
 ```
-3a3c9a663283083fa023dc3e6948b1dbf31d75bc51ede23693319a785a7f67d7  GT-SALAT-2.3.0-x86_64.AppImage
-1df11a1ec91dec3b6144c45c4e9725733e179ae0bdc05e5ef61bdcd228d04b1d  GT-SALAT_2.3.0_amd64.deb
-732d4346531b44e4a67dfb2c2483b37ff63475e35b514793010ad512d5f73af6  gt-salat-2.3.0-1.x86_64.rpm
-6135ce83bd1940a1efc37e847dec642aeb9a8017b553d29f5478c936d5181386  GT-SALAT-2.3.0-arm64.AppImage
-a1d143fb5cea9eb508d2f33ad41eef4b7a7bd78888639a97c8891b47ea5aa5a0  GT-SALAT_2.3.0_arm64.deb
-c2e676f81e10a3a40c0ecd1bf92204e4a49800e324fed1c1541a51870e36a066  GT-SALAT-2.3.0-armv7l.AppImage
-7b5bdc708b8fa61ba98244da31cc65e24a59b2dd17653cca26a0f2353f527618  GT-SALAT_2.3.0_armv7l.deb
+22f78c86978e384c5c26987fb8efc3b52f1d169d36344025515400662ba8cef3  GT-SALAT-2.3.1-x86_64.AppImage
+593137b45cf96ead55c17613072dfea4b1f0c59230f38b8cc6f7522b99c52fb5  GT-SALAT_2.3.1_amd64.deb
+827be425ef3b5d297f09af15831c9b171f24b16975133bf4ffe572fb3903a651  gt-salat-2.3.1-1.x86_64.rpm
+c61c29d899971169d17fa232884e3d73d28de6e9b5dad57412a8fbc0cb1fd083  GT-SALAT-2.3.1-arm64.AppImage
+5e0e2a08c2065b8d93e5ac3992bcf60aed6578d94a2cff59a4001af660a9a327  GT-SALAT_2.3.1_arm64.deb
+f4720900de94ace3b2d3c4d35d750ec14f510b82618790fb0f5806aeca7ee556  GT-SALAT-2.3.1-armv7l.AppImage
+be10f2fc895b0e6d2a703207f2e85985976fc2d30f7a2a396a7133ee053aebb1  GT-SALAT_2.3.1_armv7l.deb
 ```
 
 ---

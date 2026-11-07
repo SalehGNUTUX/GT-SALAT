@@ -28,6 +28,7 @@ import {
 import * as content from './content.js';
 import { CREDIT_SOURCES, DEVELOPER, GITHUB, PHONE_REPO, PROJECTS, REPO } from './credits.js';
 import * as audio from './audio.js';
+import { showAdhanWindow, closeAdhanWindowIfNotKept } from './adhan-window.js';
 import { notify, getLog, clearLog } from './notifier.js';
 import {
   applyShellIntegration,
@@ -160,9 +161,14 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
       body: 'GT-SALAT يعمل بشكل جيد ✓',
     }),
   );
+  // اختبارٌ مطابقٌ لوقت الصلاة: الإشعار ونافذة الأذان بملء الشاشة (إن فُعّلت) والأذان المختار نفسه،
+  // ويُوقف الوسائط الأخرى ثمّ يستأنفها كما في الأذان الحقيقيّ.
   ipcMain.handle('notify:test-adhan', () => {
+    const s = getSettings();
     notify({ type: 'salat', title: '🕌 اختبار صلاة', body: 'حان وقت الاختبار' });
-    audio.play('full');
+    showAdhanWindow('اختبار الأذان', 'هكذا يبدو الأذان في وقته', '🕌');
+    if (s.useCustomAdhan && s.customAdhanPath) audio.playFile(s.customAdhanPath, closeAdhanWindowIfNotKept);
+    else audio.play(s.adhanType, closeAdhanWindowIfNotKept);
     return true;
   });
   ipcMain.handle('notify:test-adhan-short', () => {

@@ -2,7 +2,7 @@ import { app, net, shell } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { REPO } from './credits.js';
@@ -116,9 +116,43 @@ function run(bin: string, args: string[], timeout = 8000): Promise<string | null
 }
 
 /**
- * الصيغة التي رُكِّبت بها هذه النسخة — ومنها تُختار الحزمة وطريقة التثبيت.
- * AppImage تُعرَف من متغيّر البيئة `APPIMAGE` (تضعه الصورة نفسها بمسارها المطلق)،
- * وDEB/RPM بسؤال مدير الحزم عمّن يملك الملفّ التنفيذيّ الجاري.
+ * علامة الصيغة التي يكتبها electron-builder داخل الحزمة (`resources/package-type`: deb أو rpm).
+ * تُقرأ بلا مدير حزم، لكنّها **قرينةٌ لا حكم**: حزمة RPM 2.3.0 بُنيت من محتوى الـDEB فحملت «deb».
+ */
+function packageTypeMarker(): 'deb' | 'rpm' | null {
+  try {
+    const t = fs.readFileSync(path.join(process.resourcesPath, 'package-type'), 'utf-8').trim().toLowerCase();
+    return t === 'deb' || t === 'rpm' ? t : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * هل ثُبِّت التطبيق بهذه الصيغة؟ — **باسم الحزمة** (`dpkg-query -W` / `rpm -q`): يقرأ قاعدة الحالة وحدها
+ * فهو سريع. أمّا السؤال **بالمسار** (`dpkg -S`) فيمسح قوائم ملفّات كلّ الحزم، وقد يتجاوز المهلة على قرصٍ
+ * دوّار فيُحسَب التطبيق «غير مثبَّتٍ بحزمة» ويختفي زرّ التنزيل والتثبيت (درسٌ من GT-STACER)، فيأتي ثانياً.
+ */
+async function ownedByName(kind: 'deb' | 'rpm'): Promise<boolean> {
+  if (kind === 'deb') {
+    const q = await run('dpkg-query', ['-W', '-f=${Status}', 'gt-salat'], 15000);
+    return !!q && q.includes('installed') && !q.includes('not-installed');
+  }
+  return !!(await run('rpm', ['-q', 'gt-salat'], 15000));
+}
+
+async function ownedByPath(kind: 'deb' | 'rpm', exe: string): Promise<boolean> {
+  return !!(await run(kind === 'deb' ? 'dpkg' : 'rpm', kind === 'deb' ? ['-S', exe] : ['-qf', exe], 15000));
+}
+
+/**
+ * الصيغة التي رُكِّبت بها هذه النسخة — ومنها تُختار **حزمةٌ من الصيغة نفسها** وطريقة التثبيت:
+ * من ثبّت DEB يُجلَب له DEB، ومن ثبّت RPM يُجلَب له RPM، ومن يشغّل AppImage تُجلَب له AppImage.
+ *
+ * 1. AppImage: متغيّر البيئة `APPIMAGE` (تضعه الصورة نفسها بمسارها المطلق).
+ * 2. DEB/RPM: باسم الحزمة أوّلاً ثمّ بمسار الملفّ التنفيذيّ، بدءاً بما تقوله علامة `package-type` —
+ *    فالجهاز قد يحمل الأداتين معاً (Debian فيه `rpm` بقاعدةٍ فارغة).
+ * 3. إن لم يُجِب أيٌّ منهما (أداةٌ غائبة أو قاعدةٌ مقفلة) تُعتمَد العلامة وحدها، فهي أدقّ من لا شيء.
  */
 export async function detectChannel(): Promise<{ kind: UpdateChannel; target: string; ext: string | null }> {
   const image = process.env.APPIMAGE;
@@ -126,8 +160,15 @@ export async function detectChannel(): Promise<{ kind: UpdateChannel; target: st
   if (!app.isPackaged) return { kind: 'dev', target: process.execPath, ext: null };
 
   const exe = process.execPath;
-  if (await run('dpkg', ['-S', exe])) return { kind: 'deb', target: exe, ext: '.deb' };
-  if (await run('rpm', ['-qf', exe])) return { kind: 'rpm', target: exe, ext: '.rpm' };
+  const marker = packageTypeMarker();
+  const order: Array<'deb' | 'rpm'> = marker === 'rpm' ? ['rpm', 'deb'] : ['deb', 'rpm'];
+  for (const kind of order) {
+    if (await ownedByName(kind)) return { kind, target: exe, ext: `.${kind}` };
+  }
+  for (const kind of order) {
+    if (await ownedByPath(kind, exe)) return { kind, target: exe, ext: `.${kind}` };
+  }
+  if (marker) return { kind: marker, target: exe, ext: `.${marker}` };
   return { kind: 'unknown', target: exe, ext: null };
 }
 
@@ -173,7 +214,7 @@ function pickAsset(
  * (الحجم يطابقه ملفٌّ تالفٌ بنفس الطول). وإن تعذّر جلبها بقي فحص الحجم — ولا يُمنَع
  * التثبيت لأجلها، فغيابها نقصُ معلومةٍ لا دليلُ عطب.
  */
-async function fetchChecksums(tag: string, notes: string): Promise<Map<string, string>> {
+async function fetchChecksums(tag: string, notes: string, sumsUrl?: string): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   const scan = (text: string) => {
     for (const line of text.split('\n')) {
@@ -185,7 +226,18 @@ async function fetchChecksums(tag: string, notes: string): Promise<Map<string, s
     }
   };
 
-  scan(notes);                                   // إن ضُمِّنت في ملاحظات الإصدار مستقبلاً
+  // ١. ملفّ `SHA256SUMS.txt` المرفق بالإصدار (نهج GT-STACER): مصدرٌ مخصَّصٌ لا يتغيّر بتحرير الصفحة.
+  if (sumsUrl) {
+    try {
+      const res = await net.fetch(sumsUrl, { headers: { 'User-Agent': UA } });
+      if (res.ok) scan(await res.text());
+    } catch {
+      // يسقط إلى الملاحظات ثمّ README
+    }
+    if (map.size) return map;
+  }
+
+  scan(notes);                                   // ٢. ملاحظات الإصدار
   if (map.size) return map;
 
   try {
@@ -256,7 +308,8 @@ export async function checkForUpdate(opts: { allowPrerelease?: boolean } = {}): 
 
     let asset = pickAsset(latestRelease.assets || [], channel.ext);
     if (asset && available) {
-      const sums = await fetchChecksums(tag, notes);
+      const sumsAsset = (latestRelease.assets || []).find((a) => a.name.toLowerCase() === 'sha256sums.txt');
+      const sums = await fetchChecksums(tag, notes, sumsAsset?.browser_download_url);
       const sha256 = sums.get(asset.name);
       if (sha256) asset = { ...asset, sha256 };
     }
@@ -519,12 +572,28 @@ export async function installUpdate(file: string): Promise<UpdateInstallResult> 
   };
 }
 
-/** يُعيد تشغيل التطبيق على النسخة الجديدة. صورة AppImage تُشغَّل من مسارها لا من مسار Electron. */
+/**
+ * يُعيد تشغيل التطبيق على النسخة الجديدة.
+ *
+ * **AppImage لا تُعاد بـ`app.relaunch`:** تلك تُطلق عمليّةً وسيطةً من داخل الصورة المركّبة
+ * (`/tmp/.mount_…`) تنتظر خروجنا، فإذا خرجنا فُكّ التركيب وماتت الوسيطة معه، فيُغلَق التطبيق ولا يعود
+ * (ظهر في اختبار التحديث من 2.2.1). بدلها صدفةٌ من النظام (`/bin/sh`) خارج الصورة تنتظر خروج عمليّتنا
+ * — فقفل النسخة الواحدة يُرفَض ما دامت حيّة — ثمّ تشغّل الصورة الجديدة بالوسائط نفسها.
+ */
 export function restartApp(): void {
   (app as unknown as { isQuitting: boolean }).isQuitting = true;
   const image = process.env.APPIMAGE;
-  if (image) app.relaunch({ execPath: image });
-  else app.relaunch();
+  if (image) {
+    const child = spawn(
+      '/bin/sh',
+      ['-c', 'while kill -0 "$1" 2>/dev/null; do sleep 0.3; done; shift; exec "$@"', 'gt-salat-restart',
+        String(process.pid), image, ...process.argv.slice(1)],
+      { detached: true, stdio: 'ignore' },
+    );
+    child.unref();
+  } else {
+    app.relaunch();
+  }
   app.exit(0);
 }
 

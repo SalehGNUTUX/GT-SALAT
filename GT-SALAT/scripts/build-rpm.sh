@@ -10,6 +10,8 @@ DEB="release/GT-SALAT_${VERSION}_amd64.deb"
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 mkdir -p "$T"/{SPECS,RPMS,BUILD,root}
 dpkg-deb -x "$DEB" "$T/root"
+# علامة الصيغة التي يقرؤها المحدِّث (electron/updates.ts): المحتوى من الـDEB فيحمل «deb».
+echo rpm > "$T/root/opt/GT-SALAT/resources/package-type"
 cat > "$T/SPECS/gt-salat.spec" <<SPEC
 %global debug_package %{nil}
 %global __os_install_post %{nil}

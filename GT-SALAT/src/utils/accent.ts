@@ -32,18 +32,24 @@ function shade(rgb: [number, number, number], ratio: number): [number, number, n
   return rgb.map((c) => c + (target - c) * t) as [number, number, number];
 }
 
-export function applyAccent(color: string): void {
+/**
+ * `light`: في الوضع الفاتح يصير `--teal-400` (لون النصوص والروابط المميّزة) **أغمق** لا أفتح —
+ * الفيروزيّ الفاتح فوق الأبيض والزجاج الفاتح يبهت (تباينٌ دون 2:1)، فيُغمَّق حتى يقارب 4.5:1.
+ */
+export function applyAccent(color: string, light = false): void {
   const root = document.documentElement;
   const rgb = color ? parseHex(color) : null;
 
   if (!rgb) {
     for (const [k, v] of Object.entries(DEFAULTS)) root.style.setProperty(k, v);
+    if (light) root.style.setProperty('--teal-400', '#00796b');
     return;
   }
 
   const [r, g, b] = rgb;
   root.style.setProperty('--teal-500', toHex(rgb));
-  root.style.setProperty('--teal-400', toHex(shade(rgb, 0.22)));   // أفتح — للنصوص فوق الخلفيات الداكنة
+  // أفتح للنصوص فوق الخلفيات الداكنة، وأغمق بكثيرٍ فوق الفاتحة.
+  root.style.setProperty('--teal-400', toHex(shade(rgb, light ? -0.45 : 0.22)));
   root.style.setProperty('--teal-600', toHex(shade(rgb, -0.12)));  // أغمق — للحدود والحالات المضغوطة
   root.style.setProperty('--accent-tint', `rgba(${r}, ${g}, ${b}, 0.1)`);
   root.style.setProperty('--accent-tint-2', `rgba(${r}, ${g}, ${b}, 0.15)`);
