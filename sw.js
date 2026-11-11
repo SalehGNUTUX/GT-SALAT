@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gt-salat-v2.3.1';
+const CACHE_NAME = 'gt-salat-v2.3.1-p22';
 const urlsToCache = [
   './',
   './index.html',
