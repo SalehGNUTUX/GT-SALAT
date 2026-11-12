@@ -10,12 +10,13 @@ const SLEEP_CHOICES = [15, 30, 45, 60, 90];
  * النقر على اسم المقطع يعيدك إلى القسم الذي شغّلته منه.
  */
 export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
-  const { track, status, volume, index, queueLength, togglePause, next, prev, stop, setVolume, sleepEndsAt, setSleepTimer, reconnecting } = usePlayer();
+  const { track, status, volume, index, queueLength, togglePause, next, prev, stop, setVolume, sleepEndsAt, sleepTotal, setSleepTimer, reconnecting } = usePlayer();
   // ساعةٌ محلّيّة للمتبقّي من المؤقّت: تُعيد رسم الشريط وحده لا التطبيق كلّه.
   const [, setTick] = useState(0);
   useEffect(() => {
     if (sleepEndsAt == null) return;
-    const t = window.setInterval(() => setTick((n) => n + 1), 15_000);
+    // كلّ ثانيةٍ لتناقص الحلقة بانسياب (الشريط وحده يُعاد رسمه، لا التطبيق).
+    const t = window.setInterval(() => setTick((n) => n + 1), 1_000);
     return () => window.clearInterval(t);
   }, [sleepEndsAt]);
   if (!track) return null;
@@ -102,7 +103,6 @@ export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
         <div style={{ fontSize: 11.5, color: status === 'error' ? 'var(--color-error)' : 'var(--fg-muted)', marginTop: 2 }}>
           {statusText}{track.subtitle && status !== 'error' ? ` · ${track.subtitle}` : ''}
           {inQueue && status !== 'error' ? ` · ${index + 1}/${queueLength}` : ''}
-          {sleepLeft != null ? ` · ⏲ يتوقّف بعد ${sleepLeft} دقيقة` : ''}
         </div>
       </div>
 
@@ -130,33 +130,31 @@ export function MiniPlayer({ onOpen }: { onOpen: (section: string) => void }) {
         </span>
       </div>
 
-      {/* ⏲ مؤقّت الإيقاف — للنوم على الإذاعة أو التلاوة */}
-      <select
-        value={sleepEndsAt != null ? 'on' : ''}
-        onChange={(e) => {
-          const v = e.target.value;
-          if (v === 'off') setSleepTimer(null);
-          else if (v !== 'on' && v !== '') setSleepTimer(parseInt(v, 10));
-        }}
-        title="مؤقّت الإيقاف"
-        style={{
-          height: 30,
-          borderRadius: 'var(--radius-sm)',
-          border: `1px solid ${sleepEndsAt != null ? 'var(--teal-500)' : 'var(--border-subtle)'}`,
-          background: 'var(--bg-panel)',
-          color: sleepEndsAt != null ? 'var(--teal-400)' : 'var(--fg-muted)',
-          fontSize: 12,
-          cursor: 'pointer',
-          flexShrink: 0,
-        }}
-      >
-        <option value="" disabled hidden>⏲ مؤقّت</option>
-        {sleepEndsAt != null && <option value="on" disabled hidden>⏲ {sleepLeft} دقيقة</option>}
-        {SLEEP_CHOICES.map((m) => (
-          <option key={m} value={m}>{m} دقيقة</option>
-        ))}
-        {sleepEndsAt != null && <option value="off">إلغاء المؤقّت</option>}
-      </select>
+      {/* ⏲ مؤقّت الإيقاف: أيقونةٌ بلا مؤقّت، وحلقةُ عدٍّ تنازليٍّ حين يُضبَط (كالهاتف 2.2). القائمة الأصليّة
+          شفّافةٌ فوقها، فالنقر على الحلقة يفتح خياراتها نفسها. */}
+      <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }} title={sleepLeft != null ? `يتوقّف بعد ${sleepLeft} دقيقة` : 'مؤقّت الإيقاف'}>
+        {sleepEndsAt != null ? (
+          <SleepRing remaining={Math.max(0, sleepEndsAt - Date.now())} total={sleepTotal} />
+        ) : (
+          <div style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: 'var(--teal-400)' }}>⏲</div>
+        )}
+        <select
+          value=""
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === 'off') setSleepTimer(null);
+            else if (v) setSleepTimer(parseInt(v, 10));
+          }}
+          aria-label="مؤقّت الإيقاف"
+          style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+        >
+          <option value="" disabled hidden>مؤقّت</option>
+          {SLEEP_CHOICES.map((m) => (
+            <option key={m} value={m}>{m} دقيقة</option>
+          ))}
+          {sleepEndsAt != null && <option value="off">إلغاء المؤقّت</option>}
+        </select>
+      </div>
 
       {/* ⏹ إيقافٌ تامّ يُغلق المشغّل — منفصلٌ عن الإيقاف المؤقّت */}
       <button
@@ -194,4 +192,42 @@ function navBtn(disabled: boolean): React.CSSProperties {
     opacity: disabled ? 0.35 : 1,
     flexShrink: 0,
   };
+}
+
+/**
+ * حلقة مؤقّت الإيقاف: حافّةٌ ذهبيّةٌ تتناقص من الأعلى، وقطاعٌ شفيفٌ في داخلها يتناقص معها،
+ * والمتبقّي في الوسط (دقائق، ثمّ ثوانٍ في الدقيقة الأخيرة) — كحلقة الهاتف.
+ */
+function SleepRing({ remaining, total }: { remaining: number; total: number }) {
+  const frac = total > 0 ? Math.min(1, Math.max(0, remaining / total)) : 0;
+  const lastMinute = remaining > 0 && remaining < 60_000;
+  const label = lastMinute ? Math.ceil(remaining / 1000) : Math.ceil(remaining / 60_000);
+  const r = 17;
+  const c = 2 * Math.PI * r;
+  return (
+    <div style={{ position: 'relative', width: 40, height: 40 }}>
+      {/* القطاع الداخليّ: تدرّجٌ مخروطيٌّ بقدر المتبقّي */}
+      <div
+        style={{
+          position: 'absolute', inset: 5, borderRadius: '50%',
+          background: `conic-gradient(rgba(245,197,24,0.26) ${frac * 360}deg, transparent 0deg)`,
+          transition: 'background 0.9s linear',
+        }}
+      />
+      <svg width="40" height="40" viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0 }}>
+        <circle cx="20" cy="20" r={r} fill="none" stroke="var(--border-subtle)" strokeWidth="2" />
+        <circle
+          cx="20" cy="20" r={r} fill="none" stroke="var(--gold-500)" strokeWidth="2" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c * (1 - frac)} transform="rotate(-90 20 20)"
+          style={{ transition: 'stroke-dashoffset 0.9s linear' }}
+        />
+      </svg>
+      <span
+        className="mono"
+        style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--gold-500)' }}
+      >
+        {label}
+      </span>
+    </div>
+  );
 }

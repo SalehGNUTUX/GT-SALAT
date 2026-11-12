@@ -4,6 +4,7 @@ import { getNextPrayer } from './prayer.js';
 import { getRandomDhikr } from './dhikr.js';
 import { getSettings, setSettings } from './settings.js';
 import * as audio from './audio.js';
+import { closeAdhanWindow } from './adhan-window.js';
 import { notify } from './notifier.js';
 
 let tray: Tray | null = null;
@@ -121,7 +122,7 @@ async function refreshMenu(showMainWindow: () => void, toggleMainWindow: () => v
     {
       label: 'إيقاف الأذان الحالي',
       enabled: audio.isPlaying(),
-      click: () => audio.stop(),
+      click: () => { audio.stop(); closeAdhanWindow(); },
     },
     { type: 'separator' },
     {

@@ -1,4 +1,7 @@
 import { Notification, app, nativeImage } from 'electron';
+import { execFile, execFileSync, spawn, type ChildProcess } from 'node:child_process';
+import * as audio from './audio.js';
+import { closeAdhanWindow } from './adhan-window.js';
 import path from 'node:path';
 import type { NotificationLogEntry } from './types.js';
 
@@ -21,6 +24,11 @@ export interface NotifyOptions {
    * (مثل `more/adhkar-evening`). يُظهر النافذة وينتقل إليها مباشرةً.
    */
   route?: string;
+  /**
+   * زرّ «⏹ إيقاف الأذان» في الإشعار نفسه (لينكس، عبر `notify-send`): يوقف الصوت ويُغلق نافذة الأذان،
+   * ويُغلَق الإشعار تلقائيّاً حين ينتهي الصوت. واجهة إشعارات Electron لا تدعم الأزرار إلّا على macOS.
+   */
+  stopAction?: boolean;
 }
 
 /** يضبطه `main.ts`: يُظهر النافذة ويُرسل الوجهة إلى الواجهة. */
@@ -41,6 +49,8 @@ export function notify(opts: NotifyOptions): boolean {
     };
     log.unshift(entry);
     if (log.length > LOG_LIMIT) log.length = LOG_LIMIT;
+
+    if (opts.stopAction && notifyWithStop(opts)) return true;
 
     if (!Notification.isSupported()) return false;
     const n = new Notification({
@@ -65,4 +75,68 @@ export function getLog(): NotificationLogEntry[] {
 
 export function clearLog(): void {
   log.length = 0;
+}
+
+// ── إشعارٌ بزرّ إيقاف الأذان (notify-send) ───────────────────────────────────────
+
+let notifySendOk: boolean | null = null;
+function hasNotifySend(): boolean {
+  if (notifySendOk === null) {
+    try { execFileSync('which', ['notify-send'], { stdio: 'ignore' }); notifySendOk = true; } catch { notifySendOk = false; }
+  }
+  return notifySendOk;
+}
+
+/** الإشعار الجاري بزرّ الإيقاف: عمليّته ومعرّفه لدى خادم الإشعارات (لإغلاقه). */
+let active: { proc: ChildProcess; id: string | null; unsub: () => void } | null = null;
+
+function closeActive(): void {
+  if (!active) return;
+  const { proc, id, unsub } = active;
+  active = null;
+  unsub();
+  // إغلاقه من الشاشة بمعرّفه (المعيار)، ثمّ إنهاء عمليّة الانتظار.
+  if (id) {
+    execFile('gdbus', ['call', '--session', '--dest', 'org.freedesktop.Notifications',
+      '--object-path', '/org/freedesktop/Notifications', '--method',
+      'org.freedesktop.Notifications.CloseNotification', id], () => {});
+  }
+  try { proc.kill(); } catch {}
+}
+
+function notifyWithStop(opts: NotifyOptions): boolean {
+  if (process.platform !== 'linux' || !hasNotifySend()) return false;
+  closeActive();
+  try {
+    const proc = spawn('notify-send', [
+      '--app-name=GT-SALAT', `--icon=${iconPath()}`, `--urgency=${opts.urgent ? 'critical' : 'normal'}`,
+      '--print-id', '--action=stop=⏹ إيقاف الأذان', '--action=default=فتح GT-SALAT',
+      opts.title, opts.body,
+    ], { stdio: ['ignore', 'pipe', 'ignore'] });
+    const entry = { proc, id: null as string | null, unsub: () => {} };
+    active = entry;
+    // انتهاء الصوت (أو إيقافه من النافذة أو الشريط) يُغلق الإشعار، فلا يبقى زرٌّ لا عمل له.
+    // مهلةٌ قصيرة: بين الأذان والدعاء لحظةٌ بلا صوت، فلا يُغلَق الإشعار قبل الدعاء.
+    entry.unsub = audio.onAudioState((kind) => {
+      if (kind !== null || active !== entry) return;
+      setTimeout(() => { if (active === entry && audio.playingKind() === null) closeActive(); }, 2500);
+    });
+    let buf = '';
+    proc.stdout?.on('data', (d: Buffer) => {
+      buf += d.toString();
+      let nl: number;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (/^\d+$/.test(line) && entry.id === null) entry.id = line;   // السطر الأوّل: المعرّف
+        else if (line === 'stop') { audio.stop(); closeAdhanWindow(); }
+        else if (line === 'default' && opts.route) navHandler?.(opts.route);
+      }
+    });
+    proc.on('exit', () => { if (active === entry) { active = null; entry.unsub(); } });
+    proc.on('error', () => { if (active === entry) { active = null; entry.unsub(); } });
+    return true;
+  } catch {
+    return false;
+  }
 }

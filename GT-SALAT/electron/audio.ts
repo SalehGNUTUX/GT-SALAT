@@ -20,6 +20,13 @@ export function setAudioStateListener(cb: (kind: string | null) => void): void {
   stateListener = cb;
 }
 
+/** مراقبون إضافيّون لحالة الصوت (مثل إشعار الأذان بزرّ الإيقاف: يُغلَق حين ينتهي الصوت). */
+const observers = new Set<(kind: string | null) => void>();
+export function onAudioState(cb: (kind: string | null) => void): () => void {
+  observers.add(cb);
+  return () => { observers.delete(cb); };
+}
+
 /** مهلة الاستئناف: الأذان يتبعه الدعاء بعد لحظة، فلا تعود الوسائط في الفاصل بينهما. */
 const RESUME_DELAY_MS = 2000;
 let resumeTimer: NodeJS.Timeout | null = null;
@@ -34,6 +41,7 @@ function emitState(): void {
     }, RESUME_DELAY_MS);
   }
   try { stateListener?.(kind); } catch {}
+  for (const cb of [...observers]) { try { cb(kind); } catch {} }
 }
 
 function audioDir(): string {

@@ -28,7 +28,7 @@ import {
 import * as content from './content.js';
 import { CREDIT_SOURCES, DEVELOPER, GITHUB, PHONE_REPO, PROJECTS, REPO } from './credits.js';
 import * as audio from './audio.js';
-import { showAdhanWindow, closeAdhanWindowIfNotKept } from './adhan-window.js';
+import { showAdhanWindow, closeAdhanWindow, closeAdhanWindowIfNotKept } from './adhan-window.js';
 import { notify, getLog, clearLog } from './notifier.js';
 import {
   applyShellIntegration,
@@ -145,7 +145,8 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   // ── Audio ───────────────────────────────────────────────
   ipcMain.handle('audio:play', (_e, kind: audio.AdhanAudioKind) => audio.play(kind));
   ipcMain.handle('audio:play-file', (_e, filePath: string) => audio.playFile(filePath));
-  ipcMain.handle('audio:stop', () => audio.stop());
+  // الإيقاف من الواجهة يُغلق نافذة الأذان أيضاً (كزرّ الإشعار)، فلا تبقى نافذةٌ بلا صوت.
+  ipcMain.handle('audio:stop', () => { audio.stop(); closeAdhanWindow(); });
   ipcMain.handle('audio:playing', () => audio.isPlaying());
   ipcMain.handle('audio:playing-kind', () => audio.playingKind());
   ipcMain.handle('audio:preview', (_e, kind: audio.AdhanAudioKind | 'custom', customPath?: string) =>
@@ -165,7 +166,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   // ويُوقف الوسائط الأخرى ثمّ يستأنفها كما في الأذان الحقيقيّ.
   ipcMain.handle('notify:test-adhan', () => {
     const s = getSettings();
-    notify({ type: 'salat', title: '🕌 اختبار صلاة', body: 'حان وقت الاختبار' });
+    notify({ type: 'salat', title: '🕌 اختبار صلاة', body: 'حان وقت الاختبار', stopAction: true });
     showAdhanWindow('اختبار الأذان', 'هكذا يبدو الأذان في وقته', '🕌');
     if (s.useCustomAdhan && s.customAdhanPath) audio.playFile(s.customAdhanPath, closeAdhanWindowIfNotKept);
     else audio.play(s.adhanType, closeAdhanWindowIfNotKept);

@@ -1,7 +1,9 @@
 import { WHATS_NEW } from '../components/WhatsNewDialog';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState, type ReactNode } from 'react';
+import { SettingsCardsGrid, SettingsPageCtx, SettingsPageHeader, useSettingsPage, type SettingsCategory } from '../components/SettingsCards';
 import {
   Button,
+  Card,
   ChipGroup,
   Collapsible,
   LinkRow,
@@ -76,6 +78,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
   const open = settings.advancedOpenSection;
   const toggle = (title: string) => update({ advancedOpenSection: open === title ? '' : title });
 
+  // شكل البطاقات (الافتراضيّ منذ 2.4، كالهاتف 2.2): شبكةٌ تفتح كلّ بطاقةٍ صفحة قسمها، وEsc يعود إليها.
+  const cards = settings.settingsCards !== false;
+  const [page, setPage] = useSettingsPage(cards);
+
   const now = new Date();
 
   return (
@@ -85,8 +91,12 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         «الإعدادات الأساسية»، ولا يتكرّر أيّ خيارٍ بين الصفحتين.
       </div>
 
+      <SettingsPageCtx.Provider value={{ cards, page }}>
+      {cards && !page && <SettingsCardsGrid categories={SETTINGS_CATEGORIES} onOpen={setPage} />}
+      {cards && page && <SettingsPageHeader categories={SETTINGS_CATEGORIES} title={page} onBack={() => setPage(null)} />}
+
       {/* ── حساب المواقيت ───────────────────────────────── */}
-      <Collapsible title="حساب المواقيت" icon="🧮" expanded={open === 'حساب المواقيت'} onToggle={() => toggle('حساب المواقيت')}>
+      <Section title="حساب المواقيت" icon="🧮" expanded={open === 'حساب المواقيت'} onToggle={() => toggle('حساب المواقيت')}>
         <SettingRow
           label="مذهب حساب العصر"
           sub="الجمهور: ظلّ الشيء مثله. الحنفي: ظلّ الشيء مثليه (العصر أمتنُ تأخيراً)"
@@ -124,10 +134,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             </Button>
           </div>
         </SettingRow>
-      </Collapsible>
+      </Section>
 
       {/* ── الأذان والتنبيهات ───────────────────────────── */}
-      <Collapsible title="الأذان والتنبيهات" icon="🔊" expanded={open === 'الأذان والتنبيهات'} onToggle={() => toggle('الأذان والتنبيهات')}>
+      <Section title="الأذان والتنبيهات" icon="🔊" expanded={open === 'الأذان والتنبيهات'} onToggle={() => toggle('الأذان والتنبيهات')}>
         <SettingRow label="مستوى صوت الأذان" sub="يُطبَّق على كل الأصوات التي يشغّلها التطبيق">
           <Slider
             value={settings.adhanVolume}
@@ -234,10 +244,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             ))}
           </div>
         )}
-      </Collapsible>
+      </Section>
 
       {/* ── بطاقات لوحة التحكم ──────────────────────────── */}
-      <Collapsible title="بطاقات لوحة التحكم" icon="🗂️" expanded={open === 'بطاقات لوحة التحكم'} onToggle={() => toggle('بطاقات لوحة التحكم')}>
+      <Section title="بطاقات لوحة التحكم" icon="🗂️" expanded={open === 'بطاقات لوحة التحكم'} onToggle={() => toggle('بطاقات لوحة التحكم')}>
         <SettingRow label="بطاقة آية اليوم" sub="آيةٌ منتقاة تتغيّر يومياً، مع زرّ تجديد">
           <Toggle on={settings.enableDailyAyah} onChange={(v) => update({ enableDailyAyah: v })} />
         </SettingRow>
@@ -250,10 +260,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         <SettingRow label="بطاقة رمضان" sub="عدّاد الأيام قبل رمضان، ورقم اليوم أثناءه">
           <Toggle on={settings.enableRamadanCard} onChange={(v) => update({ enableRamadanCard: v })} />
         </SettingRow>
-      </Collapsible>
+      </Section>
 
       {/* ── التذكيرات اليومية ───────────────────────────── */}
-      <Collapsible title="التذكيرات اليومية" icon="🔔" expanded={open === 'التذكيرات اليومية'} onToggle={() => toggle('التذكيرات اليومية')}>
+      <Section title="التذكيرات اليومية" icon="🔔" expanded={open === 'التذكيرات اليومية'} onToggle={() => toggle('التذكيرات اليومية')}>
         <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginBottom: 10, lineHeight: 1.8 }}>
           تصل هذه التذكيرات في ساعتها، وإن كان الحاسوب مطفأً وقتَها وصلت عند أول تشغيلٍ خلال الساعة
           التالية — ولا تصل متأخرةً بعد ذلك فتفقد معناها.
@@ -299,10 +309,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             <Slider value={settings.sunnahReminderHour} min={0} max={23} suffix=":00" onCommit={(v) => update({ sunnahReminderHour: v })} />
           </SettingRow>
         )}
-      </Collapsible>
+      </Section>
 
       {/* ── التقويم والتواريخ ───────────────────────────── */}
-      <Collapsible title="التقويم والتواريخ" icon="📅" expanded={open === 'التقويم والتواريخ'} onToggle={() => toggle('التقويم والتواريخ')}>
+      <Section title="التقويم والتواريخ" icon="📅" expanded={open === 'التقويم والتواريخ'} onToggle={() => toggle('التقويم والتواريخ')}>
         <SettingRow label="نظام عرض الوقت">
           <ChipGroup<string>
             value={settings.clock24h ? '24' : '12'}
@@ -357,14 +367,25 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
         <div style={{ paddingTop: 12, fontSize: 12, color: 'var(--fg-muted)' }}>
           معاينة: {formatGregorian(now, settings.monthScheme, settings.country)} · {formatHijri(now, settings.hijriOffset)}
         </div>
-      </Collapsible>
+      </Section>
 
       {/* ── المظهر ──────────────────────────────────────── */}
-      <Collapsible title="الخلفيّة والزجاج" icon="🕌" expanded={open === 'الخلفيّة والزجاج'} onToggle={() => toggle('الخلفيّة والزجاج')}>
+      <Section title="الخلفيّة والزجاج" icon="🕌" expanded={open === 'الخلفيّة والزجاج'} onToggle={() => toggle('الخلفيّة والزجاج')}>
         <HomeBackgroundSettings settings={settings} update={update} />
-      </Collapsible>
+      </Section>
 
-      <Collapsible title="المظهر" icon="🎨" expanded={open === 'المظهر'} onToggle={() => toggle('المظهر')}>
+      <Section title="المظهر" icon="🎨" expanded={open === 'المظهر'} onToggle={() => toggle('المظهر')}>
+        <SettingRow label="شكل الإعدادات" sub="للأساسيّة والإضافيّة معاً: بطاقاتٌ تفتح صفحات أقسامها، أو الشكل السابق في صفحةٍ واحدة">
+          <ChipGroup<'cards' | 'accordion'>
+            value={cards ? 'cards' : 'accordion'}
+            options={[{ value: 'cards', label: 'بطاقات' }, { value: 'accordion', label: 'مطويّات' }]}
+            onChange={(v) => {
+              // يبقى «المظهر» مفتوحاً بعد التبديل فلا يضيع موضع المستخدم.
+              if (v === 'accordion') update({ settingsCards: false, advancedOpenSection: 'المظهر' });
+              else { update({ settingsCards: true }); setPage('المظهر'); }
+            }}
+          />
+        </SettingRow>
         <SettingRow label="السِمة">
           <ChipGroup<'dark' | 'light'>
             value={settings.theme}
@@ -432,10 +453,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             </label>
           </div>
         </div>
-      </Collapsible>
+      </Section>
 
       {/* ── النسخ الاحتياطي ─────────────────────────────── */}
-      <Collapsible title="النسخ الاحتياطي" icon="💾" expanded={open === 'النسخ الاحتياطي'} onToggle={() => toggle('النسخ الاحتياطي')}>
+      <Section title="النسخ الاحتياطي" icon="💾" expanded={open === 'النسخ الاحتياطي'} onToggle={() => toggle('النسخ الاحتياطي')}>
         <div style={{ fontSize: 12.5, color: 'var(--fg-muted)', marginBottom: 14, lineHeight: 1.9 }}>
           حزمةٌ واحدةٌ (<span className="mono">zip</span>) فيها إعداداتك ومواقيتك المخزَّنة.
           <strong style={{ color: 'var(--teal-400)' }}> الحزمة نفسها تعمل في نسخة الهاتف</strong> —
@@ -539,10 +560,10 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             </div>
           </div>
         )}
-      </Collapsible>
+      </Section>
 
       {/* ── حول ─────────────────────────────────────────── */}
-      <Collapsible title="حول GT-SALAT" icon="ℹ️" expanded={open === 'حول GT-SALAT'} onToggle={() => toggle('حول GT-SALAT')}>
+      <Section title="حول GT-SALAT" icon="ℹ️" expanded={open === 'حول GT-SALAT'} onToggle={() => toggle('حول GT-SALAT')}>
         <SettingRow label="النسخة">
           <span className="mono" style={{ fontSize: 13, color: 'var(--fg-secondary)' }}>GT-SALAT {version}</span>
         </SettingRow>
@@ -559,17 +580,42 @@ export function AdvancedSettingsPage({ settings, update, version }: Props) {
             <LinkRow title="مشاريع GNUTUX" sub="بقيّة مشاريع المطوّر" url={credits.projects} />
           </>
         )}
-      </Collapsible>
+      </Section>
 
       {/* ── المصادر المعتمَدة ───────────────────────────── */}
-      <Collapsible title="المصادر المعتمَدة" icon="📚" expanded={open === 'المصادر المعتمَدة'} onToggle={() => toggle('المصادر المعتمَدة')}>
+      <Section title="المصادر المعتمَدة" icon="📚" expanded={open === 'المصادر المعتمَدة'} onToggle={() => toggle('المصادر المعتمَدة')}>
         <div style={{ fontSize: 12.5, color: 'var(--fg-muted)', marginBottom: 12, lineHeight: 1.8 }}>
           أُثري التطبيق بمحتوىً وبياناتٍ من مشاريعَ حرّةٍ ومفتوحةِ المصدر، بالشكر والتقدير:
         </div>
         {credits?.sources.map((s) => (
           <LinkRow key={s.name} title={s.name} sub={s.note} url={s.url} />
         ))}
-      </Collapsible>
+      </Section>
+      </SettingsPageCtx.Provider>
     </div>
   );
 }
+
+/**
+ * قسمٌ من الإعدادات الإضافيّة: مطويّةٌ في شكل المطويّات، ولا شيء في الشبكة، ومفتوحٌ وحده في صفحته.
+ * **كلّ قسمٍ جديد يحتاج مدخلاً في `SETTINGS_CATEGORIES` بعنوانه حرفيّاً**، وإلّا لم يظهر في شكل البطاقات.
+ */
+function Section(props: { title: string; icon?: string; expanded: boolean; onToggle: () => void; children: ReactNode }) {
+  const { cards, page } = useContext(SettingsPageCtx);
+  if (!cards) return <Collapsible {...props} />;
+  if (page !== props.title) return null;
+  return <Card style={{ padding: '18px 22px' }}>{props.children}</Card>;
+}
+
+const SETTINGS_CATEGORIES: SettingsCategory[] = [
+  { title: 'حساب المواقيت', icon: '🧮', sub: 'الطريقة والمذهب وتعديل الدقائق' },
+  { title: 'الأذان والتنبيهات', icon: '🔊', sub: 'نوع الأذان والصوت والاختبار' },
+  { title: 'بطاقات لوحة التحكم', icon: '🗂️', sub: 'ما يظهر في لوحة التحكّم' },
+  { title: 'التذكيرات اليومية', icon: '🔔', sub: 'الأذكار والسُّنن والأيّام البيض' },
+  { title: 'التقويم والتواريخ', icon: '📅', sub: 'الهجريّ والأشهر وتوقيت التطبيق' },
+  { title: 'الخلفيّة والزجاج', icon: '🕌', sub: 'المساجد وصورتك والتغبيش' },
+  { title: 'المظهر', icon: '🎨', sub: 'السمة واللون وشكل الإعدادات' },
+  { title: 'النسخ الاحتياطي', icon: '💾', sub: 'تصدير الإعدادات واستيرادها' },
+  { title: 'حول GT-SALAT', icon: 'ℹ️', sub: 'النسخة والتحديثات والمطوّر' },
+  { title: 'المصادر المعتمَدة', icon: '📚', sub: 'المشاريع الحرّة التي أثرته' },
+];

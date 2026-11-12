@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, CopyButton, EmptyState, SearchInput } from '../../components/common';
 import type { HisnCategory, HisnCategoryInfo } from '@electron/types';
+import { DhikrCardsView, DhikrViewToggle } from '../../components/DhikrCards';
+import { useSettings } from '../../hooks/useSettings';
 
 /**
  * حصن المسلم المصنّف: فهرس الأبواب ← أذكار الباب.
@@ -11,6 +13,11 @@ export function HisnPage({ initialCategory }: { initialCategory?: number } = {})
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<HisnCategory[] | null>(null);
   const [open, setOpen] = useState<HisnCategory | null>(null);
+  const [settings, update] = useSettings();
+  const cards = settings?.adhkarSessionCards !== false;
+  // عدّ الباب المفتوح في شكل البطاقات (القائمة تحفظ عدّ كلّ بطاقةٍ في بطاقتها).
+  const [counts, setCounts] = useState<Record<number, number>>({});
+  useEffect(() => { setCounts({}); }, [open?.id]);
 
   useEffect(() => {
     window.gtSalat.content.hisnIndex().then(setIndex);
@@ -45,12 +52,24 @@ export function HisnPage({ initialCategory }: { initialCategory?: number } = {})
             {open.icon} {open.name}
           </div>
           <div style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{open.items?.length ?? 0} ذكراً</div>
+          <div style={{ flex: 1 }} />
+          <DhikrViewToggle cards={cards} onChange={(v) => void update({ adhkarSessionCards: v })} />
+          {cards && <Button size="sm" onClick={() => setCounts({})}>إعادة الضبط</Button>}
         </div>
+        {cards ? (
+          <DhikrCardsView
+            items={(open.items ?? []).map((d) => ({ n: d.n, text: d.text, count: d.count ?? 1 }))}
+            counts={counts}
+            onTap={(n, max) => setCounts((c) => ({ ...c, [n]: (c[n] ?? 0) >= max ? 0 : (c[n] ?? 0) + 1 }))}
+            source={`حصن المسلم — ${open.name}`}
+          />
+        ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {(open.items ?? []).map((d) => (
             <DhikrCard key={d.n} n={d.n} text={d.text} count={d.count ?? 1} source={open.name} />
           ))}
         </div>
+        )}
       </div>
     );
   }

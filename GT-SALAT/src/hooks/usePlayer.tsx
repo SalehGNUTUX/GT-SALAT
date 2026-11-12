@@ -52,6 +52,8 @@ interface PlayerApi {
   audioRef: React.RefObject<HTMLAudioElement>;
   /** مؤقّت الإيقاف: لحظة الإيقاف (ms) أو null. */
   sleepEndsAt: number | null;
+  /** مدّة المؤقّت كاملةً بالميلّي — لحلقة العدّ التنازليّ. */
+  sleepTotal: number;
   /** يضبط مؤقّت الإيقاف بالدقائق، أو يلغيه بـnull. */
   setSleepTimer: (minutes: number | null) => void;
   /** رقم محاولة إعادة الاتصال الجارية بالبثّ الحيّ (0 = لا محاولة). */
@@ -78,6 +80,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const queueRef = useRef<PlayerTrack[]>([]);
   const indexRef = useRef(0);
   const [sleepEndsAt, setSleepEndsAt] = useState<number | null>(null);
+  const [sleepTotal, setSleepTotal] = useState(0);
   const sleepTimerRef = useRef<number | null>(null);
   const [reconnecting, setReconnecting] = useState(0);
   const attemptRef = useRef(0);
@@ -116,6 +119,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return;
     }
     const ms = minutes * 60_000;
+    setSleepTotal(ms);
     setSleepEndsAt(Date.now() + ms);
     sleepTimerRef.current = window.setTimeout(() => stop(), ms);
   }, [stop]);
@@ -242,6 +246,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setVolume,
         audioRef,
         sleepEndsAt,
+        sleepTotal,
         setSleepTimer,
         reconnecting,
       }}

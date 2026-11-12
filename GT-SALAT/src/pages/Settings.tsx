@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, Button, Toggle, SectionTitle, SettingRow } from '../components/common';
+import { SettingsCardsGrid, SettingsPageCtx, SettingsPageHeader, TitledSection, useSettingsPage, type SettingsCategory } from '../components/SettingsCards';
 import { PlacePicker } from '../components/PlacePicker';
 import type { AppSettings } from '../hooks/useSettings';
 
@@ -10,6 +11,17 @@ interface Props {
 }
 
 export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
+  // شكل البطاقات (كالإعدادات الإضافيّة والهاتف 2.2): يحكمه `settingsCards` نفسه، ويُبدَّل في «المظهر».
+  const cards = settings.settingsCards !== false;
+  const [page, setPage] = useSettingsPage(cards);
+  const categories: SettingsCategory[] = [
+    { title: 'الموقع الجغرافي', icon: '📍', sub: 'المدينة والإحداثيّات وطريقة الحساب' },
+    { title: 'الإشعارات', icon: '🔔', sub: 'تنبيهات الصلاة والأذكار والأذان' },
+    { title: 'تكامل الطرفية (اختياري)', icon: '💻', sub: 'البسملة والذكر والصلاة في الطرفيّة' },
+    { title: 'النظام', icon: '⚙️', sub: 'البدء مع الجهاز وشريط المهام' },
+    { title: 'إجراءات', icon: '🔧', sub: 'تحديث الجداول وإعادة الضبط' },
+    { title: 'الإعدادات الإضافية', icon: '🎛️', sub: 'المذهب والصوت والتقويم والمظهر', onOpen: onOpenAdvanced },
+  ];
   const [methods, setMethods] = useState<{ id: number; nameAr: string }[]>([]);
   const [detecting, setDetecting] = useState(false);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
@@ -85,9 +97,11 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
 
   return (
     <div style={{ padding: 24, overflowY: 'auto', height: '100%', maxWidth: 900 }}>
+      <SettingsPageCtx.Provider value={{ cards, page }}>
+      {cards && !page && <SettingsCardsGrid categories={categories} onOpen={setPage} />}
+      {cards && page && <SettingsPageHeader categories={categories} title={page} onBack={() => setPage(null)} />}
       {/* الموقع */}
-      <Card style={{ marginBottom: 16 }}>
-        <SectionTitle>📍 الموقع الجغرافي</SectionTitle>
+      <TitledSection icon="📍" title="الموقع الجغرافي">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div>
             <label style={{ fontSize: 12, color: 'var(--fg-muted)', display: 'block', marginBottom: 4 }}>المدينة</label>
@@ -206,7 +220,7 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             💾 حفظ وتحديث المواقيت
           </Button>
         </div>
-      </Card>
+      </TitledSection>
 
       {picking && (
         <PlacePicker
@@ -229,8 +243,7 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
       )}
 
       {/* الإشعارات */}
-      <Card style={{ marginBottom: 16 }}>
-        <SectionTitle>🔔 الإشعارات</SectionTitle>
+      <TitledSection icon="🔔" title="الإشعارات">
         <SettingRow label="إشعارات الصلاة (رئيسي)" sub="تفعيل/تعطيل جميع تنبيهات الصلاة">
           <Toggle on={settings.enableSalatNotify} onChange={(v) => update({ enableSalatNotify: v })} />
         </SettingRow>
@@ -387,11 +400,10 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             )}
           </div>
         </div>
-      </Card>
+      </TitledSection>
 
       {/* تكامل الطرفية */}
-      <Card style={{ marginBottom: 16 }}>
-        <SectionTitle>💻 تكامل الطرفية (اختياري)</SectionTitle>
+      <TitledSection icon="💻" title="تكامل الطرفية (اختياري)">
         <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginBottom: 14 }}>
           يمكنك عرض ذكر عشوائي أو موعد الصلاة القادمة تلقائياً عند فتح أي طرفية جديدة.
           هذه الميزة مُعطّلة افتراضياً وتعمل فقط عند تفعيلها.
@@ -470,11 +482,10 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             <span style={{ fontSize: 13, color: 'var(--color-success)' }}>{shellApplyStatus}</span>
           )}
         </div>
-      </Card>
+      </TitledSection>
 
       {/* النظام */}
-      <Card style={{ marginBottom: 16 }}>
-        <SectionTitle>⚙️ النظام</SectionTitle>
+      <TitledSection icon="⚙️" title="النظام">
         <SettingRow label="التشغيل التلقائي عند بدء النظام">
           <Toggle
             on={autoStartEnabled}
@@ -494,28 +505,30 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
         <SettingRow label="التحديث التلقائي للمواقيت أسبوعياً">
           <Toggle on={settings.autoUpdateTimetables} onChange={(v) => update({ autoUpdateTimetables: v })} />
         </SettingRow>
-      </Card>
+      </TitledSection>
 
-      {/* اختصارٌ إلى الصفحة الإضافية (ولها عنصرها في الشريط الجانبي) — كل حقولها لا تظهر هنا */}
-      <Card
-        onClick={onOpenAdvanced}
-        style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}
-      >
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--teal-400)', marginBottom: 4 }}>
-            🎛️ الإعدادات الإضافية
+      {/* اختصارٌ إلى الصفحة الإضافية (ولها عنصرها في الشريط الجانبي) — كل حقولها لا تظهر هنا.
+          في شكل البطاقات له بطاقته في الشبكة. */}
+      {!cards && (
+        <Card
+          onClick={onOpenAdvanced}
+          style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}
+        >
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--teal-400)', marginBottom: 4 }}>
+              🎛️ الإعدادات الإضافية
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--fg-muted)', lineHeight: 1.7 }}>
+              مذهب حساب العصر · مستوى صوت الأذان ومعايناته · نمط تنبيهٍ لكل صلاة · التذكيرات اليومية ·
+              نظام 12/24 ساعة · إزاحة التاريخ الهجري · أسماء الأشهر · المظهر واللون · المصادر المعتمَدة
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--fg-muted)', lineHeight: 1.7 }}>
-            مذهب حساب العصر · مستوى صوت الأذان ومعايناته · نمط تنبيهٍ لكل صلاة · التذكيرات اليومية ·
-            نظام 12/24 ساعة · إزاحة التاريخ الهجري · أسماء الأشهر · المظهر واللون · المصادر المعتمَدة
-          </div>
-        </div>
-        <span style={{ fontSize: 20, color: 'var(--fg-muted)', flexShrink: 0 }}>←</span>
-      </Card>
+          <span style={{ fontSize: 20, color: 'var(--fg-muted)', flexShrink: 0 }}>←</span>
+        </Card>
+      )}
 
       {/* إجراءات خطرة */}
-      <Card>
-        <SectionTitle>🔧 إجراءات</SectionTitle>
+      <TitledSection icon="🔧" title="إجراءات">
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Button onClick={() => window.gtSalat.prayer.prefetch()}>🔄 تحديث الجداول الآن</Button>
           <Button
@@ -538,7 +551,8 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             🗑️ إعادة ضبط الإعدادات
           </Button>
         </div>
-      </Card>
+      </TitledSection>
+      </SettingsPageCtx.Provider>
     </div>
   );
 }

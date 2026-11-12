@@ -434,6 +434,23 @@ npx esbuild electron/downloads.ts --bundle --platform=node --format=cjs \
 مباشرةً** لا في حدث `closed` وحده. ولها **سقفٌ زمنيّ** فلا تعلق إن تعطّل المشغّل.
 زرّ «اختبار الأذان في وقته» (`notify:test-adhan`) يطابق وقت الصلاة: إشعارٌ ونافذةٌ والأذان المختار.
 
+### زرّ إيقاف الأذان في الإشعار (2.4)
+
+`notify({ stopAction: true })` في `notifier.ts` يُرسل الإشعار عبر **`notify-send`** لا `Notification` في Electron
+(لا يدعم الأزرار إلّا على macOS): `--print-id` ثمّ `--action=stop=…` و`--action=default=…`، ويقرأ السطر الأوّل معرّفاً
+وما بعده اسم الزرّ المنقور. يُغلَق بـ`gdbus … CloseNotification` حين يصير الصوت null **بعد 2.5 ثانية** (فاصل الأذان
+والدعاء)، عبر `audio.onAudioState` (مراقبون متعدّدون بجانب `setAudioStateListener`). بلا `notify-send` يعود الإشعار العاديّ.
+
+### بطاقات الإعدادات والأذكار والمواقيت العرضيّة (2.4، نظير الهاتف 2.2)
+
+- `AdvancedSettings`: `Section` يحلّ محلّ `Collapsible` ويقرأ `SectionCtx`. **كلّ قسمٍ جديد يحتاج مدخلاً في
+  `SETTINGS_CATEGORIES` بعنوانه حرفيّاً.** الإعداد `settingsCards`.
+- `components/DhikrCards.tsx`: `DhikrCardsView` (بطاقةٌ واحدةٌ وانتقالٌ تلقائيّ ولوحة مفاتيح) يستعمله
+  `AdhkarSession` و`Hisn` (الباب المفتوح). الإعداد `adhkarSessionCards`.
+- لوحة التحكّم: `homeTimesHorizontal`، والنقر على المواقيت يقلبها.
+- **مزلق اختبار:** أداة اللقطات (`Emulation.setDeviceMetricsOverride`) تولّد نقراتٍ وهميّةً على بطاقة الذكر فتعدّ؛ اختبر العدّ
+  بأداةٍ تقرأ فقط أو بـ`Input.dispatchMouseEvent`.
+
 ### إيقاف الوسائط الأخرى أثناء الأذان (2.3.1)
 
 `electron/media-pause.ts` — نظير بؤرة الصوت في الهاتف: عند بدء أيّ صوتٍ من أصواتنا (`audio.spawnPlayer`)
@@ -688,7 +705,10 @@ rsync -a --delete \
    ثمّ `scripts/build-rpm.sh`، ثمّ `sha256sum` للحزم السبع **في ملفّ `SHA256SUMS.txt` يُرفَق بالإصدار** (المحدِّث
    يقرؤه أوّلاً، ثمّ الملاحظات، ثمّ README عند الوسم).
    **المحدِّث يجلب صيغة التثبيت نفسها** (`detectChannel`): `APPIMAGE` ← اسم الحزمة (`dpkg-query -W`/`rpm -q`) ←
-   المسار (`dpkg -S`/`rpm -qf`) ← علامة `resources/package-type`. وإعادة تشغيل AppImage بصدفة `/bin/sh` تنتظر
+   المسار (`dpkg -S`/`rpm -qf`) ← علامة `resources/package-type`.
+   **لماذا الاسم أوّلاً (حادثةٌ حقيقيّة):** على جهاز المطوّر (قرصٌ دوّار، 3327 حزمة) يحتاج `dpkg -S` نحو 345 ملّي ثانية
+   والقرص دافئ ويتجاوز مهلته عند الإقلاع، فعُدّت الصيغة «مجهولة» في 2.2.1 و2.3.0 واختفى زرّ «نزّل وثبّت» (بقيت
+   «صفحة الإصدار»)، و`dpkg-query` يحتاج 2 ملّي ثانية. لا تُعِد المسارَ أوّلاً. وإعادة تشغيل AppImage بصدفة `/bin/sh` تنتظر
    خروجنا، لا `app.relaunch` (تموت وسيطته بفكّ تركيب الصورة).
 3. تحديث البصمات في **ثلاثة مواضع**: `index.html` (بادئة 8 محارف) · `README.md` الجذر (كاملة في
    الجدول) · `GT-SALAT/README.md`. مطابَقةً **باسم الملفّ** لا بالبصمة القديمة.
@@ -714,6 +734,8 @@ rsync -a --delete \
 `screenshots/*.webp` (1440×900). اللقطات تُلتقط من التطبيق نفسه بملفّ إعداداتٍ معزول (`--user-data-dir`) عبر
 DevTools (`Emulation.setDeviceMetricsOverride` ثمّ `Page.captureScreenshot` في الجلسة نفسها).
 وأحجام الحزم وبادئات بصماتها في بطاقات التنزيل وجدول ARM.
+أيقونات الصيغ من Font Awesome 6.4.0 (cdnjs) كما في الموقع السابق: `fa-cube` لـAppImage، `fa-ubuntu` لـDEB،
+`fa-fedora` لـRPM، `fa-microchip`/`fa-raspberry-pi` لـARM — طلبها المستخدم بدل الرموز التعبيريّة.
 
 **اللقطات** في `screenshots/` بأسماءٍ لاتينيّة (`dashboard`, `timetable`…): المسارات العربية تُرمَّز
 في الروابط إلى `%D9%84…` فتصير هشّة. صيغة الموقع `webp`، ولقطة واجهة المستودع `png` (أضمن في

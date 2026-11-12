@@ -18,6 +18,8 @@ const PRAYER_COLORS: Record<string, string> = {
 const AUDIO_KIND_LABELS: Record<string, string> = {
   full: 'الأذان',
   short: 'الأذان',
+  maghribi_full: 'الأذان',
+  maghribi_short: 'الأذان',
   custom: 'الأذان',
   approaching: 'التنبيه',
   dua_after_adhan: 'دعاء الأذان',
@@ -123,6 +125,26 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, height: '100%', overflowY: 'auto' }}>
+      {/* ★ شريط إيقاف الصوت أعلى اللوحة ما دام أذانٌ أو تنبيهٌ أو ذكرٌ يُسمَع — كـAdhanStopBanner في الهاتف. */}
+      {audioKind && (
+        <div
+          role="status"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 14, padding: '12px 18px',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--gold-500)',
+            background: 'linear-gradient(90deg, rgba(245,197,24,0.16), rgba(245,197,24,0.06))',
+            backdropFilter: 'var(--glass-backdrop)',
+          }}
+        >
+          <span style={{ fontSize: 22 }}>🔊</span>
+          <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--fg-primary)' }}>
+            يُسمَع الآن: {AUDIO_KIND_LABELS[audioKind] ?? 'الصوت'}
+          </span>
+          <Button variant="danger" onClick={() => window.gtSalat.audio.stop()}>
+            ⏹ إيقاف {AUDIO_KIND_LABELS[audioKind] ?? 'الصوت'}
+          </Button>
+        </div>
+      )}
       {settings.enableRamadanCard && <RamadanCard settings={settings} onOpen={() => onOpenMore('imsakiah')} />}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
@@ -158,11 +180,6 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--fg-muted)' }}>متبقية</span>
                 </div>
-                {audioKind && (
-                  <Button size="sm" variant="danger" onClick={() => window.gtSalat.audio.stop()}>
-                    ⏹ إيقاف {AUDIO_KIND_LABELS[audioKind] ?? 'الصوت'}
-                  </Button>
-                )}
               </div>
             </>
           ) : (
@@ -295,8 +312,45 @@ export function DashboardPage({ settings, today, next, onOpenMore }: Props) {
             مواقيت اليوم{city ? ` — ${city}` : ''}
           </span>
         </SectionTitle>
-        {today ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+        {today && settings.homeTimesHorizontal ? (
+          // صفٌّ عرضيٌّ كودجت الهاتف ورئيسيّته (2.2): خانةٌ لكلّ وقتٍ والقادمة مظلَّلةٌ بالذهبيّ. النقر يقلبه شبكة.
+          <div
+            onClick={() => window.gtSalat.settings.set({ homeTimesHorizontal: false })}
+            title="انقر لعرض المواقيت شبكةً"
+            style={{ display: 'grid', gridTemplateColumns: `repeat(${today.prayers.length}, 1fr)`, gap: 8, cursor: 'pointer' }}
+          >
+            {today.prayers.map((p) => {
+              const isNextPrayer = isNext(p);
+              const past = !isNextPrayer && isPast(p);
+              const sunrise = p.id === 'sunrise';
+              return (
+                <div
+                  key={p.id}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    padding: '12px 4px', borderRadius: 12,
+                    background: isNextPrayer ? 'rgba(245,197,24,0.12)' : 'transparent',
+                    border: isNextPrayer ? '1px solid var(--gold-500)' : '1px solid transparent',
+                    opacity: past ? 0.5 : 1,
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{PRAYER_ICONS[p.id]}</span>
+                  <span style={{ fontSize: 13.5, fontWeight: isNextPrayer ? 700 : 500, color: isNextPrayer ? 'var(--gold-500)' : sunrise ? 'var(--fg-muted)' : 'var(--fg-secondary)' }}>
+                    {p.name}
+                  </span>
+                  <span className="mono" style={{ fontSize: 19, fontWeight: isNextPrayer ? 700 : 500, color: isNextPrayer ? 'var(--gold-500)' : sunrise ? 'var(--fg-muted)' : 'var(--fg-primary)' }}>
+                    {formatClock(p.time, settings.clock24h)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : today ? (
+          <div
+            onClick={() => window.gtSalat.settings.set({ homeTimesHorizontal: true })}
+            title="انقر لعرض المواقيت صفّاً عرضيّاً"
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, cursor: 'pointer' }}
+          >
             {today.prayers.map((p) => {
               const isNextPrayer = isNext(p);
               const past = !isNextPrayer && isPast(p);

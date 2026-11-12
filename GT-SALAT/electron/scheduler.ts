@@ -152,6 +152,8 @@ function announcePrayer(p: PrayerTime): void {
     body: 'الله أكبر',
     urgent: true,
     route: 'dashboard',
+    // زرّ الإيقاف في الإشعار ما دام صوتٌ يُرفَع (لا للصامت).
+    stopAction: mode !== 'silent',
   });
 
   // النافذة تُفتَح مع الأذان والرنّة لا مع الصامت — من أطفأ الصوت لا يريد نافذةً تعترضه.
@@ -185,7 +187,7 @@ function announcePrayer(p: PrayerTime): void {
     setTimeout(() => {
       const cur = getSettings();
       if (!cur.doNotDisturb && cur.enablePostPrayerDhikr) {
-        notify({ type: 'zikr', title: '📿 أذكار وأدعية بعد الصلاة', body: p.name, route: 'dhikr' });
+        notify({ type: 'zikr', title: '📿 أذكار وأدعية بعد الصلاة', body: p.name, route: 'dhikr', stopAction: true });
         showAdhanWindow('أذكار وأدعية بعد الصلاة', p.name, '📿');
         audio.play('post_prayer_dhikr', closeAdhanWindowIfNotKept);
       }

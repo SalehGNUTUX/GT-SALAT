@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CopyButton } from '../../components/common';
 import type { SessionDhikr } from '@electron/types';
+import { DhikrCardsView, DhikrViewToggle } from '../../components/DhikrCards';
+import { useSettings } from '../../hooks/useSettings';
 
 /**
  * جلسة أذكار الصباح/المساء: يمرّ المستخدم على الأذكار ذكراً ذكراً، ولكلٍّ عدد تكراره.
@@ -8,6 +10,8 @@ import type { SessionDhikr } from '@electron/types';
  */
 export function AdhkarSessionPage({ type }: { type: 'morning' | 'evening' }) {
   const [items, setItems] = useState<SessionDhikr[]>([]);
+  const [settings, update] = useSettings();
+  const cards = settings?.adhkarSessionCards !== false;
   const storeKey = `gt_adhkar_${type}`;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -52,6 +56,7 @@ export function AdhkarSessionPage({ type }: { type: 'morning' | 'evening' }) {
             <span className="mono" style={{ fontSize: 13, color: 'var(--teal-400)', fontWeight: 700 }}>
               {totalDone} / {totalRequired}
             </span>
+            <DhikrViewToggle cards={cards} onChange={(v) => void update({ adhkarSessionCards: v })} />
             <Button size="sm" onClick={() => setProgress({})}>إعادة الضبط</Button>
           </div>
         </div>
@@ -67,6 +72,14 @@ export function AdhkarSessionPage({ type }: { type: 'morning' | 'evening' }) {
         </div>
       </Card>
 
+      {cards ? (
+        <DhikrCardsView
+          items={items}
+          counts={progress}
+          onTap={tap}
+          source={type === 'morning' ? 'أذكار الصباح' : 'أذكار المساء'}
+        />
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {items.map((d) => {
           const done = Math.min(progress[d.n] ?? 0, d.count);
@@ -118,6 +131,7 @@ export function AdhkarSessionPage({ type }: { type: 'morning' | 'evening' }) {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

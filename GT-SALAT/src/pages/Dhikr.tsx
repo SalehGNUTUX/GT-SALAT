@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, Button, CopyButton } from '../components/common';
+import { DhikrCardsView, DhikrViewToggle } from '../components/DhikrCards';
+import { useSettings } from '../hooks/useSettings';
 
 interface Dhikr {
   id: number;
@@ -9,6 +11,9 @@ interface Dhikr {
 export function DhikrPage() {
   const [all, setAll] = useState<Dhikr[]>([]);
   const [query, setQuery] = useState('');
+  const [settings, update] = useSettings();
+  // بطاقةٌ بطاقة (الافتراضيّ) أو قائمة — المفتاح نفسه لكلّ الأذكار المعدودة.
+  const cards = settings?.adhkarSessionCards !== false;
   const [counts, setCounts] = useState<Record<number, number>>(() => {
     try { return JSON.parse(localStorage.getItem('gt_dhikr_counts') ?? '{}'); } catch { return {}; }
   });
@@ -55,11 +60,23 @@ export function DhikrPage() {
         <div style={{ fontSize: 12, color: 'var(--fg-muted)' }}>
           {filtered.length} / {all.length}
         </div>
+        <DhikrViewToggle cards={cards} onChange={(v) => void update({ adhkarSessionCards: v })} />
         <Button variant="danger" size="sm" onClick={resetAll}>
           إعادة ضبط العدّادات
         </Button>
       </div>
 
+      {cards ? (
+        // الترقيم للعرض يبدأ من 1 (`#id+1` كالقائمة)، والعدّ محفوظٌ بمعرّف الذكر نفسه.
+        <DhikrCardsView
+          key={query}
+          items={filtered.map((d) => ({ n: d.id + 1, text: d.text, count: 0 }))}
+          counts={Object.fromEntries(Object.entries(counts).map(([k, v]) => [Number(k) + 1, v]))}
+          onTap={(n) => incr(n - 1)}
+          onReset={(n) => reset(n - 1)}
+          source="من أذكار GT-SALAT"
+        />
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {filtered.map((d) => {
           const cnt = counts[d.id] ?? 0;
@@ -119,6 +136,7 @@ export function DhikrPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

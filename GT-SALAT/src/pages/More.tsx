@@ -6,7 +6,7 @@ export const MAX_FAVORITE_SECTIONS = 3;
 
 /** أقسام «المزيد» — الترتيب حسب الأولوية، مطابقٌ لنسخة الهاتف. */
 export const MORE_FEATURES: { id: string; label: string; icon: string; desc: string }[] = [
-  { id: 'radios', label: 'الإذاعات', icon: '📻', desc: '36 إذاعةً قرآنيةً مباشرة' },
+  { id: 'radios', label: 'الإذاعات', icon: '📻', desc: '37 إذاعةً قرآنيةً مباشرة' },
   { id: 'tafsir', label: 'التفسير الميسّر', icon: '📝', desc: 'تفسير كل آية · بحثٌ في نصّ التفسير نفسه' },
   { id: 'adhkar-morning', label: 'أذكار الصباح', icon: '☀️', desc: '22 ذكراً بعدد تكرارها' },
   { id: 'adhkar-evening', label: 'أذكار المساء', icon: '🌙', desc: '21 ذكراً بعدد تكرارها' },
