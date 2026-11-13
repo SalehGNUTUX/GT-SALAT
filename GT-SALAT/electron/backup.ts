@@ -177,6 +177,7 @@ function settingsToPrefs(s: AppSettings): Prefs {
   p['glass_theme'] = B(s.glassTheme);
   p['glass_blur'] = I(s.glassBlur);
   p['home_times_horizontal'] = B(s.homeTimesHorizontal);
+  p['quran_flow_text'] = B(s.quranFlowText);
   p['settings_cards'] = B(s.settingsCards);
   p['adhkar_session_cards'] = B(s.adhkarSessionCards);
   p['gtd_advancedOpenSection'] = S(s.advancedOpenSection);
@@ -309,6 +310,7 @@ function prefsToSettings(p: Prefs): Partial<AppSettings> {
   setIf('homeBackgroundLevel', readNum(p, 'home_bg_level'));
   setIf('glassTheme', readBool(p, 'glass_theme'));
   setIf('homeTimesHorizontal', readBool(p, 'home_times_horizontal'));
+  setIf('quranFlowText', readBool(p, 'quran_flow_text'));
   setIf('settingsCards', readBool(p, 'settings_cards'));
   setIf('adhkarSessionCards', readBool(p, 'adhkar_session_cards'));
   const blur = readNum(p, 'glass_blur');

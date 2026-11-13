@@ -5,10 +5,10 @@ import type { Reciter, SurahReciter } from '@electron/types';
 /**
  * حوارُ تحرير/إضافة قارئ — للنوعين معاً:
  *
- * - **آية-بآية** (`kind='ayah'`): الحقل الفعّال **مجلّد everyayah** (مثل `Alafasy_128kbps`)،
+ * - **آية-بآية** (`kind='ayah'`): الحقل الفعّال **مجلّد everyayah** (مثل `Husary_128kbps`)،
  *   لا الرابط الكامل — الروابط تُبنى في `electron/quran.ts`.
  * - **سورة كاملة** (`kind='surah'`): الحقل **رابط خادمٍ كامل** من mp3quran (مثل
- *   `https://server8.mp3quran.net/afs/`) لأنّ لكلّ قارئٍ خادماً مختلفاً.
+ *   `https://server13.mp3quran.net/husr/`) لأنّ لكلّ قارئٍ خادماً مختلفاً.
  *
  * (المبدأ نفسه في GT-SQRM: اسمٌ + مجلّد everyayah، مع تعديلٍ وحذف.)
  */
@@ -96,7 +96,7 @@ export function ReciterDialog({
         <Card>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--teal-400)', marginBottom: 16 }}>{title}</div>
 
-          <Field label="اسم القارئ" value={ar} onChange={setAr} placeholder="مشاري بن راشد العفاسي" />
+          <Field label="اسم القارئ" value={ar} onChange={setAr} placeholder="محمود خليل الحصري" />
 
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 12, color: 'var(--fg-muted)', display: 'block', marginBottom: 5 }}>الرواية</label>
@@ -137,7 +137,7 @@ export function ReciterDialog({
                 label="مجلّد everyayah"
                 value={source}
                 onChange={setSource}
-                placeholder="Alafasy_128kbps"
+                placeholder="Husary_128kbps"
                 ltr
               />
               <Note color="var(--fg-muted)">
@@ -152,7 +152,7 @@ export function ReciterDialog({
                 label="رابط خادم mp3quran"
                 value={source}
                 onChange={setSource}
-                placeholder="https://server8.mp3quran.net/afs/"
+                placeholder="https://server13.mp3quran.net/husr/"
                 ltr
               />
               <Note color="var(--fg-muted)">

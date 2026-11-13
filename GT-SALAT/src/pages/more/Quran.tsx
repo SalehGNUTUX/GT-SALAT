@@ -1,5 +1,6 @@
 import { normalizeArabic } from '@electron/quran';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { WAQF, chunkByPage, forFont, quranFontCss, stripBismillah } from '../../lib/quranText';
 import { Button, Card, ChipGroup, CopyButton, EmptyState, SearchInput, Toggle } from '../../components/common';
 import type { AyahHit, DownloadTask, QuranMeta, Reciter, SurahMeta, SurahReciter, TafsirSurah, TafsirSurahInfo } from '@electron/types';
 import { ayahAudioUrl, ayahAudioRel, basmalaUrl, needsBasmala, surahAudioUrl, surahAudioRel } from '@electron/quran';
@@ -384,6 +385,25 @@ function SurahReader({
   const [riwayaText, setRiwayaText] = useState<Record<number, string>>({});
   const [riwayaLoading, setRiwayaLoading] = useState(false);
 
+  /** خطّ الرواية (حقل `font` في `quran_meta.json`): المغربيّ لورش وقالون، والعثمانيّ لحفص، وأميري للدوري. */
+  const riwayaFont = useMemo(() => {
+    const id = settings.lastRiwaya || 'hafs';
+    return (quranMeta?.riwayat ?? []).find((r) => r.id === id)?.font;
+  }, [settings.lastRiwaya, quranMeta]);
+  // إن غاب نصّ الرواية عُرض نصّ حفص، فيُرسَم بخطّ حفص لا بخطّ الرواية.
+  const font = riwayaSlug !== 'quran-uthmani' && Object.keys(riwayaText).length === 0 ? 'UthmanicHafs' : riwayaFont;
+  const fontCss = quranFontCss(font);
+
+  /** البسملة بنصّ الرواية المختارة: عنوانٌ فوق السورة في العرض المتّصل. */
+  const [bismillah, setBismillah] = useState('');
+  useEffect(() => {
+    let alive = true;
+    const pick = (t?: string) => { if (alive) setBismillah(t ?? ''); };
+    if (riwayaSlug === 'quran-uthmani') window.gtSalat.content.tafsirSurah(1).then((s) => pick(s?.ayahs?.[0]?.text));
+    else window.gtSalat.content.riwayaSurah(1, riwayaSlug).then((l) => pick(l[0]?.text));
+    return () => { alive = false; };
+  }, [riwayaSlug]);
+
   useEffect(() => {
     if (riwayaSlug === 'quran-uthmani') {
       setRiwayaText({});
@@ -428,6 +448,14 @@ function SurahReader({
     if (q.length < 2) return ayahs;
     return ayahs.filter((a) => norm(a.text).includes(q) || norm(a.tafsir ?? '').includes(q));
   }, [ayahs, inSurahQuery]);
+
+  /**
+   * العرض المتّصل كالمصحف (افتراضيّ، مفتاح الهاتف `quranFlowText`): صفحةً صفحة على المصحف
+   * المدنيّ. في قسم التفسير، أو مع إظهار التفسير، أو أثناء البحث تُعرَض البطاقات.
+   */
+  const flowPref = settings.quranFlowText !== false;
+  const flow = flowPref && !withTafsir && !showTafsir && inSurahQuery.trim().length < 2;
+  const pages = useMemo(() => chunkByPage(n, ayahs, quranMeta?.pageStarts), [n, ayahs, quranMeta]);
 
   /**
    * مهلة الآية = زمنٌ يتناسب مع طولها (لا مهلةٌ ثابتة، فالآيات تتفاوت من كلمتين إلى سطور)،
@@ -654,6 +682,15 @@ function SurahReader({
             ⚙ القارئ{reciter ? `: ${reciter.ar}` : ''}
           </Button>
         )}
+        {!withTafsir && (
+          <Button
+            size="sm"
+            onClick={() => update({ quranFlowText: !flowPref })}
+            title={flowPref ? 'عرض كلّ آيةٍ في بطاقة' : 'عرض النصّ متّصلاً صفحةً صفحة كالمصحف'}
+          >
+            {flowPref ? '▤ بطاقات' : '📖 متّصل كالمصحف'}
+          </Button>
+        )}
         <Button
           size="sm"
           variant={auto ? 'primary' : 'secondary'}
@@ -801,6 +838,61 @@ function SurahReader({
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px', minHeight: 0 }}>
       {!surah ? (
         <EmptyState icon="📖" text="… يجري فتح السورة" />
+      ) : flow ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 900 }}>
+          <div style={{ textAlign: 'center', padding: '4px 0 2px' }}>
+            <div className="dhikr-text" style={{ fontSize: 26, fontWeight: 700, color: 'var(--gold-500)' }}>
+              سورة {meta?.ar ?? surah.name}
+            </div>
+            {n !== 1 && n !== 9 && bismillah && (
+              <div style={{ fontFamily: fontCss.fontFamily, fontSize: 22 * fontCss.scale, color: 'var(--gold-500)', lineHeight: 2.2 }}>
+                <QuranText text={bismillah} font={font} />
+              </div>
+            )}
+          </div>
+          {pages.map((pg) => (
+            <Card key={pg.page} style={{ padding: '18px 26px 10px' }}>
+              <div
+                style={{
+                  fontFamily: fontCss.fontFamily, fontSize: 23 * fontCss.scale, lineHeight: 2.35,
+                  color: 'var(--fg-primary)', textAlign: 'justify', textAlignLast: 'center',
+                }}
+              >
+                {pg.ayahs.map((a) => {
+                  const marked = bookmarks.has(`${n}:${a.n}`);
+                  const lit = reciting === a.n || (auto && a.n === current);
+                  const selected = a.n === current;
+                  const body = a.n === 1 && n !== 1 ? stripBismillah(a.text) : a.text;
+                  return (
+                    <span
+                      key={a.n}
+                      id={`ayah-${n}-${a.n}`}
+                      onClick={() => selectAyah(a.n)}
+                      onContextMenu={(e) => { e.preventDefault(); toggleBookmark(a.n); }}
+                      title={`الآية ${a.n} — انقر للتحديد، وزرّ الفأرة الأيمن لإشارةٍ مرجعيّة`}
+                      style={{
+                        cursor: 'pointer', borderRadius: 6, padding: '2px 0',
+                        background: lit ? 'var(--accent-tint-2)' : selected ? 'var(--accent-tint)' : undefined,
+                        transition: 'background 0.2s',
+                      }}
+                    >
+                      <QuranText text={body} font={font} />{' '}
+                      <span
+                        style={{
+                          fontFamily: "'Amiri Quran', serif", fontSize: '0.8em',
+                          color: marked ? 'var(--teal-400)' : 'var(--gold-500)', fontWeight: marked ? 700 : 400,
+                        }}
+                      >
+                        {`\uFD3F${a.n}\uFD3E`}
+                      </span>{' '}
+                    </span>
+                  );
+                })}
+              </div>
+              <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--fg-muted)', marginTop: 4 }}>{pg.page}</div>
+            </Card>
+          ))}
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 900 }}>
           {shownAyahs.map((a) => {
@@ -854,8 +946,8 @@ function SurahReader({
                     {a.n}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="dhikr-text" style={{ fontSize: 22, color: 'var(--fg-primary)', lineHeight: 2.3 }}>
-                      {a.text}
+                    <div className="dhikr-text" style={{ fontFamily: fontCss.fontFamily, fontSize: 22 * fontCss.scale, color: 'var(--fg-primary)', lineHeight: 2.3 }}>
+                      <QuranText text={a.text} font={font} />
                     </div>
                     {(withTafsir || showTafsir) && a.tafsir && (
                       <div
@@ -1215,5 +1307,29 @@ function BookmarksView({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * نصّ آيةٍ مهيّأً لخطّ روايته. في الخطّ المغربيّ تُرسَم علامة الوقف «صه» صغيرةً مرفوعةً
+ * بعد الكلمة (رمز الخطّ لها يشبه الشدّة)، وفي غيره تبقى العلامة كما هي في النصّ.
+ */
+function QuranText({ text, font }: { text: string; font?: string }) {
+  const shown = forFont(text, font);
+  if (font !== 'Maghribi' || !shown.includes(WAQF)) return <>{shown}</>;
+  return (
+    <>
+      {shown.split(WAQF).map((part, i) => (
+        <Fragment key={i}>
+          {i > 0 && (
+            <>
+              {'\u2009'}
+              <sup style={{ fontSize: '0.42em', color: 'var(--gold-500)', verticalAlign: '0.9em' }}>صه</sup>
+            </>
+          )}
+          {part}
+        </Fragment>
+      ))}
+    </>
   );
 }

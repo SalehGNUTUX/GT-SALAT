@@ -3,16 +3,15 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 /**
- * نصّ القرآن **بالروايات** (ورش · قالون · الدوري) من `api.alquran.cloud`.
+ * نصّ القرآن **بالروايات** (ورش · قالون · الدوري): نصوص مجمّع الملك فهد **المضمَّنة**
+ * في `resources/content/riwaya_{slug}.json` (من github.com/fawazahmed0/quran-api، بترقيمٍ
+ * عثمانيٍّ يطابق حفصاً والصوت والإشارات) — مطابقةٌ لنسخة الهاتف، وتعمل دون إنترنت.
  *
- * حفصٌ لا يمرّ من هنا أصلاً: نصّه العثمانيّ مُضمَّنٌ في `tafsir.json` فيعمل دون إنترنت.
- * وما سواه يُجلَب **سورةً سورة عند طلبها** ويُخزَّن، فيعمل بعدها دون إنترنت هو الآخر.
+ * كانت تُجلب من `api.alquran.cloud`، وهو **لا يملك هذه الروايات** فيعيد نصّ حفصٍ بترميزٍ
+ * آخر بصمت (`quran-uthmani-quran-academy`): فكان «ورش» يُعرض حفصاً حتى 2.4 («يُؤْمِنُونَ»
+ * لا «يُومِنُونَ»). لا تعُد إليه. وذاكرته القديمة `userData/riwaya_text` تُحذف مرّةً هنا.
  *
- * **الجلب في العملية الرئيسية لا في الواجهة** — كما في `updates.ts` تماماً: فلا نوسّع
- * `connect-src` في الـCSP لخدمةٍ جديدة. الواجهة تطلب النصّ عبر IPC ولا تعرف الشبكة.
- *
- * وتخطيط الكاش `riwaya_text/{slug}/{surah}.json` **مطابقٌ لنسخة الهاتف** (`filesDir`)،
- * فتبقى الملفّات متبادَلةً بين النسختين كبقيّة المُنزَّل.
+ * حفصٌ لا يمرّ من هنا أصلاً: نصّه مُضمَّنٌ في `tafsir.json`.
  */
 
 export interface RiwayaAyah {
@@ -20,69 +19,45 @@ export interface RiwayaAyah {
   text: string;
 }
 
-/** رواية حفص هي المُضمَّنة — لا تُجلب من الشبكة أبداً. */
 const HAFS_SLUG = 'quran-uthmani';
 
-function cacheDir(slug: string): string {
-  return path.join(app.getPath('userData'), 'riwaya_text', slug);
+function contentDir(): string {
+  const base = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), 'resources');
+  return path.join(base, 'content');
 }
 
-function cacheFile(slug: string, surah: number): string {
-  return path.join(cacheDir(slug), `${surah}.json`);
+const cache = new Map<string, string[][] | null>();
+let legacyCleaned = false;
+
+function load(slug: string): string[][] | null {
+  if (cache.has(slug)) return cache.get(slug) ?? null;
+  if (!legacyCleaned) {
+    legacyCleaned = true;
+    try { fs.rmSync(path.join(app.getPath('userData'), 'riwaya_text'), { recursive: true, force: true }); } catch {}
+  }
+  let surahs: string[][] | null = null;
+  try {
+    const j = JSON.parse(fs.readFileSync(path.join(contentDir(), `riwaya_${slug}.json`), 'utf-8')) as { surahs?: string[][] };
+    surahs = Array.isArray(j.surahs) && j.surahs.length === 114 ? j.surahs : null;
+  } catch (e) {
+    console.error(`[riwaya] تعذّرت قراءة riwaya_${slug}.json:`, e);
+  }
+  cache.set(slug, surahs);
+  return surahs;
 }
 
-/** هل نصّ السورة بهذه الرواية متاحٌ دون إنترنت؟ (حفصٌ دائماً نعم). */
-export function isRiwayaCached(surah: number, slug: string): boolean {
-  if (!slug || slug === HAFS_SLUG) return true;
-  const f = cacheFile(slug, surah);
-  return fs.existsSync(f) && fs.statSync(f).size > 0;
+/** نصوص الروايات مضمَّنة، فكلّها متاحةٌ دون إنترنت ما دام ملفّها موجوداً. */
+export function isRiwayaCached(_surah: number, slug: string): boolean {
+  return !slug || slug === HAFS_SLUG || load(slug) != null;
 }
 
-/** عدد سور الرواية المخزَّنة — لعرضه في الواجهة بجانب اسم الرواية. */
 export function riwayaCachedCount(slug: string): number {
-  if (!slug || slug === HAFS_SLUG) return 114;
-  const dir = cacheDir(slug);
-  if (!fs.existsSync(dir)) return 0;
-  return fs.readdirSync(dir).filter((f) => f.endsWith('.json')).length;
+  return !slug || slug === HAFS_SLUG || load(slug) != null ? 114 : 0;
 }
 
-function parse(body: string): RiwayaAyah[] {
-  const j = JSON.parse(body) as { data?: { ayahs?: { numberInSurah?: number; text?: string }[] } };
-  return (j.data?.ayahs ?? [])
-    .map((a) => ({ n: a.numberInSurah ?? 0, text: a.text ?? '' }))
-    .filter((a) => a.n > 0 && a.text);
-}
-
-/**
- * نصّ سورةٍ برواية. يعيد مصفوفةً فارغةً إن تعذّر (لا إنترنت ولا كاش) — والواجهة عندها
- * **تعود إلى نصّ حفص المُضمَّن** بدل أن تعرض صفحةً فارغة.
- */
+/** نصّ سورةٍ برواية؛ مصفوفةٌ فارغةٌ لحفص أو إن غاب الملفّ، فتعرض الواجهة نصّ حفص. */
 export async function getRiwayaSurah(surah: number, slug: string): Promise<RiwayaAyah[]> {
   if (!slug || slug === HAFS_SLUG) return [];
-  const file = cacheFile(slug, surah);
-
-  if (fs.existsSync(file) && fs.statSync(file).size > 0) {
-    try {
-      return parse(fs.readFileSync(file, 'utf-8'));
-    } catch {
-      // ملفٌّ تالفٌ يُحذَف فيُعاد جلبه، ولا يبقى عائقاً دائماً.
-      try { fs.unlinkSync(file); } catch {}
-    }
-  }
-
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 12_000);
-    const res = await fetch(`https://api.alquran.cloud/v1/surah/${surah}/${slug}`, { signal: ctrl.signal });
-    clearTimeout(t);
-    if (!res.ok) return [];
-    const body = await res.text();
-    const ayahs = parse(body);
-    if (ayahs.length === 0) return [];
-    fs.mkdirSync(cacheDir(slug), { recursive: true });
-    fs.writeFileSync(file, body, 'utf-8');
-    return ayahs;
-  } catch {
-    return [];
-  }
+  const list = load(slug)?.[surah - 1] ?? [];
+  return list.map((text, i) => ({ n: i + 1, text }));
 }

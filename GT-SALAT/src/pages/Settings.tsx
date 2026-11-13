@@ -3,6 +3,7 @@ import { Card, Button, Toggle, SectionTitle, SettingRow } from '../components/co
 import { SettingsCardsGrid, SettingsPageCtx, SettingsPageHeader, TitledSection, useSettingsPage, type SettingsCategory } from '../components/SettingsCards';
 import { PlacePicker } from '../components/PlacePicker';
 import type { AppSettings } from '../hooks/useSettings';
+import type { PlaceEntry } from '@electron/types';
 
 interface Props {
   settings: AppSettings;
@@ -158,43 +159,8 @@ export function SettingsPage({ settings, update, onOpenAdvanced }: Props) {
             ))}
           </select>
         </div>
-        {/* سجلّ آخر خمسة مواقع — العودة إليها بنقرةٍ إن تعذّر الكشف (لا إنترنت). */}
-        {(settings.locationHistory ?? []).length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            <label style={{ fontSize: 12, color: 'var(--fg-muted)', display: 'block', marginBottom: 6 }}>
-              مواقع سابقة
-            </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {(settings.locationHistory ?? []).map((pl) => {
-                const here = settings.lat != null && settings.lon != null
-                  && pl.lat.toFixed(2) === settings.lat.toFixed(2)
-                  && pl.lon.toFixed(2) === settings.lon.toFixed(2);
-                return (
-                  <Button
-                    key={`${pl.lat}_${pl.lon}`}
-                    size="sm"
-                    variant={here ? 'primary' : 'secondary'}
-                    onClick={async () => {
-                      const methodId = await window.gtSalat.prayer.suggestMethod(pl.country);
-                      const m = methods.find((x) => x.id === methodId);
-                      await update({
-                        lat: pl.lat,
-                        lon: pl.lon,
-                        city: pl.city,
-                        country: pl.country,
-                        ...(methodId ? { methodId, methodName: m?.nameAr ?? '' } : {}),
-                      });
-                      await window.gtSalat.prayer.prefetch();
-                    }}
-                  >
-                    📍 {pl.city || `${pl.lat.toFixed(2)}, ${pl.lon.toFixed(2)}`}
-                    {pl.country ? ` — ${pl.country}` : ''}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* آخر خمسة مواقع سابقة: زرٌّ يفتح نافذةً مصغّرة (مطابقٌ للهاتف 2.3). */}
+        <PreviousLocations settings={settings} update={update} methods={methods} />
 
         <SettingRow
           label="تحديث الموقع تلقائياً"
@@ -568,3 +534,96 @@ const inputStyle: React.CSSProperties = {
   direction: 'rtl',
   fontFamily: 'inherit',
 };
+
+/** اسم الموقع للعرض: المدينة والبلد، وإلّا الإحداثيّات. */
+function placeLabel(p: PlaceEntry): string {
+  return [p.city, p.country].filter(Boolean).join('، ') || `${p.lat.toFixed(3)}، ${p.lon.toFixed(3)}`;
+}
+
+/**
+ * زرّ «مواقع سابقة (n)» ونافذته المصغّرة: آخر خمسة مواقع **سابقة** بلا تكرار، يُستبعَد منها
+ * الحاليّ (سجلّاتٌ قبل 2.5 كانت تحفظه). النقر يعود إلى الموقع، و✕ يحذفه من السجلّ.
+ * السجلّ نفسه يُكتب في `setSettings` (electron/settings.ts) عند كلّ تغييرٍ للموقع.
+ */
+function PreviousLocations({
+  settings,
+  update,
+  methods,
+}: {
+  settings: AppSettings;
+  update: (patch: Partial<AppSettings>) => Promise<void>;
+  methods: { id: number; nameAr: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const here: PlaceEntry | null =
+    settings.lat != null && settings.lon != null
+      ? { city: settings.city, country: settings.country, lat: settings.lat, lon: settings.lon }
+      : null;
+  const same = (a: PlaceEntry, b: PlaceEntry) =>
+    (Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lon - b.lon) < 0.012)
+    || (!!a.city && a.city.toLowerCase() === (b.city ?? '').toLowerCase()
+      && (a.country ?? '').toLowerCase() === (b.country ?? '').toLowerCase());
+  const previous = (settings.locationHistory ?? [])
+    .filter((p) => !(here && same(p, here)))
+    .reduce<PlaceEntry[]>((acc, p) => (acc.some((x) => same(x, p)) ? acc : [...acc, p]), [])
+    .slice(0, 5);
+  if (previous.length === 0) return null;
+
+  const restore = async (pl: PlaceEntry) => {
+    setOpen(false);
+    const methodId = await window.gtSalat.prayer.suggestMethod(pl.country);
+    const m = methods.find((x) => x.id === methodId);
+    await update({
+      lat: pl.lat,
+      lon: pl.lon,
+      city: pl.city,
+      country: pl.country,
+      autoUpdateLocation: false, // اختيارٌ صريح: لا يستبدله التحديث التلقائيّ
+      ...(methodId ? { methodId, methodName: m?.nameAr ?? '' } : {}),
+    });
+    await window.gtSalat.prayer.prefetch();
+  };
+  const remove = (pl: PlaceEntry) =>
+    update({ locationHistory: (settings.locationHistory ?? []).filter((p) => !same(p, pl)) });
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      <Button size="sm" onClick={() => setOpen(true)}>🕘 مواقع سابقة ({previous.length})</Button>
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(440px, 92vw)' }}>
+            <Card>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--gold-500)', marginBottom: 6 }}>🕘 مواقع سابقة</div>
+              <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginBottom: 12 }}>
+                اختر موقعاً للعودة إليه. اختيارٌ يدويّ يطفئ «تحديث الموقع تلقائياً».
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {previous.map((pl) => (
+                  <div key={`${pl.lat}_${pl.lon}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button
+                      onClick={() => restore(pl)}
+                      style={{
+                        flex: 1, textAlign: 'start', padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                        border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'var(--fg-primary)',
+                        fontFamily: 'inherit', fontSize: 14,
+                      }}
+                    >
+                      📍 {placeLabel(pl)}
+                    </button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(pl)} title="حذف من السجلّ">✕</Button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                <Button size="sm" onClick={() => setOpen(false)}>إغلاق</Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

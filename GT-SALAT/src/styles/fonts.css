@@ -13,3 +13,19 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* الخطّ المغربيّ (AALMAGHRIBI، مؤسّسة محمّد السادس) لروايتَي ورش وقالون — مطابقٌ لنسخة الهاتف. */
+@font-face {
+  font-family: 'AAL Maghribi';
+  src: url('../assets/fonts/maghribi_quran.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* خطّ المجمّع العثمانيّ (KFGQPC HAFS v2.2) لرواية حفص، يُوزَّع دون تعديل بشرط ترخيصه. */
+@font-face {
+  font-family: 'KFGQPC Hafs';
+  src: url('../assets/fonts/uthmanic_hafs.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}

@@ -457,13 +457,32 @@ npx esbuild electron/downloads.ts --bundle --platform=node --format=cjs \
 تُوقَف مشغّلات MPRIS **التي تعمل** (`dbus-send`، بلا مكتبة) وتُحفَظ أسماؤها، وتُستأنف هي وحدها بعد ثانيتين من
 انتهاء أصواتنا كلّها (فلا تعود الوسائط بين الأذان والدعاء). **إيقافٌ مؤقّتٌ لا كتم.** تشمل المتصفّحات ومشغّل التطبيق نفسه.
 
-### روايات النصّ القرآني (2.2)
+### روايات النصّ القرآنيّ وخطوطها (2.5)
 
-`electron/riwaya.ts` — حفصٌ من `tafsir.json` المُضمَّن (فوريّ بلا شبكة)، وورش/قالون/الدوري
-من `api.alquran.cloud` **سورةً سورة عند طلبها**، مخزَّنةً في `userData/riwaya_text/{slug}/{surah}.json`
-(**نفس تخطيط الهاتف**). الجلب **في العملية الرئيسية** كـ`updates.ts` — فلا يُوسَّع `connect-src`.
-وإن تعذّر الجلب يبقى نصّ حفص معروضاً لا صفحةٌ بيضاء. واختيارُ الرواية **يُبدّل القارئ** إلى
-قارئٍ بها، وإلّا قرأ بحفصٍ ونصُّه ورش.
+`electron/riwaya.ts` — حفصٌ من `tafsir.json` المُضمَّن، وورش وقالون والدوري من نصوص مجمّع الملك فهد
+**المضمَّنة** `resources/content/riwaya_{warsh,qaloon,doori}.json` (من `fawazahmed0/quran-api`، ترقيمٌ
+عثمانيّ يطابق حفصاً والصوت والإشارات) — نفس ملفّات الهاتف. **لا تعُد إلى alquran.cloud لها:** لا يملكها
+ويعيد نصّ حفصٍ بصمت (`quran-uthmani-quran-academy`)، فكان «ورش» حفصاً حتى 2.4. الذاكرة القديمة
+`userData/riwaya_text` تُحذف مرّةً. واختيارُ الرواية **يُبدّل القارئ** إلى قارئٍ بها.
+
+**الخطّ** حقل `font` للرواية في `quran_meta.json` ← `quranFontCss` في `src/lib/quranText.ts` (نظير
+`domain/QuranText.kt`): `Maghribi` (ورش وقالون، `@font-face 'AAL Maghribi'`) و`UthmanicHafs` (حفص،
+`'KFGQPC Hafs'`، لا يُعدَّل بشرط ترخيصه) وأميري للدوري. الخطّ المغربيّ يرمّز العلامات في مواضع أخرى، فيحوّل
+`forFont` وقت العرض (ے←ى، ۥ←U+0658، ۦ←U+0659، ۪←U+06D9، ويحذف ۟)، وعلامة الوقف ۖ تُرسَم «صه»
+`<sup>` (رمز الخطّ لها يشبه الشدّة). جُرِّب كلّ بديلٍ برسم الخطّ؛ لا تضِف تحويلاً دون رسمه. التراخيص في
+`resources/content/fonts.LICENSE.txt`.
+
+**العرض المتّصل** (`quranFlowText`، افتراضيّ، مفتاح الهاتف `quran_flow_text`): صفحةٌ لكلّ صفحة مصحفٍ
+مدنيّ (`pageStarts` في `quran_meta.json`، `chunkByPage`)، وكلّ آيةٍ `<span id="ayah-{n}-{a}">` فيبقى
+`scrollIntoView` للتلاوة والتمرير كما هو. النقر يحدّد، وزرّ الفأرة الأيمن إشارة. في التفسير والبحث بطاقات.
+البسملة عنوانٌ مستقلّ تُحذف من أوّل الآية الأولى (`stripBismillah`).
+
+### سجلّ المواقع السابقة (2.5)
+
+يُكتب في `setSettings` (`electron/settings.ts`) لا في معالج IPC، فيشمل الكشف التلقائيّ في `main.ts`: الموقع
+**السابق** يُدفع إلى رأس `locationHistory` (5 حدّاً) ويُحذف منه الجديد، والمطابقة `samePlace` بنحو كيلومتر
+(0.01°) أو بالاسم والبلد. **لا توسّع العتبة:** بـ0.05° (نحو 5.5 كم) عُدّت الرباط وسلا موقعاً واحداً فضاعت
+الرباط. الواجهة `PreviousLocations` في `Settings.tsx`: زرٌّ ونافذةٌ مصغّرة تستبعد الحاليّ.
 
 ### تذكيرات السُّنن الموسميّة (2.2)
 
@@ -616,7 +635,9 @@ APPIMAGE=/tmp/fake.AppImage npx electron . --user-data-dir=/tmp/gtsalat-updtest
 | مفتاح الموقع | `locationKey()` = `%.2f_%.2f` | `PrayerRepository.locKey` |
 | تذكيرات السُّنن | `sunnahReminderFor` في `hijri.ts` | `SunnahReminders.kt` |
 | تطبيع البحث | `normalizeArabic` في `quran.ts` | `Quran.normalize` |
-| تخطيط كاش الروايات | `userData/riwaya_text/{slug}/{surah}.json` | `filesDir/riwaya_text/…` |
+| نصوص الروايات | `resources/content/riwaya_*.json` | `assets/content/riwaya_*.json` (الملفّات نفسها) |
+| تهيئة نصّ الخطّ | `src/lib/quranText.ts` | `domain/QuranText.kt` |
+| مطابقة المواقع | `samePlace` في `settings.ts` | `Places.same` |
 
 للتحقّق من تطابق اقتراح الطريقة (يستخرج الأنماط من المصدرين الحيَّين ويمرّر عليها دول `places.json`):
 

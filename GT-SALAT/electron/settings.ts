@@ -2,7 +2,7 @@ import Store from 'electron-store';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
-import type { AppSettings } from './types.js';
+import type { AppSettings, PlaceEntry } from './types.js';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   lat: null,
@@ -79,6 +79,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   glassTheme: true,
   glassBlur: 30,
   homeTimesHorizontal: true,
+  quranFlowText: true,
   settingsCards: true,
   adhkarSessionCards: true,
   advancedOpenSection: 'حساب المواقيت',
@@ -111,8 +112,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
   lastAudioPos: 0,
   quranScrollSpeed: 100,
-  lastReciterId: 'alafasy',
-  lastSurahReciterId: 'afs',
+  lastReciterId: 'husary',
+  lastSurahReciterId: 'husr',
   lastMushafPage: 1,
   lastRiwaya: 'hafs',
 
@@ -138,9 +139,45 @@ export function getSettings(): AppSettings {
   return { ...DEFAULT_SETTINGS, ...(store.store as AppSettings) };
 }
 
+/** أقصى ما يُحفَظ من المواقع السابقة — مطابقٌ للهاتف. */
+const MAX_LOCATION_HISTORY = 5;
+
+/**
+ * الموقع نفسه؟ بالإحداثيّات (نحو 1 كم) أو بالاسم والبلد معاً — الاسم يتبدّل بين «Salé» و«سلا».
+ * لا توسّع العتبة: الرباط وسلا بينهما نحو 4 كم، وبعتبة 0.05° (نحو 5.5 كم) حلّت سلا محلّ الرباط.
+ */
+export function samePlace(a: PlaceEntry, b: PlaceEntry): boolean {
+  return (Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lon - b.lon) < 0.012)
+    || (!!a.city && a.city.toLowerCase() === (b.city ?? '').toLowerCase()
+      && (a.country ?? '').toLowerCase() === (b.country ?? '').toLowerCase());
+}
+
+/**
+ * يدفع الموقع **السابق** إلى رأس سجلّ المواقع ويُخرج منه الجديد، عند كلّ تغييرٍ للموقع.
+ * كان السجلّ يُملأ بالموقع **الجديد** (مثل الهاتف قبل 2.3)، فبعد الانتقال من الرباط إلى سلا
+ * ظهرت سلا «موقعاً سابقاً» وضاعت الرباط. وهنا في `setSettings` يشمل كلّ مسار: الكشف
+ * التلقائيّ في main.ts، واختيار مدينةٍ أو إدخالاً يدويّاً أو استعادةً من الواجهة.
+ */
+function withLocationHistory(current: AppSettings, patch: Partial<AppSettings>): Partial<AppSettings> {
+  if (patch.lat == null || patch.lon == null || 'locationHistory' in patch) return patch;
+  const lat = Number(patch.lat);
+  const lon = Number(patch.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return patch;
+  const now: PlaceEntry = { city: patch.city ?? current.city, country: patch.country ?? current.country, lat, lon };
+  const hist = current.locationHistory ?? [];
+  if (current.lat == null || current.lon == null) {
+    return { ...patch, locationHistory: hist.filter((h) => !samePlace(h, now)) };
+  }
+  const prev: PlaceEntry = { city: current.city, country: current.country, lat: current.lat, lon: current.lon };
+  const next = samePlace(prev, now)
+    ? hist.filter((h) => !samePlace(h, now))
+    : [prev, ...hist.filter((h) => !samePlace(h, prev) && !samePlace(h, now))].slice(0, MAX_LOCATION_HISTORY);
+  return { ...patch, locationHistory: next };
+}
+
 export function setSettings(patch: Partial<AppSettings>): AppSettings {
   const current = getSettings();
-  const merged = { ...current, ...patch };
+  const merged = { ...current, ...withLocationHistory(current, patch) };
   store.set(merged as Record<string, unknown>);
   return merged;
 }

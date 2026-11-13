@@ -18,7 +18,7 @@ export const CREDIT_SOURCES: CreditSource[] = [
   { name: 'alquran.cloud', note: 'النصّ العثماني والتفسير الميسّر', url: 'https://alquran.cloud' },
   { name: 'everyayah.com', note: 'تلاوة القرآن آية-بآية (13 قارئاً)', url: 'https://everyayah.com' },
   { name: 'mp3quran.net', note: 'تلاوات السور الكاملة', url: 'https://mp3quran.net' },
-  { name: 'alquran.cloud (روايات)', note: 'نصّ القرآن بالروايات (ورش · قالون · الدوري)', url: 'https://alquran.cloud' },
+  { name: 'مجمّع الملك فهد · quran-api', note: 'نصوص روايات ورش وقالون والدوري، مضمَّنةً بترقيمٍ عثمانيّ', url: 'https://github.com/fawazahmed0/quran-api' },
   { name: 'Quran-PNG', note: 'صور صفحات مصحف المدينة (حفص)', url: 'https://github.com/SalehGNUTUX/Quran-PNG' },
   { name: 'QuranHub/quran-pages-images', note: 'صور مصحف ورش (مجمّع الملك فهد)', url: 'https://github.com/QuranHub/quran-pages-images' },
   { name: 'AlAdhan API', note: 'المواقيت والتاريخ الهجري', url: 'https://aladhan.com' },
@@ -26,6 +26,8 @@ export const CREDIT_SOURCES: CreditSource[] = [
   { name: 'GeoNames', note: 'إحداثيّات المدن والبلدات المغربيّة لاختيار الموقع دون إنترنت (CC BY 4.0)', url: 'https://www.geonames.org' },
   { name: 'OpenStreetMap', note: 'الأسماء العربيّة للبلدات المغربيّة في قاعدة المواقع (ODbL، places.LICENSE.txt)', url: 'https://www.openstreetmap.org/copyright' },
   { name: 'ipapi.co · ip-api.com', note: 'اكتشاف الموقع من عنوان الإنترنت', url: 'https://ipapi.co' },
-  { name: 'خطّ أميري', note: 'الخطّ القرآني للنصوص', url: 'https://www.amirifont.org' },
+  { name: 'خطّ أميري', note: 'الخطّ القرآني للنصوص ولرواية الدوري', url: 'https://www.amirifont.org' },
+  { name: 'الخطّ المغربيّ AALMAGHRIBI', note: 'خطّ روايتَي ورش وقالون — مؤسّسة محمّد السادس لنشر القرآن الكريم', url: 'https://github.com/SalehGNUTUX/GT-SQR/tree/main/fonts' },
+  { name: 'خطّ المجمّع العثمانيّ (حفص)', note: 'خطّ رواية حفص — مجمّع الملك فهد لطباعة المصحف الشريف', url: 'https://fonts.qurancomplex.gov.sa' },
   { name: 'خطّ Ubuntu Arabic', note: 'خطّ الواجهة', url: 'https://design.ubuntu.com/font' },
 ];

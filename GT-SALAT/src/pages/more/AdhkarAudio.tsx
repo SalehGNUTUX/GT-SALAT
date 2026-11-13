@@ -29,7 +29,7 @@ export const ADHKAR_AUDIO_TRACKS: AdhkarAudioTrack[] = [
   {
     id: 'adhkar-morning-audio',
     title: 'أذكار الصباح',
-    subtitle: 'التسجيل الكامل · نحو 21 دقيقة — يعمل دون إنترنت',
+    subtitle: 'التسجيل الكامل · نحو 22 دقيقة — يعمل دون إنترنت',
     file: 'audio/adhkar_morning.ogg',
     icon: '☀️',
     section: 'more/adhkar-morning',
@@ -37,7 +37,7 @@ export const ADHKAR_AUDIO_TRACKS: AdhkarAudioTrack[] = [
   {
     id: 'adhkar-evening-audio',
     title: 'أذكار المساء',
-    subtitle: 'التسجيل الكامل · نحو 21 دقيقة — يعمل دون إنترنت',
+    subtitle: 'التسجيل الكامل · نحو 22 دقيقة — يعمل دون إنترنت',
     file: 'audio/adhkar_evening.ogg',
     icon: '🌙',
     section: 'more/adhkar-evening',
@@ -45,7 +45,7 @@ export const ADHKAR_AUDIO_TRACKS: AdhkarAudioTrack[] = [
   {
     id: 'adhkar-sleep-audio',
     title: 'أذكار النوم',
-    subtitle: 'التسجيل الكامل · نحو 11 دقيقة — يعمل دون إنترنت',
+    subtitle: 'التسجيل الكامل · نحو 64 دقيقة — يعمل دون إنترنت',
     file: 'audio/adhkar_sleep.ogg',
     icon: '🛏️',
     section: 'more/adhkar-sleep',

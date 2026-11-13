@@ -72,9 +72,7 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   // ── Settings ────────────────────────────────────────────
   ipcMain.handle('settings:get', () => getSettings());
   ipcMain.handle('settings:set', (_e, patch) => {
-    // كلّ تغييرٍ للموقع — من الكشف أو من اختيار مدينةٍ أو من إدخالٍ يدويّ — يمرّ من هنا،
-    // فالسجلّ يُملأ في موضعٍ واحدٍ لا في كلّ نداءٍ على حدة.
-    rememberLocationIfChanged(patch);
+    // سجلّ المواقع السابقة يُكتب في `setSettings` نفسه (settings.ts)، فيشمل الكشف التلقائيّ في main.ts.
     const merged = setSettings(patch);
     const win = getMainWindow();
     win?.webContents.send('settings:changed', merged);
@@ -355,27 +353,3 @@ export function registerIpc(getMainWindow: () => BrowserWindow | null) {
   });
 }
 
-/** أقصى ما يُحفَظ من المواقع — أكثر من ذلك يصير قائمةً لا سجلّاً سريعاً. */
-const MAX_LOCATION_HISTORY = 5;
-
-/**
- * يُضيف الموقع الجديد إلى رأس السجلّ إن اختلف عن الحاليّ. المقارنة **بالإحداثيّات مقرّبةً
- * إلى منزلتين** (نفس دقّة `locationKey`) فلا يُسجَّل الموقع مرّتين لفارقِ أمتار.
- */
-function rememberLocationIfChanged(patch: Partial<AppSettings>): void {
-  if (patch.lat == null || patch.lon == null) return;
-  const cur = getSettings();
-  const lat = Number(patch.lat);
-  const lon = Number(patch.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-
-  const key = (a: number, b: number) => `${a.toFixed(2)}_${b.toFixed(2)}`;
-  const entry = {
-    city: patch.city ?? cur.city,
-    country: patch.country ?? cur.country,
-    lat,
-    lon,
-  };
-  const rest = (cur.locationHistory ?? []).filter((p) => key(p.lat, p.lon) !== key(lat, lon));
-  setSettings({ locationHistory: [entry, ...rest].slice(0, MAX_LOCATION_HISTORY) });
-}
