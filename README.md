@@ -11,7 +11,7 @@
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Platform: GNU/Linux](https://img.shields.io/badge/Platform-GNU%2FLinux-green.svg)]()
 [![Built with: Electron + React](https://img.shields.io/badge/Stack-Electron%20%2B%20React-61dafb.svg)]()
-[![Release: 2.5.0](https://img.shields.io/badge/Release-2.5.0-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.5.0)
+[![Release: 2.5.1](https://img.shields.io/badge/Release-2.5.1-teal.svg)](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.5.1)
 [![Android: GT-SALAT-PHONE](https://img.shields.io/badge/%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%87%D8%A7%D8%AA%D9%81-Android-3ddc84.svg)](https://salehgnutux.github.io/GT-SALAT-PHONE/)
 
 ---
@@ -177,27 +177,27 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 
 ## التحميل والتثبيت
 
-### 📥 روابط التحميل المباشر (الإصدار 2.5.0)
+### 📥 روابط التحميل المباشر (الإصدار 2.5.1)
 
 | الصيغة | التوزيعات المدعومة | الرابط | الحجم | المجموع الاختباري (SHA256) |
 |--------|-------------------|--------|-------|---------------------------|
-| **AppImage** | جميع التوزيعات | [GT-SALAT-2.5.0-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/GT-SALAT-2.5.0-x86_64.AppImage) | 149 MB | `7b843a53e340375d3aaf544bddae383698e0230208301661ee12a841d19b0f8c` |
-| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_2.5.0_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/GT-SALAT_2.5.0_amd64.deb) | 117 MB | `6421f70dba3de5941248e7171aa35cffdf1f725ded72fd88aac24d9ed6d0b180` |
-| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-2.5.0-1.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/gt-salat-2.5.0-1.x86_64.rpm) | 117 MB | `407524bed9787cc4fb85c4925a4a0c33ab70c5a17b7d5a774659ceb5d626b014` |
+| **AppImage** | جميع التوزيعات | [GT-SALAT-2.5.1-x86_64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/GT-SALAT-2.5.1-x86_64.AppImage) | 149 MB | `7b843a53e340375d3aaf544bddae383698e0230208301661ee12a841d19b0f8c` |
+| **DEB** | Debian / Ubuntu / Linux Mint | [GT-SALAT_2.5.1_amd64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/GT-SALAT_2.5.1_amd64.deb) | 117 MB | `6421f70dba3de5941248e7171aa35cffdf1f725ded72fd88aac24d9ed6d0b180` |
+| **RPM** | Fedora / RHEL / Rocky Linux | [gt-salat-2.5.1-1.x86_64.rpm](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/gt-salat-2.5.1-1.x86_64.rpm) | 117 MB | `407524bed9787cc4fb85c4925a4a0c33ab70c5a17b7d5a774659ceb5d626b014` |
 
 #### 🍓 ARM (راسبيري باي · حواسيب ARM · خوادم aarch64)
 
 | المعمارية | الصيغة | الملف | الحجم | sha256 |
 |-----------|--------|-------|-------|--------|
-| **aarch64 / arm64** | AppImage | [GT-SALAT-2.5.0-arm64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/GT-SALAT-2.5.0-arm64.AppImage) | 149 MB | `847a3a1c1335b1193a47a9720f986606583b5a82776e1ad6d21c42badb652953` |
-| **aarch64 / arm64** | DEB | [GT-SALAT_2.5.0_arm64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/GT-SALAT_2.5.0_arm64.deb) | 112 MB | `cf8d2f7b7bceb9be90e68d0a5d7f8166534a864c629e1e1d37f89474ccc1b777` |
-| **armv7l / armhf** (32-بت) | AppImage | [GT-SALAT-2.5.0-armv7l.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/GT-SALAT-2.5.0-armv7l.AppImage) | 138 MB | `51539b1855fa8b77167251fbcca4a3245311ead7ae927e9233b57002c7df9c47` |
-| **armv7l / armhf** (32-بت) | DEB | [GT-SALAT_2.5.0_armv7l.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.0/GT-SALAT_2.5.0_armv7l.deb) | 111 MB | `4dd8e37906ac132d62b36a02764e63599d3717f43c0fd0740c3832c06b40817f` |
+| **aarch64 / arm64** | AppImage | [GT-SALAT-2.5.1-arm64.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/GT-SALAT-2.5.1-arm64.AppImage) | 149 MB | `847a3a1c1335b1193a47a9720f986606583b5a82776e1ad6d21c42badb652953` |
+| **aarch64 / arm64** | DEB | [GT-SALAT_2.5.1_arm64.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/GT-SALAT_2.5.1_arm64.deb) | 112 MB | `cf8d2f7b7bceb9be90e68d0a5d7f8166534a864c629e1e1d37f89474ccc1b777` |
+| **armv7l / armhf** (32-بت) | AppImage | [GT-SALAT-2.5.1-armv7l.AppImage](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/GT-SALAT-2.5.1-armv7l.AppImage) | 138 MB | `51539b1855fa8b77167251fbcca4a3245311ead7ae927e9233b57002c7df9c47` |
+| **armv7l / armhf** (32-بت) | DEB | [GT-SALAT_2.5.1_armv7l.deb](https://github.com/SalehGNUTUX/GT-SALAT/releases/download/GT-SALAT-2.5.1/GT-SALAT_2.5.1_armv7l.deb) | 111 MB | `4dd8e37906ac132d62b36a02764e63599d3717f43c0fd0740c3832c06b40817f` |
 
 > اعرف معماريتك بـ`uname -m`. **ولا تتوفّر حزمة x86 32-بت (i386)**: مشروع Electron أوقف بناءها
 > للينكس منذ الإصدار 4 (2018)، فلا سبيل إليها إلا بمحرّكٍ قديمٍ بلا تحديثاتٍ أمنية.
 
-> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.5.0)
+> 🏷️ [صفحة الإصدارات الكاملة على GitHub](https://github.com/SalehGNUTUX/GT-SALAT/releases/tag/GT-SALAT-2.5.1)
 
 ### Debian / Ubuntu / Linux Mint
 
@@ -223,9 +223,9 @@ chmod +x GT-SALAT_*.AppImage
 
 ```bash
 # بعد التحميل، تحقق من سلامة الملف
-sha256sum GT-SALAT-2.5.0-x86_64.AppImage
-sha256sum GT-SALAT_2.5.0_amd64.deb
-sha256sum gt-salat-2.5.0-1.x86_64.rpm
+sha256sum GT-SALAT-2.5.1-x86_64.AppImage
+sha256sum GT-SALAT_2.5.1_amd64.deb
+sha256sum gt-salat-2.5.1-1.x86_64.rpm
 ```
 
 ---

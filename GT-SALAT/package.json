@@ -1,6 +1,6 @@
 {
   "name": "gt-salat",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "GT-SALAT — واجهة رسومية حديثة لتذكير الصلاة والأذكار والقرآن والمحتوى الإسلامي",
   "main": "dist-electron/main.js",
   "author": {
@@ -117,6 +117,9 @@
       "depends": [
         "libnotify4",
         "libgtk-3-0",
+        "libnss3",
+        "libgbm1",
+        "libdrm2",
         "libasound2 | libasound2t64"
       ],
       "artifactName": "${productName}_${version}_${arch}.deb"
@@ -124,7 +127,10 @@
     "rpm": {
       "depends": [
         "libnotify",
-        "gtk3"
+        "gtk3",
+        "nss",
+        "mesa-libgbm",
+        "libdrm"
       ],
       "artifactName": "${productName}-${version}.${arch}.rpm"
     }

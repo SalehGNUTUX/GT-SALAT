@@ -25,7 +25,7 @@ License:        GPL-3.0
 URL:            https://github.com/SalehGNUTUX/GT-SALAT
 BuildArch:      x86_64
 AutoReqProv:    no
-Requires:       gtk3, libnotify, nss, alsa-lib
+Requires:       gtk3, libnotify, nss, alsa-lib, mesa-libgbm, libdrm
 
 %description
 GT-SALAT — واجهة رسومية حديثة لتذكير الصلاة والأذكار والقرآن والمحتوى الإسلامي

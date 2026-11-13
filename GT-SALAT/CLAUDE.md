@@ -687,6 +687,17 @@ CSP مُطبَّقة في `electron/main.ts` عبر `session.webRequest.onHeader
    - alien يضع الـ RPM الناتج في مجلد الأب نسبةً لـ CWD، لذا تحتاج البحث بـ `find` لا افتراض المسار.
 3. إن غاب كلاهما يشرح للمستخدم: `sudo apt install alien` أو `sudo apt install rpm-build`.
 
+**اعتماديّات الحزم:** Electron يحتاج `libgbm.so.1` و`libdrm.so.2` و`libnss3`. لم تطلبها الحزم حتى 2.5.0، فكان RPM يُثبَّت على
+Fedora الأدنى ولا يقلع. صارت في `Requires` (`scripts/build-rpm.sh`) و`build.deb.depends`/`build.rpm.depends`. **اختبار RPM بلا Fedora
+ولا صلاحيّات جذر:** صورة `Fedora-Container-Base-Generic` الرسميّة (OCI) تُفكّ بـ`unshare --user --map-root-user tar -xf`، ثمّ
+`bwrap --unshare-user --uid 0 --gid 0 --cap-add ALL --bind root / --dev /dev --proc /proc --ro-bind /etc/resolv.conf …`
+و`dnf install ./الحزمة.rpm`، و`ldd /opt/GT-SALAT/gt-salat | grep "not found"`، وXvfb + `xwd` للصورة. يفشل `cups-filesystem`
+وحده (ملكيّة مجموعةٍ لا تُنقل في المساحة المعزولة) وهو من العزل. ضعها خارج `/tmp` إن ضاق (كلّ نسخةٍ نحو 1.3 غيغابايت).
+
+**مزلق (2.5):** `electron-builder` في الخلفيّة (أو في سلسلةٍ مع غيره) قد يُوقَف بإشارة إيقاف (رمز الخروج 147) عند حزم deb لـARM،
+فتبقى الحزم ناقصة. شغّله في جلسةٍ مستقلّة: `setsid -w npx electron-builder --linux deb --arm64 --armv7l < /dev/null`.
+و`scripts/build-all.sh` يقبل صيغةً واحدةً في النداء (`appimage` ثمّ `deb`).
+
 **مزلق:** `fakeroot`/`alien` قد يتركان في `release/` ملفّاتٍ يملكها المستخدم الجذر، فيفشل البناء
 التالي بـ`Permission denied` ولا يُجدي `rm -rf` بلا صلاحيات. الحلّ بلا sudo: أعِد **تسمية** المجلّد
 (`mv release release-old`) — النقل داخل مجلّدٍ تملكه لا يحتاج حذف محتوياته.
