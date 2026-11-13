@@ -166,7 +166,7 @@
 
 GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذان في وقته والقبلة والودجت، وبنكهة حرّة بلا خدمات Google:
 **[salehgnutux.github.io/GT-SALAT-PHONE](https://salehgnutux.github.io/GT-SALAT-PHONE/)** — [المستودع](https://github.com/SalehGNUTUX/GT-SALAT-PHONE) ·
-أحدث إصدار **[v2.3](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/tag/v2.3)** (13 نونبر 2026)
+أحدث إصدار **[v2.3.1](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/tag/v2.3.1)** (13 نونبر 2026)
 
 ---
 

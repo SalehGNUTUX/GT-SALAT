@@ -40,12 +40,12 @@ GT-SALAT متوفّر لأندرويد بنفس المحتوى، مع الأذا
 
 **[salehgnutux.github.io/GT-SALAT-PHONE](https://salehgnutux.github.io/GT-SALAT-PHONE/)** — [المستودع](https://github.com/SalehGNUTUX/GT-SALAT-PHONE)
 
-أحدث إصدار: **[v2.3](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/tag/v2.3)** (13 نونبر 2026)
+أحدث إصدار: **[v2.3.1](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/tag/v2.3.1)** (13 نونبر 2026)
 
 | النكهة | الوصف | التحميل |
 |--------|-------|---------|
-| **FOSS** | حرّةٌ بالكامل، بلا خدمات Google | [GT-SALAT-v2.3-foss.apk](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.3/GT-SALAT-v2.3-foss.apk) · 57.9 MB |
-| **كاملة** | بخدمات الموقع من Google | [GT-SALAT-v2.3-full.apk](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.3/GT-SALAT-v2.3-full.apk) · 58.3 MB |
+| **FOSS** | حرّةٌ بالكامل، بلا خدمات Google | [GT-SALAT-v2.3.1-foss.apk](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.3.1/GT-SALAT-v2.3.1-foss.apk) · 57.9 MB |
+| **كاملة** | بخدمات الموقع من Google | [GT-SALAT-v2.3.1-full.apk](https://github.com/SalehGNUTUX/GT-SALAT-PHONE/releases/download/v2.3.1/GT-SALAT-v2.3.1-full.apk) · 58.3 MB |
 
 > النسختان تتبادلان **حزم النسخ الاحتياطي** و**ملفّات المحتوى** و**التنزيلات** بنفس التخطيط.
 
